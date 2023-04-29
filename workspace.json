@@ -12,6 +12,7 @@
     "diffusionary": "games/diffusionary",
     "explorers-cafe-web": "apps/explorers-cafe-web",
     "explorers-cafe-web-e2e": "apps/explorers-cafe-web-e2e",
+    "explorers-chat-web": "apps/explorers-chat-web",
     "explorers-company-web": "apps/explorers-company-web",
     "explorers-game-web": "apps/explorers-game-web",
     "explorers-game-web-e2e": "apps/explorers-game-web-e2e",
