@@ -12,6 +12,8 @@
     "diffusionary": "games/diffusionary",
     "explorers-cafe-web": "apps/explorers-cafe-web",
     "explorers-cafe-web-e2e": "apps/explorers-cafe-web-e2e",
+    "explorers-game-web": "apps/explorers-game-web",
+    "explorers-game-web-e2e": "apps/explorers-game-web-e2e",
     "infra": "infra",
     "little-vigilante": "games/little-vigilante",
     "local-generator-plugin": "tools/local-generator-plugin",
