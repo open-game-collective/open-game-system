@@ -17,6 +17,7 @@
     "explorers-game-web": "apps/explorers-game-web",
     "explorers-game-web-e2e": "apps/explorers-game-web-e2e",
     "explorers-store-web": "apps/explorers-store-web",
+    "explorers-watch-web": "apps/explorers-watch-web",
     "infra": "infra",
     "little-vigilante": "games/little-vigilante",
     "local-generator-plugin": "tools/local-generator-plugin",
