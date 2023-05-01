@@ -1,4 +1,5 @@
 {
+  "name": "sailors",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "games/sailors/src",
   "projectType": "library",

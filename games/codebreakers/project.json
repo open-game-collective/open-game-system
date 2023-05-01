@@ -1,4 +1,5 @@
 {
+  "name": "codebreakers",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "games/codebreakers/src",
   "projectType": "library",

@@ -1,4 +1,5 @@
 {
+  "name": "little-vigilante",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "games/little-vigilante/src",
   "projectType": "library",

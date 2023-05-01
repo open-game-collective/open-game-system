@@ -1,4 +1,5 @@
 {
+  "name": "web",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/web/src",
   "projectType": "application",
@@ -16,7 +17,11 @@
         "polyfills": "apps/web/src/polyfills.ts",
         "tsConfig": "apps/web/tsconfig.app.json",
         "assets": [
-          { "glob": "**/*", "input": "static", "output": "assets" },
+          {
+            "glob": "**/*",
+            "input": "static",
+            "output": "assets"
+          },
           "apps/web/src/favicon.ico",
           "apps/web/src/assets",
           "apps/web/src/_redirects"
