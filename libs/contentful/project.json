@@ -1,5 +1,4 @@
 {
-  "name": "contentful",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/contentful/src",
   "projectType": "library",
@@ -7,9 +6,7 @@
     "codegen": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "contentful-typescript-codegen --output @types/generated/contentful.d.ts"
-        ],
+        "commands": ["contentful-typescript-codegen --output @types/generated/contentful.d.ts"],
         "cwd": "libs/contentful"
       }
     },

@@ -44,17 +44,6 @@
         "style": "none",
         "linter": "eslint"
       }
-    },
-    "@nx/react": {
-      "application": {
-        "babel": true
-      }
-    },
-    "@nx/next": {
-      "application": {
-        "style": "css",
-        "linter": "eslint"
-      }
     }
   },
   "plugins": ["@nxtensions/astro"]

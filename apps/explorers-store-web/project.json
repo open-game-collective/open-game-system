@@ -1,5 +1,4 @@
 {
-  "name": "explorers-store-web",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/explorers-store-web/src",

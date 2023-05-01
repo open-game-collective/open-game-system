@@ -1,68 +1,32 @@
 {
-  "name": "explorers-game-web",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/explorers-game-web",
   "projectType": "application",
+  "sourceRoot": "apps/explorers-game-web/src",
   "targets": {
     "build": {
-      "executor": "@nx/next:build",
-      "outputs": ["{options.outputPath}"],
-      "defaultConfiguration": "production",
-      "options": {
-        "root": "apps/explorers-game-web",
-        "outputPath": "dist/apps/explorers-game-web"
-      },
-      "configurations": {
-        "development": {
-          "outputPath": "apps/explorers-game-web"
-        },
-        "production": {}
-      }
+      "outputs": ["dist/apps/explorers-game-web"],
+      "executor": "@nxtensions/astro:build",
+      "options": {}
     },
-    "serve": {
-      "executor": "@nx/next:server",
-      "defaultConfiguration": "development",
-      "options": {
-        "buildTarget": "explorers-game-web:build",
-        "dev": true
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "explorers-game-web:build:development",
-          "dev": true
-        },
-        "production": {
-          "buildTarget": "explorers-game-web:build:production",
-          "dev": false
+    "dev": {
+      "executor": "@nxtensions/astro:dev",
+      "options": {}
+    },
+    "preview": {
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "self"
         }
-      }
+      ],
+      "executor": "@nxtensions/astro:preview",
+      "options": {}
     },
-    "export": {
-      "executor": "@nx/next:export",
-      "options": {
-        "buildTarget": "explorers-game-web:build:production"
-      }
+    "check": {
+      "executor": "@nxtensions/astro:check"
     },
-    "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
-      "options": {
-        "jestConfig": "apps/explorers-game-web/jest.config.ts",
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "codeCoverage": true
-        }
-      }
-    },
-    "lint": {
-      "executor": "@nx/linter:eslint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/explorers-game-web/**/*.{ts,tsx,js,jsx}"]
-      }
+    "sync": {
+      "executor": "@nxtensions/astro:sync"
     }
   },
   "tags": []

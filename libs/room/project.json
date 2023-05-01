@@ -1,5 +1,4 @@
 {
-  "name": "room",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/room/src",
   "projectType": "library",

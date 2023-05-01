@@ -1,5 +1,4 @@
 {
-  "name": "trivia-jam",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "games/trivia-jam/src",
   "projectType": "library",
