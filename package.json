@@ -11,6 +11,7 @@
     "postinstall": "node ./tools/scripts/patch-nx-cli.js"
   },
   "dependencies": {
+    "@astrojs/netlify": "^2.2.2",
     "@colyseus/arena": "^0.14.24",
     "@colyseus/monitor": "^0.14.22",
     "@dicebear/collection": "^5.3.0",
@@ -169,7 +170,7 @@
     "@types/uuid": "^9.0.1",
     "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.29.0",
-    "astro": "^2.0.0",
+    "astro": "^2.3.2",
     "babel-jest": "27.5.1",
     "babel-loader": "8.1.0",
     "chromatic": "^6.11.4",
