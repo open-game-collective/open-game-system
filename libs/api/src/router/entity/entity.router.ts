@@ -1,7 +1,44 @@
-import { EntityPropsSchema } from '@explorers-club/schema';
-import { protectedProcedure, publicProcedure, router } from '../../trpc';
-import { generateSnowflakeId } from '../../ecs';
+import { EntityListEvent } from '@explorers-club/api-client';
+import {
+  ConnectionCommand,
+  ConnectionContext,
+  ConnectionMachine,
+  ConnectionStateSchema,
+  Entity,
+  SnowflakeId,
+} from '@explorers-club/schema';
+import { from, interval } from 'rxjs';
+import { AnyFunction, Machine } from 'xstate';
+import { TICK_RATE } from '../../ecs.constants';
+import { publicProcedure, router } from '../../trpc';
 import { world } from '../../world';
+import { Observer, observable } from '@trpc/server/observable';
+
+const machineMap: { connection: ConnectionMachine } = {
+  connection: Machine<
+    ConnectionContext,
+    ConnectionStateSchema,
+    ConnectionCommand
+  >({
+    id: 'connectionMachine',
+    initial: 'inactive',
+    type: 'parallel',
+    states: {
+      Initialized: {
+        states: {
+          True: {},
+          False: {},
+        },
+      },
+      Nested: {
+        states: {
+          On: {},
+          Off: {},
+        },
+      },
+    },
+  }),
+};
 
 export const entityRouter = router({
   // create: protectedProcedure.input(EntityPropsSchema).mutation(({ input }) => {
@@ -38,30 +75,30 @@ export const entityRouter = router({
       }
 
       // TODO cleanup these subscriptions
-      const unsub = entity.subscribe((event) => {
-        if (event.type === 'CHANGE') {
-          const previousHasAccess = myEntities.has(entity.id);
-          const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
-          if (!previousHasAccess && nowHasAccess) {
-            myEntities.set(entity.id, entity);
-            addedIds.add(entity.id);
-            removedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
-          } else if (previousHasAccess && !nowHasAccess) {
-            myEntities.delete(entity.id);
-            removedIds.add(entity.id);
-            addedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
-          }
+      // const unsub = entity.subscribe((event) => {
+      //   if (event.type === 'CHANGE') {
+      //     const previousHasAccess = myEntities.has(entity.id);
+      //     const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+      //     if (!previousHasAccess && nowHasAccess) {
+      //       myEntities.set(entity.id, entity);
+      //       addedIds.add(entity.id);
+      //       removedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
+      //     } else if (previousHasAccess && !nowHasAccess) {
+      //       myEntities.delete(entity.id);
+      //       removedIds.add(entity.id);
+      //       addedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
+      //     }
 
-          let deltas = entityDeltas.get(entity.id);
-          if (!deltas) {
-            deltas = [];
-            entityDeltas.set(entity.id, deltas);
-          }
-          deltas.push(event.delta);
-          changedIds.add(entity.id);
-        }
-      });
-      myEntitySubscriptions.set(entity.id, unsub);
+      //     let deltas = entityDeltas.get(entity.id);
+      //     if (!deltas) {
+      //       deltas = [];
+      //       entityDeltas.set(entity.id, deltas);
+      //     }
+      //     deltas.push(event.delta);
+      //     changedIds.add(entity.id);
+      //   }
+      // });
+      // myEntitySubscriptions.set(entity.id, unsub);
     });
 
     const unsubscribeOnRemove = world.onEntityRemoved.add((entity) => {
@@ -75,46 +112,6 @@ export const entityRouter = router({
         unsub();
       }
     });
-
-    // baseEntityIndex$.subscribe((event) => {
-    //   if (event.type === 'ADD' || event.type === 'REMOVE') {
-    //     const entity = event.data;
-
-    //     const previousHasAccess = myEntities.has(entity.id);
-    //     const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
-
-    //     if (nowHasAccess) {
-    //       myEntities.set(entity.id, entity);
-    //     } else {
-    //       myEntities.delete(entity.id);
-    //     }
-
-    //     if (previousHasAccess && !nowHasAccess) {
-    //       removedIds.add(entity.id);
-
-    //       // Unsubscribe from updates
-    //       const sub = myEntitySubscriptions.get(entity.id);
-    //       if (sub) {
-    //         sub();
-    //       }
-    //     } else if (!previousHasAccess && nowHasAccess) {
-    //       addedIds.add(entity.id);
-    //     }
-    //   } else if (event.type === 'CHANGE') {
-    //     const entityId = event.data.id;
-
-    //     if (myEntities.has(entityId)) {
-    //       let changedPropsSet = changedProps.get(entityId);
-    //       if (!changedPropsSet) {
-    //         changedPropsSet = new Set();
-    //         changedProps.set(entityId, changedPropsSet);
-    //       }
-    //       // TODO store the full delta
-    //       changedPropsSet.add(event.delta.property);
-    //       changedIds.add(entityId);
-    //     }
-    //   }
-    // });
 
     const flush = (emit: Observer<EntityListEvent, unknown>) => {
       if (addedIds.size || removedIds.size || changedIds.size) {
@@ -134,17 +131,17 @@ export const entityRouter = router({
         });
 
         emit.next({
-          addedEntities: addedEntities.map(removeFunctions),
-          removedEntities: removedEntities.map(removeFunctions),
+          addedEntities,
+          removedEntities,
           changedEntities,
         });
 
         addedIds.clear();
         removedIds.clear();
 
-        for (const id in changedIds) {
-          entityDeltas.get(id)!.length = 0;
-        }
+        // for (const id in changedIds) {
+        //   entityDeltas.get(id)!.length = 0;
+        // }
         changedIds.clear();
       }
     };
@@ -186,29 +183,29 @@ export const entityRouter = router({
 // import { protectedProcedure, publicProcedure, router } from '../../trpc';
 // import { world } from '../../world';
 
-// type NonFunctionKeys<T> = {
-//   [K in keyof T]: T[K] extends (...args: any[]) => any ? never : K;
-// }[keyof T];
+type NonFunctionKeys<T> = {
+  [K in keyof T]: T[K] extends (...args: any[]) => any ? never : K;
+}[keyof T];
 
-// type OmitFunctions<T> = Pick<T, NonFunctionKeys<T>>;
+type OmitFunctions<T> = Pick<T, NonFunctionKeys<T>>;
 
-// function isNonFunctionKey<T>(key: keyof T, obj: T): key is NonFunctionKeys<T> {
-//   return typeof obj[key] !== 'function';
-// }
+function isNonFunctionKey<T>(key: keyof T, obj: T): key is NonFunctionKeys<T> {
+  return typeof obj[key] !== 'function';
+}
 
-// function removeFunctions<T>(obj: T): OmitFunctions<T> {
-//   const result = {} as OmitFunctions<T>;
+function removeFunctions<T>(obj: T): OmitFunctions<T> {
+  const result = {} as OmitFunctions<T>;
 
-//   for (const key in obj) {
-//     console.log(key);
-//     console.log(obj[key]);
-//     if (isNonFunctionKey(key, obj)) {
-//       result[key] = obj[key];
-//     }
-//   }
+  for (const key in obj) {
+    console.log(key);
+    console.log(obj[key]);
+    if (isNonFunctionKey(key, obj)) {
+      result[key] = obj[key];
+    }
+  }
 
-//   return result;
-// }
+  return result;
+}
 
 // // const [baseEntityIndex, baseEntityIndex$] = createArchetypeIndex(
 // //   world.with('id', 'schema'),
@@ -225,12 +222,12 @@ export const entityRouter = router({
 //   changedEntities: { id: SnowflakeId; patches: Patch[] }[];
 // };
 
-// const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
-//   // todo implement access checks here
-//   // ie (if room === "public") return true
-//   // each entity schema can have it's own function for implement access control
-//   return true;
-// };
+const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
+  // todo implement access checks here
+  // ie (if room === "public") return true
+  // each entity schema can have it's own function for implement access control
+  return true;
+};
 
 // export const entityRouter = router({
 //   create: protectedProcedure.input(EntityPropsSchema).mutation(({ input }) => {

@@ -1,16 +1,10 @@
-import {
-  Entity,
-  EntitySchemas,
-  SchemaType,
-  SnowflakeId,
-  UserEntityDeltaSchema,
-} from '@explorers-club/schema';
-import { FromArchetype, FromSubject } from '@explorers-club/utils';
-import { ArchetypeBucket, World } from 'miniplex';
+import { Entity, EntitySchemas, SchemaType, SnowflakeId } from '@explorers-club/schema';
+import { FromSubject } from '@explorers-club/utils';
+import { World } from 'miniplex';
 import { Observable, Subject } from 'rxjs';
 import { AnyFunction } from 'xstate';
 import { z } from 'zod';
-import { EntityChangeDelta, EntityIndexEvent } from './events';
+import { EntityIndexEvent } from './events';
 
 type IndexFunction = (entity: Entity) => string;
 
@@ -59,13 +53,14 @@ export const createSchemaIndex = <TKey extends IndexKey>(
     });
 
     const entitySubscription = entity.subscribe((event) => {
-      if (event.type === 'CHANGE') {
-        subject.next({
-          type: 'CHANGE',
-          data: entity,
-          delta: event.delta as EntityChangeDelta<TEntity>,
-        });
-      }
+      // TODO handle change
+      // if (event.type === 'CHANGE') {
+      //   subject.next({
+      //     type: 'CHANGE',
+      //     data: entity,
+      //     delta: event.delta as EntityChangeDelta<TEntity>,
+      //   });
+      // }
     });
 
     entitySubscriptionsMap.set(entity.id, entitySubscription);

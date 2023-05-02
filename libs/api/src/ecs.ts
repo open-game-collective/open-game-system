@@ -4,11 +4,11 @@ import {
   InitialEntityProps,
   SnowflakeId,
 } from '@explorers-club/schema';
+import { enablePatches, produceWithPatches } from 'immer';
 import { InterpreterFrom, interpret } from 'xstate';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
 import { world } from './world';
-import { produce, enablePatches, produceWithPatches } from 'immer';
 enablePatches();
 
 export function getCurrentTick(): number {
@@ -66,7 +66,7 @@ const READONLY_ENTITY_PROPS = new Set<string | symbol>([
 export const createEntity = <TEntity extends Entity>(
   entityProps: InitialEntityProps<TEntity>
 ) => {
-  type PropNames = keyof TEntity;
+  // type PropNames = keyof TEntity;
   type TCallback = Parameters<TEntity['subscribe']>[0];
   type TEvent = Parameters<TCallback>[0];
   type TMachine = EntityMachineMap[typeof entityProps.schema]['machine'];
@@ -106,10 +106,9 @@ export const createEntity = <TEntity extends Entity>(
 
   /**
    * The send method collects events to be processed on central queues
-   * @param command 
+   * @param command
    */
   const send = (command: TCommand) => {
-
     next({
       type: 'SEND_TRIGGER',
       command,

@@ -1,5 +1,4 @@
 import { apiRouter, createContext } from '@explorers-club/api';
-import { environment } from './environments/environment';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import * as ws from 'ws';
 const wss = new ws.Server({

@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 import { type inferAsyncReturnType } from '@trpc/server';
 import { IncomingMessage } from 'http';
 import { v4 as uuidv4 } from 'uuid';
-import { createEntity } from './ecs';
+import { createEntity, generateSnowflakeId } from './ecs';
 import { world } from './world';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
@@ -62,6 +62,7 @@ export const createContext = async (opts: {
   res: WebSocket;
 }) => {
   const socket = opts.res;
+  // console.log(opts.req);
 
   const connectionEntity = createEntity<ConnectionEntity>({
     schema: 'connection',

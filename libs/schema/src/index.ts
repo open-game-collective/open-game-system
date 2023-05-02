@@ -151,16 +151,20 @@ export const LoginInputSchema = z.object({
   password: z.string().min(5),
 });
 
+// export const SchemaLiteralsSchema = z.union([
+//   // UserSchemaTypeLiteral,
+//   // RoomSchemaTypeLiteral,
+//   // SessionSchemaTypeLiteral,
+//   ConnectionSchemaTypeLiteral,
+//   // StagingRoomSchemaTypeLiteral,
+//   // LittleVigilanteRoomSchemaTypeLiteral,
+//   // UserSchemaTypeLiteral,
+//   // SessionSchemaTypeLiteral,
+//   // DeviceSchemaTypeLiteral,
+// ]);
 export const SchemaLiteralsSchema = z.union([
-  UserSchemaTypeLiteral,
-  RoomSchemaTypeLiteral,
-  SessionSchemaTypeLiteral,
   ConnectionSchemaTypeLiteral,
-  // StagingRoomSchemaTypeLiteral,
-  // LittleVigilanteRoomSchemaTypeLiteral,
-  // UserSchemaTypeLiteral,
-  // SessionSchemaTypeLiteral,
-  // DeviceSchemaTypeLiteral,
+  SessionSchemaTypeLiteral,
 ]);
 export type SchemaType = z.infer<typeof SchemaLiteralsSchema>;
 
@@ -185,7 +189,7 @@ const DisconnectEventSchema = z.object({ type: z.literal('DISCONNECT') });
 const ReconnectEventSchema = z.object({ type: z.literal('RECONNECT') });
 
 // Create a union schema that combines the event schemas
-const ConnectionEventSchema = z.union([
+export const ConnectionEventSchema = z.union([
   DisconnectEventSchema,
   ReconnectEventSchema,
 ]);
@@ -211,38 +215,38 @@ const ConnectionEventSchema = z.union([
 //   ConnectionEventSchema
 // );
 
-const EntityBaseSchema = z.object({
-  id: SnowflakeIdSchema,
-});
-export type EntityBase = z.infer<typeof EntityBaseSchema>;
+// const EntityBaseSchema = z.object({
+//   id: SnowflakeIdSchema,
+// });
+// export type EntityBase = z.infer<typeof EntityBaseSchema>;
 
-const UserEntitySchema = EntityBaseSchema.extend({
-  schema: UserSchemaTypeLiteral,
-});
+// const UserEntitySchema = EntityBaseSchema.extend({
+//   schema: UserSchemaTypeLiteral,
+// });
 
-type UserEntity = z.infer<typeof UserEntitySchema>;
+// type UserEntity = z.infer<typeof UserEntitySchema>;
 
 // // Define a custom Zod schema for the send function
-// const SendFunctionSchema = <TEvent extends AnyEventObject>(
-//   eventSchema: z.ZodSchema<TEvent>
-// ) => z.function().args(eventSchema).returns(z.void());
+const SendFunctionSchema = <TEvent extends AnyEventObject>(
+  eventSchema: z.ZodSchema<TEvent>
+) => z.function().args(eventSchema).returns(z.void());
 
-// const CallbackFunctionSchema = <
-//   TEntity extends z.ZodRawShape,
-//   TCommand extends AnyEventObject
-// >(
-//   entitySchema: z.ZodObject<TEntity>,
-//   commandSchema: z.ZodSchema<TCommand>
-// ) =>
-//   z
-//     .function()
-//     .args(EntityEventSchema(entitySchema, commandSchema))
-//     .returns(z.void());
+const CallbackFunctionSchema = <
+  TEntity extends z.ZodRawShape,
+  TCommand extends AnyEventObject
+>(
+  entitySchema: z.ZodObject<TEntity>,
+  commandSchema: z.ZodSchema<TCommand>
+) =>
+  z
+    .function()
+    .args(EntityEventSchema(entitySchema, commandSchema))
+    .returns(z.void());
 
-// export type InitialEntityProps<TEntity extends Entity> = Omit<
-//   TEntity,
-//   'id' | 'subscribe' | 'send' | 'states' | 'command' | 'context' | 'children'
-// >;
+export type InitialEntityProps<TEntity extends Entity> = Omit<
+  TEntity,
+  'id' | 'subscribe' | 'send' | 'states' | 'command' | 'context' | 'children'
+>;
 
 // export type SyncedEntityProps<TEntity extends Entity> = Omit<
 //   TEntity,
@@ -257,30 +261,28 @@ type UserEntity = z.infer<typeof UserEntitySchema>;
 //   return typeStateSchema.
 // }
 
-// const EntityBaseSchema = <
-//   TEntityProps extends z.ZodRawShape,
-//   TCommand extends AnyEventObject,
-//   TTypeState extends Typestate<any>
-// >(
-//   entityPropsSchema: z.ZodObject<TEntityProps>,
-//   commandSchema: z.ZodSchema<TCommand>,
-//   typeStateSchema: z.ZodSchema<TTypeState>
-// ) =>
-//   entityPropsSchema.merge(
-//     z.object({
-//       id: SnowflakeIdSchema,
-//       send: SendFunctionSchema(commandSchema),
-//       states: z.custom<TTypeState["value"]>(),
-//       context: z.custom<TTypeState["context"]>(), //
-//       command: commandSchema,
-//       // queue: z.array(commandSchema),
-//       // machine: z.any() as z.ZodType<AnyStateMachine>,
-//       subscribe: z
-//         .function()
-//         .args(CallbackFunctionSchema(entityPropsSchema, commandSchema))
-//         .returns(z.function().returns(z.void())), // The subscribe function returns an unsubscribe function
-//     })
-//   );
+const EntityBaseSchema = <
+  TEntityProps extends z.ZodRawShape,
+  TCommand extends AnyEventObject
+>(
+  entityPropsSchema: z.ZodObject<TEntityProps>,
+  commandSchema: z.ZodSchema<TCommand>,
+  stateSchema: z.ZodObject<z.ZodRawShape>,
+  contextSchema: z.ZodSchema<any>
+) =>
+  entityPropsSchema.merge(
+    z.object({
+      id: SnowflakeIdSchema,
+      send: SendFunctionSchema(commandSchema),
+      states: stateSchema,
+      context: contextSchema,
+      command: commandSchema,
+      subscribe: z
+        .function()
+        .args(CallbackFunctionSchema(entityPropsSchema, commandSchema))
+        .returns(z.function().returns(z.void())), // The subscribe function returns an unsubscribe function
+    })
+  );
 
 const DeviceIdSchema = z.string().uuid();
 
@@ -355,7 +357,8 @@ type StateSchemaFromStateValue<T> = StateSchema & {
   states: NestedStates<T>;
 };
 
-type ConnectionStateSchema = StateSchemaFromStateValue<ConnectionStateValue>;
+export type ConnectionStateSchema =
+  StateSchemaFromStateValue<ConnectionStateValue>;
 
 const ConnectionInitializeCommandSchema =
   ConnectionInitializeInputSchema.extend({
@@ -385,53 +388,56 @@ interface MyStateSchema {
 
 // todo, how do i expose typed interfaces here for the services?
 // Create the state machine
-const connectionMachine = Machine<MyContext, MyStateSchema, MyEvent>({
-  id: 'connectionMachine',
-  initial: 'inactive',
-  context: {
-    count: 0,
-  },
-  states: {
-    inactive: {
-      on: {
-        INCREMENT: {
-          target: 'active',
-          actions: assign<MyContext>({
-            count: (context, event) => context.count + 1,
-          }),
-        },
-      },
-    },
-    active: {
-      on: {
-        DECREMENT: {
-          target: 'inactive',
-          actions: assign({
-            count: (context, event) => context.count - 1,
-          }),
-        },
-      },
-    },
-  },
-});
+// const connectionMachine = Machine<MyContext, MyStateSchema, MyEvent>({
+//   id: 'connectionMachine',
+//   initial: 'inactive',
+//   context: {
+//     count: 0,
+//   },
+//   states: {
+//     inactive: {
+//       on: {
+//         INCREMENT: {
+//           target: 'active',
+//           actions: assign<MyContext>({
+//             count: (context, event) => context.count + 1,
+//           }),
+//         },
+//       },
+//     },
+//     active: {
+//       on: {
+//         DECREMENT: {
+//           target: 'inactive',
+//           actions: assign({
+//             count: (context, event) => context.count - 1,
+//           }),
+//         },
+//       },
+//     },
+//   },
+// });
+// type ConnectionMachine = typeof connectionMachine;
 
 // export type SessionMachineSchema = MachineSchema<SessionContext, SessionEvent>;
-// export type ConnectionMachine = StateMachine<
-//   ConnectionContext,
-//   ConnectionStateSchema,
-//   ConnectionCommand
-// >;
+export type ConnectionMachine = StateMachine<
+  ConnectionContext,
+  ConnectionStateSchema,
+  ConnectionCommand
+>;
 // export type ConnectionState = StateFrom<ConnectionMachine>;
 // export type ConnectionInterpreter = InterpreterFrom<ConnectionMachine>;
 
-export type SessionContext = {
-  foo?: string;
-};
+// export type SessionContext = {
+//   foo?: string;
+// };
 
-export type SessionTypeState = {
-  value: 'Active';
-  context: MakeRequired<SessionContext, 'foo'>;
-};
+// export type SessionTypeState = {
+//   value: 'Active';
+//   context: MakeRequired<SessionContext, 'foo'>;
+// };
+export type SessionStateSchema = StateSchemaFromStateValue<SessionStateValue>;
+
 export type SessionMachine = StateMachine<
   SessionContext,
   SessionStateSchema,
@@ -528,7 +534,7 @@ const EntityEventSchema = <
     EntitySendCompleteEventSchema(commandSchema),
     EntitySendErrorEventSchema(commandSchema),
     EntitySendTriggerEventSchema(commandSchema),
-    EntityPropChangeEventSchema(entitySchema),
+    // EntityPropChangeEventSchema(entitySchema),
     EntityTransitionStateEventSchema,
   ]);
 
@@ -658,9 +664,11 @@ export type RoomTypeState = z.infer<typeof RoomTypeStateSchema>;
 
 export type RoomCommand = z.infer<typeof RoomCommandSchema>;
 
-const RoomEntitySchema = EntityBaseSchema.extend({
-  schema: RoomSchemaTypeLiteral,
-});
+// EntityBaseSchema()
+
+// const RoomEntitySchema = EntityBaseSchema.extend({
+//   schema: RoomSchemaTypeLiteral,
+// });
 
 // EntityBaseSchema
 
@@ -676,36 +684,37 @@ const RoomEntitySchema = EntityBaseSchema.extend({
 // export type RoomEntity = z.infer<typeof RoomEntitySchema>;
 
 // // ------------ Session Entity ------------
-// const SessionContextSchema = z.object({
-//   foo: z.string(),
-// });
+const SessionContextSchema = z.object({
+  foo: z.string(),
+});
+export type SessionContext = z.infer<typeof SessionContextSchema>;
 
-// const SessionEntityPropsSchema = z.object({
-//   schema: SessionSchemaTypeLiteral,
-//   userId: UserIdSchema,
-// });
+const SessionEntityPropsSchema = z.object({
+  schema: SessionSchemaTypeLiteral,
+  userId: UserIdSchema,
+});
 
-// const SessionCommandSchema = z.union([
-//   z.object({
-//     type: z.literal('RECONNECT'),
-//   }),
-//   z.object({
-//     type: z.literal('DISCONNECT'),
-//   }),
-// ]);
-// export type SessionCommand = z.infer<typeof SessionCommandSchema>;
+const SessionCommandSchema = z.union([
+  z.object({
+    type: z.literal('RECONNECT'),
+  }),
+  z.object({
+    type: z.literal('DISCONNECT'),
+  }),
+]);
+export type SessionCommand = z.infer<typeof SessionCommandSchema>;
 
-// const SessionStateValueSchema = z.object({
-//   Active: z.enum(['True', 'False']),
-// });
-// type SessionStateValue = z.infer<typeof SessionStateValueSchema>;
+const SessionStateValueSchema = z.object({
+  Active: z.enum(['True', 'False']),
+});
+export type SessionStateValue = z.infer<typeof SessionStateValueSchema>;
 
-// export const SessionEntitySchema = EntityBaseSchema(
-//   SessionEntityPropsSchema,
-//   SessionCommandSchema,
-//   SessionContextSchema,
-//   SessionStateValueSchema
-// );
+export const SessionEntitySchema = EntityBaseSchema(
+  SessionEntityPropsSchema,
+  SessionCommandSchema,
+  SessionStateValueSchema,
+  SessionContextSchema
+);
 
 // export interface SessionStateSchema extends StateSchema<SessionContext> {
 //   states: {
@@ -723,7 +732,7 @@ const RoomEntitySchema = EntityBaseSchema.extend({
 //   SessionCommand
 // >;
 
-// export type SessionEntity = z.infer<typeof SessionEntitySchema>;
+export type SessionEntity = z.infer<typeof SessionEntitySchema>;
 
 // ------------ Connection Entity ------------
 const ConnectionContextSchema = z.object({
@@ -761,23 +770,39 @@ export type ConnectionCommand = z.infer<typeof ConnectionCommandSchema>;
 //   ConnectionCommand
 // >;
 
-// export const ConnectionEntitySchema = EntityBaseSchema(
+// EntityBaseSchema.ex
+
+const ConnectionEntitySchema = EntityBaseSchema(
+  ConnectionEntityPropsSchema,
+  ConnectionCommandSchema,
+  ConnectionStateValueSchema,
+  ConnectionContextSchema
+);
+
+// export const ConnectionEntitySchema = EntityBaseSchema.extend({
+//   state: ConnectionStateValueSchema,
+//   // send
+//   // subscribe
+// });
 //   ConnectionEntityPropsSchema,
 //   ConnectionCommandSchema,
 //   ConnectionContextSchema,
 //   ConnectionStateValueSchema
 // );
-// export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
+export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
 
-export const EntitySchema = z.union([RoomEntitySchema, UserEntitySchema]);
+export const EntitySchema = z.union([
+  ConnectionEntitySchema,
+  SessionEntitySchema,
+]);
 export type Entity = z.infer<typeof EntitySchema>;
 
-// export const EntitySchemas = {
-// user: UserEntitySchema,
-// room: RoomEntitySchema,
-// session: SessionEntitySchema,
-// connection: ConnectionEntitySchema,
-// };
+export const EntitySchemas = {
+  // user: UserEntitySchema,
+  // room: RoomEntitySchema,
+  session: SessionEntitySchema,
+  connection: ConnectionEntitySchema,
+};
 
 // export function isEntity(entity: unknown): entity is Entity {
 //   return EntitySchema.safeParse(entity).success;
@@ -850,22 +875,22 @@ export type ClientEvent = z.infer<typeof ClientEventSchema>;
 //   prevValue: TEntity[keyof TEntity];
 // };
 
-// export type EntityMachine =
-//   | {
-//       type: 'connection';
-//       machine: ConnectionMachine;
-//     }
-//   | {
-//       type: 'user';
-//       machine: UserMachine;
-//     }
-//   | {
-//       type: 'room';
-//       machine: RoomMachine;
-//     }
-//   | {
-//       type: 'session';
-//       machine: SessionMachine;
-//     };
+export type EntityMachine =
+  | {
+      type: 'connection';
+      machine: ConnectionMachine;
+    }
+  | {
+      type: 'user';
+      machine: UserMachine;
+    }
+  // | {
+  //     type: 'room';
+  //     machine: RoomMachine;
+  //   }
+  | {
+      type: 'session';
+      machine: SessionMachine;
+    };
 
-// export type EntityMachineMap = IndexByType<EntityMachine>;
+export type EntityMachineMap = IndexByType<EntityMachine>;

@@ -1,4 +1,3 @@
-import { Unarray } from '@explorers-club/utils';
 import { createTRPCReact } from '@trpc/react-query';
 import { inferRouterOutputs } from '@trpc/server';
 import { Observable } from '@trpc/server/observable';

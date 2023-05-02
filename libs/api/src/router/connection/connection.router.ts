@@ -13,14 +13,14 @@ export const connectionRouter = router({
     });
   }),
 
-  navigate: protectedProcedure
-    .input(z.object({ location: z.string().url() }))
-    .mutation(async ({ ctx, input }) => {
-      ctx.connectionEntity.send({
-        type: 'NAVIGATE',
-        location: input.location,
-      });
-    }),
+  // navigate: protectedProcedure
+  //   .input(z.object({ location: z.string().url() }))
+  //   .mutation(async ({ ctx, input }) => {
+  //     ctx.connectionEntity.send({
+  //       type: 'NAVIGATE',
+  //       location: input.location,
+  //     });
+  //   }),
 
   initialize: publicProcedure
     .input(ConnectionInitializeInputSchema)
