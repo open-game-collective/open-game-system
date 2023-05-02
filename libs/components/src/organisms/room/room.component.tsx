@@ -3,10 +3,10 @@ import { SnowflakeId } from '@explorers-club/schema';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createWSClient, wsLink } from '@trpc/client';
 import { FC, ReactNode, createContext, useLayoutEffect, useState } from 'react';
-import { Subject, noop } from 'rxjs';
+import { noop } from 'rxjs';
 import { WorldProvider } from '../../context/WorldProvider';
 
-type WsClient = ReturnType<typeof createWSClient>;
+// type WsClient = ReturnType<typeof createWSClient>;
 
 export const Room: FC<{ slug: string }> = ({ slug }) => {
   const handlePressButton = () => {
@@ -24,11 +24,11 @@ export const Room: FC<{ slug: string }> = ({ slug }) => {
       })
   );
 
-  const wsClient$ = new Subject<{ type: 'OPEN'; wsClient: WsClient }>();
+  // const wsClient$ = new Subject<{ type: 'OPEN'; wsClient: WsClient }>();
   const wsClient = createWSClient({
     url: `ws://localhost:3001`,
     onOpen() {
-      wsClient$.next({ type: 'OPEN', wsClient });
+      // wsClient$.next({ type: 'OPEN', wsClient });
     },
   });
 
@@ -83,9 +83,9 @@ const ConnectionProvider: FC<{
         localStorage.setItem('accessToken', data.authTokens.accessToken);
         localStorage.setItem('deviceId', data.deviceId);
 
-        window.addEventListener('popstate', () => {
-          client.connection.navigate.mutate({ location: window.location.href });
-        });
+        // window.addEventListener('popstate', () => {
+        //   client.connection.navigate.mutate({ location: window.location.href });
+        // });
 
         timer = setInterval(() => {
           client.connection.heartbeat.mutate(undefined).then(noop);

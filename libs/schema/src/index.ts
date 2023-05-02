@@ -248,10 +248,10 @@ export type InitialEntityProps<TEntity extends Entity> = Omit<
   'id' | 'subscribe' | 'send' | 'states' | 'command' | 'context' | 'children'
 >;
 
-// export type SyncedEntityProps<TEntity extends Entity> = Omit<
-//   TEntity,
-//   'subscribe' | 'send' | 'context'
-// >;
+export type SyncedEntityProps<TEntity extends Entity> = Omit<
+  TEntity,
+  'subscribe' | 'send' | 'context'
+>;
 
 // export type EntityDataKey = Omit<keyof InitialEntityProps<Entity>, 'schema'>;
 

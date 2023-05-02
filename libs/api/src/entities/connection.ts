@@ -87,11 +87,15 @@ export const createConnectionMachine = ({
 
                 const { authTokens, initialLocation } = event;
 
-                const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-                  auth: {
-                    persistSession: false,
-                  },
-                });
+                const supabaseClient = createClient<Database>(
+                  supabaseUrl,
+                  supabaseAnonKey,
+                  {
+                    auth: {
+                      persistSession: false,
+                    },
+                  }
+                );
 
                 let supabaseSession: Session;
                 if (authTokens) {
@@ -164,7 +168,7 @@ export const createConnectionMachine = ({
                   },
                   deviceId,
                   location: initialLocation,
-                  supabaseClient
+                  supabaseClient,
                 } satisfies InitializedConnectionContext;
               },
             },

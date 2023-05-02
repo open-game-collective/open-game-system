@@ -29,11 +29,13 @@ export const connectionRouter = router({
         type: 'INITIALIZE',
         ...input,
       });
+      console.log(input);
 
       const entity = (await waitFor(
         ctx.connectionEntity,
         (entity) => entity.states.Initialized === 'True'
       )) as InitializedConnectionEntity;
+      console.log('initialized');
 
       const { authTokens, deviceId } = entity.context;
 

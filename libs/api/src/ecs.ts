@@ -116,6 +116,7 @@ export const createEntity = <TEntity extends Entity>(
 
     entity.command = command;
     service.send(command);
+    console.log(command);
 
     next({
       type: 'SEND_COMPLETE',
