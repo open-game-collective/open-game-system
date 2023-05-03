@@ -1,12 +1,8 @@
-import { EntityListEvent, trpc } from '@explorers-club/api-client';
+import { trpc } from '@explorers-club/api-client';
 import { Entity, SnowflakeId, SyncedEntityProps } from '@explorers-club/schema';
-import { machineMap } from 'libs/api/src/machines';
+import { applyPatches } from 'immer';
 import { World } from 'miniplex';
 import { FC, ReactNode, createContext, useEffect, useState } from 'react';
-import { Subject } from 'rxjs';
-import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import { produce, applyPatches, produceWithPatches } from 'immer';
-import { enablePatches } from 'immer';
 
 // type Selector<T, R> = (entity: T) => R;
 

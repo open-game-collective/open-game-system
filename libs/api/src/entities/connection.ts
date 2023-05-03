@@ -3,6 +3,8 @@ import {
   ConnectionCommand,
   ConnectionContext,
   ConnectionEntity,
+  ConnectionMachine,
+  ConnectionStateSchema,
   ConnectionTypeState,
   Entity,
   InitializedConnectionContext,
@@ -13,7 +15,7 @@ import { Session, createClient } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { assign } from '@xstate/immer';
 import { World } from 'miniplex';
-import { DoneInvokeEvent, createMachine } from 'xstate';
+import { DoneInvokeEvent, Machine, createMachine } from 'xstate';
 import { generateSnowflakeId } from '../ecs';
 import { createSchemaIndex } from '../indices';
 import { world } from '../world';
@@ -49,6 +51,7 @@ export const createConnectionMachine = ({
     ConnectionCommand,
     ConnectionTypeState
   >({
+    /** @xstate-layout N4IgpgJg5mDOIC5QGED2A7dYDGAXAlhgLICG2AFvlgHQCS6+BJANvgF6TUBiLsYAxLQBytACq0AggBlaALQCiAbQAMAXUSgADqliNC6DSAAeiAIwBWAMzUAHADYA7KZsPzAGhABPM-eqm7pgAs5jaWYeGWpgC+UR5omDgExGSUNPR6LOyc6UysbFRQ-BAYYNRUAG6oANal8Vh4+qQUVKU5+JkcEHQMuewFCBWo2CRJ6Cqq44bauqOGJgjBAJy2js6uHt4IppG25hZ2AEzmMXEY9aNNqa097XnZNx0F-GAATi+oL9SazCMAZh8AW2odUSjRSLW6GTuXTaj3QUAG6Eqw1G40mSBA0z0GDmZisKycLncXjMlhs1DsAWCoQiYWiJxA6FQEDghhBDWSzSwUx02IMGPmAFpLMtzMoHDZTEcNohBYFAtRFgc1sdYiB2RdwWkHtCeTN9LiEOTAkqVTKFgdqOYJVLVacEhz0JcIbDodxeGA9XzDeY7NQTcqieagtYDvKHIt-JTo3ZFgyNWCudcoVkYTq+vCvbMBYgDotzNQJYtlIdiZttspqOLJUd42dQZyrpDep1qKIXgBXT0YrHZ0DzOzKazbA41st46zWscxGJAA */
     id: 'ConnectionMachine',
     type: 'parallel',
     context: {
@@ -67,6 +70,7 @@ export const createConnectionMachine = ({
               },
             },
           },
+          Error: {},
           Initializing: {
             invoke: {
               onDone: {
@@ -75,13 +79,12 @@ export const createConnectionMachine = ({
                   ConnectionContext,
                   DoneInvokeEvent<InitializedConnectionContext>
                 >((context, { data }) => {
-                  context.authTokens = data.authTokens;
                   context.location = data.location;
                   context.deviceId = data.deviceId;
                   context.supabaseClient = data.supabaseClient;
                 }),
               },
-              onError: 'False',
+              onError: 'Error',
               src: async (context, event) => {
                 assertEventType(event, 'INITIALIZE');
 
@@ -148,19 +151,32 @@ export const createConnectionMachine = ({
                 const userId = supabaseSession.user.id;
                 let sessionEntity = sessionsByUserId.get(userId);
                 if (sessionEntity) {
-                  connectionEntity.sessionId = sessionEntity.id;
+                  // connectionEntity.sessionId = sessionEntity.id;
+                  world.addComponent(
+                    connectionEntity,
+                    'sessionId',
+                    sessionEntity.id
+                  );
                 } else {
                   const { createEntity } = await import('../ecs');
                   sessionEntity = createEntity<SessionEntity>({
                     schema: 'session',
                     userId,
                   });
-                  connectionEntity.sessionId = sessionEntity.id;
+                  // connectionEntity.sessionId = sessionEntity.id;
+                  world.addComponent(
+                    connectionEntity,
+                    'sessionId',
+                    sessionEntity.id
+                  );
                   world.add(sessionEntity);
                 }
 
                 const deviceId = event.deviceId || generateSnowflakeId();
 
+                // next:
+                // what's the best way to send the access tokens back ot the client?
+                // directly via a msg? synced via entity? or returned in the response.
                 return {
                   authTokens: {
                     accessToken: supabaseSession.access_token,

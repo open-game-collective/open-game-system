@@ -5,7 +5,7 @@ import {
 import { World } from 'miniplex';
 import { createConnectionMachine } from './entities/connection';
 // import { createRoomMachine } from './entities/room';
-// import { createSessionMachine } from './entities/session';
+import { createSessionMachine } from './entities/session';
 // import { createUserMachine } from './entities/user';
 
 type EntityMachineCreators = {
@@ -17,7 +17,7 @@ type EntityMachineCreators = {
 
 export const machineMap = {
   connection: createConnectionMachine,
-  // session: createSessionMachine,
+  session: createSessionMachine,
   // user: createUserMachine,
   // room: createRoomMachine,
 } as EntityMachineCreators;

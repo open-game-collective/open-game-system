@@ -4,12 +4,18 @@ import {
   InitialEntityProps,
   SnowflakeId,
 } from '@explorers-club/schema';
-import { enablePatches, produceWithPatches } from 'immer';
+import {
+  applyPatches,
+  enablePatches,
+  produceWithPatches,
+  setAutoFreeze,
+} from 'immer';
 import { InterpreterFrom, interpret } from 'xstate';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
 import { world } from './world';
 enablePatches();
+setAutoFreeze(false);
 
 export function getCurrentTick(): number {
   const now = new Date();
@@ -50,12 +56,6 @@ export function generateSnowflakeId(): string {
 
 export const entitiesById = new Map<SnowflakeId, Entity>();
 
-const READONLY_ENTITY_PROPS = new Set<string | symbol>([
-  'id',
-  'subscribe',
-  'send',
-]);
-
 // TODO update this to infer TEntity from
 /**
  * Isomorphic function for creating an entity.
@@ -66,7 +66,7 @@ const READONLY_ENTITY_PROPS = new Set<string | symbol>([
 export const createEntity = <TEntity extends Entity>(
   entityProps: InitialEntityProps<TEntity>
 ) => {
-  // type PropNames = keyof TEntity;
+  type PropNames = keyof TEntity;
   type TCallback = Parameters<TEntity['subscribe']>[0];
   type TEvent = Parameters<TCallback>[0];
   type TMachine = EntityMachineMap[typeof entityProps.schema]['machine'];
@@ -91,14 +91,20 @@ export const createEntity = <TEntity extends Entity>(
 
   const handler: ProxyHandler<TEntity> = {
     set: (target, property, value) => {
-      if (READONLY_ENTITY_PROPS.has(property)) {
-        return true;
-      }
-
-      const [nextState, patches] = produceWithPatches(target, (draft) => {
+      const [_, patches] = produceWithPatches(target, (draft) => {
         type Prop = keyof typeof draft;
         draft[property as Prop] = value;
       });
+
+      target[property as PropNames] = value;
+
+      console.log(patches);
+      if (patches.length) {
+        next({
+          type: 'CHANGE',
+          patches,
+        });
+      }
 
       return true; // Indicate that the assignment was successful
     },
@@ -112,26 +118,20 @@ export const createEntity = <TEntity extends Entity>(
     next({
       type: 'SEND_TRIGGER',
       command,
-    } as any);
-
-    entity.command = command;
+    } as TEvent);
+    // proxy.command = command;
     service.send(command);
-    console.log(command);
 
     next({
       type: 'SEND_COMPLETE',
       command,
-    } as any);
+    } as TEvent);
   };
-
-  //   const matches = (params: TMatchParams) =>
-  //     service.getSnapshot().matches(params);
 
   const entityBase = {
     id: generateSnowflakeId(),
     send,
     subscribe,
-    // children: [],
   };
 
   const entity: TEntity = {
@@ -147,11 +147,9 @@ export const createEntity = <TEntity extends Entity>(
   // todo fix types
   const service = interpret(machine as any) as unknown as TInterpreter;
   service.start();
+  proxy.states = service.getSnapshot().value as TStateValue;
   service.onTransition((state) => {
     proxy.states = state.value as TStateValue;
-    next({
-      type: 'TRANSITION',
-    });
   });
 
   entitiesById.set(entity.id, proxy);

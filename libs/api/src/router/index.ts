@@ -1,9 +1,11 @@
 import { router } from '../trpc';
 // import { actorRouter } from './actor';
 // import { sessionRouter } from './session';
+import { entityRouter } from './entity';
 import { connectionRouter } from './connection';
 
 export const apiRouter = router({
+  entity: entityRouter,
   connection: connectionRouter,
   // tile: tileRouter,
   // actor: actorRouter,
@@ -11,7 +13,6 @@ export const apiRouter = router({
   // profile: profileRouter,
   // auth: authRouter,
   // session: sessionRouter,
-  // entity: entityRouter,
 });
 
 // export type definition of API

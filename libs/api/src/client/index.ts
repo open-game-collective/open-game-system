@@ -12,9 +12,9 @@ export const trpc = createTRPCReact<ApiRouter>();
 // type ApiInputs = inferRouterInputs<ApiRouter>;
 export type ApiOutputs = inferRouterOutputs<ApiRouter>;
 
-type ObservableProps<T> = T extends Observable<infer U, unknown> ? U : T;
+// type ObservableProps<T> = T extends Observable<infer U, unknown> ? U : T;
 
-export type EntityListEvent = ObservableProps<ApiOutputs['entity']['list']>;
+// export type EntityListEvent = ObservableProps<ApiOutputs['entity']['list']>;
 // export type EntityChangeEvent = ObservableProps<
 //   ApiOutputs['entity']['changes']
 // >;

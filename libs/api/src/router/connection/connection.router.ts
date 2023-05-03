@@ -25,16 +25,16 @@ export const connectionRouter = router({
   initialize: publicProcedure
     .input(ConnectionInitializeInputSchema)
     .mutation(async ({ ctx, input }) => {
+      console.log('SEND!');
       ctx.connectionEntity.send({
         type: 'INITIALIZE',
         ...input,
       });
-      console.log(input);
 
-      const entity = (await waitFor(
-        ctx.connectionEntity,
-        (entity) => entity.states.Initialized === 'True'
-      )) as InitializedConnectionEntity;
+      const entity = (await waitFor(ctx.connectionEntity, (entity) => {
+        console.log('wait for', entity);
+        return entity.states.Initialized === 'True';
+      })) as InitializedConnectionEntity;
       console.log('initialized');
 
       const { authTokens, deviceId } = entity.context;

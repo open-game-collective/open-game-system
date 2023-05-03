@@ -1,63 +1,26 @@
-import { EntityListEvent } from '@explorers-club/api-client';
 import {
-  ConnectionCommand,
-  ConnectionContext,
-  ConnectionMachine,
-  ConnectionStateSchema,
+  ConnectionEntity,
   Entity,
+  EntityListEvent,
   SnowflakeId,
 } from '@explorers-club/schema';
+import { Observer, observable } from '@trpc/server/observable';
+import { Patch } from 'immer';
 import { from, interval } from 'rxjs';
-import { AnyFunction, Machine } from 'xstate';
+import { AnyFunction } from 'xstate';
 import { TICK_RATE } from '../../ecs.constants';
 import { publicProcedure, router } from '../../trpc';
 import { world } from '../../world';
-import { Observer, observable } from '@trpc/server/observable';
-
-const machineMap: { connection: ConnectionMachine } = {
-  connection: Machine<
-    ConnectionContext,
-    ConnectionStateSchema,
-    ConnectionCommand
-  >({
-    id: 'connectionMachine',
-    initial: 'inactive',
-    type: 'parallel',
-    states: {
-      Initialized: {
-        states: {
-          True: {},
-          False: {},
-        },
-      },
-      Nested: {
-        states: {
-          On: {},
-          Off: {},
-        },
-      },
-    },
-  }),
-};
 
 export const entityRouter = router({
-  // create: protectedProcedure.input(EntityPropsSchema).mutation(({ input }) => {
-  //   // TODO check that we have permission to do it
-  //   // const entity = createEntity(input);
-  //   const entity = {
-  //     id: generateSnowflakeId(),
-  //     ...input,
-  //   };
-  //   world.add(entity);
-  // }),
   list: publicProcedure.subscription(({ ctx }) => {
     // Track if entities get removed
     const myEntities = new Map<SnowflakeId, Entity>();
     const myEntitySubscriptions = new Map<SnowflakeId, AnyFunction>();
     const addedIds = new Set<SnowflakeId>();
-    const changedIds = new Set<SnowflakeId>();
+    const changePatches = new Map<SnowflakeId, Patch[]>();
     const removedIds = new Set<SnowflakeId>();
-    // const entityDeltas = new Map<SnowflakeId, EntityDelta[]>();
+    // const entityPatches = new Map<SnowflakeId, Patch[]>();
     // const changedProps = new Map<SnowflakeId, Set<EntityDataKey>>();
 
     for (const entity of world.entities) {
@@ -75,30 +38,31 @@ export const entityRouter = router({
       }
 
       // TODO cleanup these subscriptions
-      // const unsub = entity.subscribe((event) => {
-      //   if (event.type === 'CHANGE') {
-      //     const previousHasAccess = myEntities.has(entity.id);
-      //     const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
-      //     if (!previousHasAccess && nowHasAccess) {
-      //       myEntities.set(entity.id, entity);
-      //       addedIds.add(entity.id);
-      //       removedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
-      //     } else if (previousHasAccess && !nowHasAccess) {
-      //       myEntities.delete(entity.id);
-      //       removedIds.add(entity.id);
-      //       addedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
-      //     }
+      const unsub = entity.subscribe((event) => {
+        console.log(event);
+        if (event.type === 'CHANGE') {
+          console.log('CHANGE', event);
+          const previousHasAccess = myEntities.has(entity.id);
+          const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+          if (!previousHasAccess && nowHasAccess) {
+            myEntities.set(entity.id, entity);
+            addedIds.add(entity.id);
+            removedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
+          } else if (previousHasAccess && !nowHasAccess) {
+            myEntities.delete(entity.id);
+            removedIds.add(entity.id);
+            addedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
+          }
 
-      //     let deltas = entityDeltas.get(entity.id);
-      //     if (!deltas) {
-      //       deltas = [];
-      //       entityDeltas.set(entity.id, deltas);
-      //     }
-      //     deltas.push(event.delta);
-      //     changedIds.add(entity.id);
-      //   }
-      // });
-      // myEntitySubscriptions.set(entity.id, unsub);
+          let patches = changePatches.get(entity.id);
+          if (!patches) {
+            patches = [];
+            changePatches.set(entity.id, patches);
+          }
+          patches.concat(event.patches);
+        }
+      });
+      myEntitySubscriptions.set(entity.id, unsub);
     });
 
     const unsubscribeOnRemove = world.onEntityRemoved.add((entity) => {
@@ -114,7 +78,7 @@ export const entityRouter = router({
     });
 
     const flush = (emit: Observer<EntityListEvent, unknown>) => {
-      if (addedIds.size || removedIds.size || changedIds.size) {
+      if (addedIds.size || removedIds.size || changePatches.size) {
         const addedEntities = Array.from(addedIds).map(
           (id) => myEntities.get(id)!
         );
@@ -122,13 +86,15 @@ export const entityRouter = router({
           (id) => myEntities.get(id)!
         );
 
-        const changedEntities = Array.from(changedIds).map((id) => {
-          const deltas = entityDeltas.get(id)!;
-          return {
-            id,
-            deltas,
-          };
-        });
+        const changedEntities = Array.from(changePatches.entries()).map(
+          (item) => {
+            const [id, patches] = item;
+            return {
+              id,
+              patches,
+            };
+          }
+        );
 
         emit.next({
           addedEntities,
@@ -138,11 +104,7 @@ export const entityRouter = router({
 
         addedIds.clear();
         removedIds.clear();
-
-        // for (const id in changedIds) {
-        //   entityDeltas.get(id)!.length = 0;
-        // }
-        changedIds.clear();
+        changePatches.clear();
       }
     };
 
@@ -164,24 +126,6 @@ export const entityRouter = router({
     });
   }),
 });
-
-// // import { createArchetypeIndex, TICK_RATE } from '../../ecs';
-// import {
-//   ConnectionEntity,
-//   Entity,
-//   EntityPropsSchema,
-//   SnowflakeId,
-//   SyncedEntityProps,
-// } from '@explorers-club/schema';
-// import { AnyFunction } from '@explorers-club/utils';
-// import { Observer, observable } from '@trpc/server/observable';
-// import { from, interval } from 'rxjs';
-// import { TICK_RATE } from '../../ecs.constants';
-// // import { createArchetypeIndex } from '../../indices';
-// import { Patch } from 'immer';
-// import { createEntity } from '../../ecs';
-// import { protectedProcedure, publicProcedure, router } from '../../trpc';
-// import { world } from '../../world';
 
 type NonFunctionKeys<T> = {
   [K in keyof T]: T[K] extends (...args: any[]) => any ? never : K;
@@ -207,6 +151,13 @@ function removeFunctions<T>(obj: T): OmitFunctions<T> {
   return result;
 }
 
+const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
+  // todo implement access checks here
+  // ie (if room === "public") return true
+  // each entity schema can have it's own function for implement access control
+  return true;
+};
+
 // // const [baseEntityIndex, baseEntityIndex$] = createArchetypeIndex(
 // //   world.with('id', 'schema'),
 // //   'id'
@@ -215,19 +166,6 @@ function removeFunctions<T>(obj: T): OmitFunctions<T> {
 // // type ChangedEntityProps = Partial<SyncedEntityProps<Entity>> & {
 // //   id: SnowflakeId;
 // // };
-
-// type EntityListEvent = {
-//   addedEntities: SyncedEntityProps<Entity>[];
-//   removedEntities: SyncedEntityProps<Entity>[];
-//   changedEntities: { id: SnowflakeId; patches: Patch[] }[];
-// };
-
-const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
-  // todo implement access checks here
-  // ie (if room === "public") return true
-  // each entity schema can have it's own function for implement access control
-  return true;
-};
 
 // export const entityRouter = router({
 //   create: protectedProcedure.input(EntityPropsSchema).mutation(({ input }) => {

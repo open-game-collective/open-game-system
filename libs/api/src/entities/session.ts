@@ -35,7 +35,7 @@ export const createSessionMachine = ({
   return createMachine<SessionContext, SessionCommand, SessionTypeState>({
     id: 'SessionMachine',
     context: {
-      foo: undefined,
+      foo: 'bar',
     },
     type: 'parallel',
     states: {
