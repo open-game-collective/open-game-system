@@ -277,11 +277,13 @@ export type SyncedEntityProps<TEntity extends Entity> = Omit<
   'subscribe' | 'send'
 >;
 
-export type EntityListEvent = {
-  addedEntities: SyncedEntityProps<Entity>[];
-  removedEntities: SyncedEntityProps<Entity>[];
-  changedEntities: { id: SnowflakeId; patches: Patch[] }[];
-};
+export type EntityListEvent =
+  | { type: 'ADDED'; entities: SyncedEntityProps<Entity>[] }
+  | { type: 'REMOVED'; entities: SyncedEntityProps<Entity>[] }
+  | {
+      type: 'CHANGED';
+      changedEntities: { id: SnowflakeId; patches: Patch[] }[];
+    };
 
 const DeviceIdSchema = z.string().uuid();
 

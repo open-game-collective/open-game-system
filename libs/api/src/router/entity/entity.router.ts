@@ -13,6 +13,7 @@ import { AnyFunction } from 'xstate';
 import { TICK_RATE } from '../../ecs.constants';
 import { protectedProcedure, publicProcedure, router } from '../../trpc';
 import { world } from '../../world';
+import { TRPCError } from '@trpc/server';
 
 export const entityRouter = router({
   send: protectedProcedure.input(EntityCommandSchema).mutation(({ ctx }) => {
@@ -22,15 +23,12 @@ export const entityRouter = router({
     // Track if entities get removed
     const myEntities = new Map<SnowflakeId, Entity>();
     const myEntitySubscriptions = new Map<SnowflakeId, AnyFunction>();
-    const addedIds = new Set<SnowflakeId>();
-    const changePatches = new Map<SnowflakeId, Patch[]>();
-    const removedIds = new Set<SnowflakeId>();
-    // const entityPatches = new Map<SnowflakeId, Patch[]>();
-    // const changedProps = new Map<SnowflakeId, Set<EntityDataKey>>();
 
-    const getEntityEventHandler = (entity: Entity) => {
+    const handleOnEntityChange = (
+      entity: Entity,
+      emit: Observer<EntityListEvent, unknown>
+    ) => {
       return (event: EntityEvent) => {
-        console.log('ENTITY EVENT HANDLER', entity.id, JSON.stringify(event));
         if (event.type === 'CHANGE') {
           const previousHasAccess = myEntities.has(entity.id);
           const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
@@ -38,112 +36,225 @@ export const entityRouter = router({
           // I didnt have access but now I do
           if (!previousHasAccess && nowHasAccess) {
             myEntities.set(entity.id, entity);
-            addedIds.add(entity.id);
-            removedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
+            emit.next({
+              type: 'ADDED',
+              entities: [entity],
+            });
 
-          // I had access but now I don't, remove the entity
+            // I had access but now I don't, remove the entity
           } else if (previousHasAccess && !nowHasAccess) {
             myEntities.delete(entity.id);
-            removedIds.add(entity.id);
-            addedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
+            emit.next({
+              type: 'REMOVED',
+              entities: [entity], // todo maybe not include props here?
+            });
 
-          // If I had access and still have access, send patches
+            // If I had access and still have access just send out the changes
           } else if (previousHasAccess && nowHasAccess) {
-            let patches = changePatches.get(entity.id);
-            if (!patches) {
-              patches = [];
-              changePatches.set(entity.id, event.patches);
-            }
-            patches.concat(event.patches);
-            console.log('PATCHES', JSON.stringify(patches));
+            emit.next({
+              type: 'CHANGED',
+              changedEntities: [
+                {
+                  id: entity.id,
+                  patches: event.patches,
+                },
+              ],
+            });
           }
         }
       };
     };
 
-    // Initialize all existing entities
-    for (const entity of world.entities) {
-      if (hasAccess(entity, ctx.connectionEntity)) {
-        myEntities.set(entity.id, entity);
-        addedIds.add(entity.id);
-      }
-      const unsub = entity.subscribe(getEntityEventHandler(entity));
-      myEntitySubscriptions.set(entity.id, unsub);
-    }
-
-    // Listen for adding of new entities, and check to see if i have access
-    const unsubscribeOnAdd = world.onEntityAdded.add((entity) => {
-      const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
-      if (nowHasAccess) {
-        myEntities.set(entity.id, entity);
-        addedIds.add(entity.id);
-      }
-
-      const unsub = entity.subscribe(getEntityEventHandler(entity));
-      myEntitySubscriptions.set(entity.id, unsub);
-    });
-
-    // Listen for removing of new entities, and check to see if i now have access
-    const unsubscribeOnRemove = world.onEntityRemoved.add((entity) => {
-      const previousHasAccess = myEntities.has(entity.id);
-      if (previousHasAccess) {
-        removedIds.add(entity.id);
-      }
-
-      const unsub = myEntitySubscriptions.get(entity.id);
-      if (unsub) {
-        unsub();
-      }
-    });
-
-    const flush = (emit: Observer<EntityListEvent, unknown>) => {
-      if (addedIds.size || removedIds.size || changePatches.size) {
-        const addedEntities = Array.from(addedIds).map(
-          (id) => myEntities.get(id)!
-        );
-        const removedEntities = Array.from(removedIds).map(
-          (id) => myEntities.get(id)!
-        );
-
-        const changedEntities = Array.from(changePatches.entries()).map(
-          (item) => {
-            const [id, patches] = item;
-            return {
-              id,
-              patches,
-            };
-          }
-        );
-        console.log(JSON.stringify(changedEntities));
-
-        emit.next({
-          addedEntities,
-          removedEntities,
-          changedEntities,
-        });
-
-        addedIds.clear();
-        removedIds.clear();
-        changePatches.clear();
-      }
-    };
-
     return observable<EntityListEvent>((emit) => {
-      // Send the initiale entities..
-      flush(emit);
+      // Emit all existing entities I have access to
+      // and set up a subscription to each one to sync updates
+      for (const entity of world.entities) {
+        if (hasAccess(entity, ctx.connectionEntity)) {
+          myEntities.set(entity.id, entity);
+        }
 
-      // Every tick, check to see if entities were added or removed
-      // If they were, flush them, then clear out the sets for tracking
-      const tick$ = from(interval(1000 / TICK_RATE)).subscribe(() => {
-        flush(emit);
+        const unsub = entity.subscribe(handleOnEntityChange(entity, emit));
+        myEntitySubscriptions.set(entity.id, unsub);
+      }
+      emit.next({
+        type: 'ADDED',
+        entities: Array.from(myEntities.values()),
+      });
+
+      // Listen for new entities being added to the world and set up subscriptions to listen for changes
+      const unsubscribeOnAdd = world.onEntityAdded.add((entity) => {
+        const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+        if (nowHasAccess) {
+          myEntities.set(entity.id, entity);
+          emit.next({
+            type: 'ADDED',
+            entities: [entity],
+          });
+        }
+
+        const unsub = entity.subscribe(handleOnEntityChange(entity, emit));
+        myEntitySubscriptions.set(entity.id, unsub);
+      });
+
+      // Listen for removing of new entities, sync removal to clients and clean up subscriptions
+      const unsubscribeOnRemove = world.onEntityRemoved.add((entity) => {
+        const previousHasAccess = myEntities.has(entity.id);
+        if (previousHasAccess) {
+          myEntities.delete(entity.id);
+          emit.next({
+            type: 'REMOVED',
+            entities: [entity],
+          });
+        }
+
+        const unsub = myEntitySubscriptions.get(entity.id);
+        if (!unsub) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'missing subscription on removal of entity' + entity.id,
+          });
+        }
+
+        unsub();
       });
 
       return () => {
-        tick$.unsubscribe();
+        myEntitySubscriptions.forEach((unsub) => {
+          unsub();
+        });
         unsubscribeOnAdd();
         unsubscribeOnRemove();
       };
     });
+
+    // const addedIds = new Set<SnowflakeId>();
+    // const changePatches = new Map<SnowflakeId, Patch[]>();
+    // const removedIds = new Set<SnowflakeId>();
+    // const entityPatches = new Map<SnowflakeId, Patch[]>();
+    // const changedProps = new Map<SnowflakeId, Set<EntityDataKey>>();
+
+    // const getEntityEventHandler = (entity: Entity) => {
+    //   return (event: EntityEvent) => {
+    //     console.log('ENTITY EVENT HANDLER', entity.id, JSON.stringify(event));
+    //     if (event.type === 'CHANGE') {
+    //       const previousHasAccess = myEntities.has(entity.id);
+    //       const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+
+    //       // I didnt have access but now I do
+    //       if (!previousHasAccess && nowHasAccess) {
+    //         myEntities.set(entity.id, entity);
+    //         addedIds.add(entity.id);
+    //         removedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
+
+    //       // I had access but now I don't, remove the entity
+    //       } else if (previousHasAccess && !nowHasAccess) {
+    //         myEntities.delete(entity.id);
+    //         removedIds.add(entity.id);
+    //         addedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
+
+    //       // If I had access and still have access, send patches
+    //       } else if (previousHasAccess && nowHasAccess) {
+    //         let patches = changePatches.get(entity.id);
+    //         if (!patches) {
+    //           patches = [];
+    //           changePatches.set(entity.id, event.patches);
+    //         }
+    //         patches.concat(event.patches);
+    //         console.log('PATCHES', JSON.stringify(patches));
+    //       }
+    //     }
+    //   };
+    // };
+
+    // Initialize all existing entities
+    // for (const entity of world.entities) {
+    //   if (hasAccess(entity, ctx.connectionEntity)) {
+    //     myEntities.set(entity.id, entity);
+    //     addedIds.add(entity.id);
+    //   }
+    //   const unsub = entity.subscribe(getEntityEventHandler(entity));
+    //   myEntitySubscriptions.set(entity.id, unsub);
+    // }
+
+    // // Listen for adding of new entities, and check to see if i have access
+    // const unsubscribeOnAdd = world.onEntityAdded.add((entity) => {
+    //   const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+    //   if (nowHasAccess) {
+    //     myEntities.set(entity.id, entity);
+    //     addedIds.add(entity.id);
+    //   }
+
+    //   const unsub = entity.subscribe(getEntityEventHandler(entity));
+    //   myEntitySubscriptions.set(entity.id, unsub);
+    // });
+
+    // // Listen for removing of new entities, and check to see if i now have access
+    // const unsubscribeOnRemove = world.onEntityRemoved.add((entity) => {
+    //   const previousHasAccess = myEntities.has(entity.id);
+    //   if (previousHasAccess) {
+    //     removedIds.add(entity.id);
+    //   }
+
+    //   const unsub = myEntitySubscriptions.get(entity.id);
+    //   if (unsub) {
+    //     unsub();
+    //   }
+    // });
+
+    // const flush = (emit: Observer<EntityListEvent, unknown>) => {
+    //   if (addedIds.size || removedIds.size || changePatches.size) {
+    //     const addedEntities = Array.from(addedIds).map(
+    //       (id) => myEntities.get(id)!
+    //     );
+    //     const removedEntities = Array.from(removedIds).map(
+    //       (id) => myEntities.get(id)!
+    //     );
+
+    //     const changedEntities = Array.from(changePatches.entries()).map(
+    //       (item) => {
+    //         const [id, patches] = item;
+    //         return {
+    //           id,
+    //           patches,
+    //         };
+    //       }
+    //     );
+    //     console.log(JSON.stringify(changedEntities));
+
+    //     emit.next({
+    //       addedEntities,
+    //       removedEntities,
+    //       changedEntities,
+    //     });
+
+    //     addedIds.clear();
+    //     removedIds.clear();
+    //     changePatches.clear();
+    //   }
+    // };
+
+    // return observable<EntityListEvent>((emit) => {
+
+    // emit.next({
+    //   type: "ADDED",
+
+    // })
+
+    // // Send the initiale entities..
+    // flush(emit);
+
+    // // Every tick, check to see if entities were added or removed
+    // // If they were, flush them, then clear out the sets for tracking
+    // const tick$ = from(interval(1000 / TICK_RATE)).subscribe(() => {
+    //   flush(emit);
+    // });
+
+    // return () => {
+    //   tick$.unsubscribe();
+    //   unsubscribeOnAdd();
+    //   unsubscribeOnRemove();
+    // };
+    // });
   }),
 });
 
