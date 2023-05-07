@@ -4,7 +4,11 @@ import {
   waitForCondition,
 } from '@explorers-club/api-client';
 import { useContext, useRef } from 'react';
-import { ConnectionEntity, SnowflakeId } from '@explorers-club/schema';
+import {
+  ConnectionEntity,
+  InitializedConnectionEntity,
+  SnowflakeId,
+} from '@explorers-club/schema';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createWSClient, wsLink, loggerLink } from '@trpc/client';
 import {
@@ -115,31 +119,16 @@ const ConnectionProvider: FC<{
     client.connection.initialize
       .mutate({ deviceId, authTokens, initialLocation: window.location.href })
       .then(async (connectionId) => {
-        console.log('WAITING FOR CONDITION!');
-        const entity = await waitForCondition<ConnectionEntity>(
+        const entity = (await waitForCondition<ConnectionEntity>(
           connectionId,
           (entity) => entity.states.Initialized === 'True'
-        );
-        console.log(entity);
+        )) as InitializedConnectionEntity;
 
-        // localStorage.setItem('refreshToken', data.authTokens.refreshToken);
-        // localStorage.setItem('accessToken', data.authTokens.accessToken);
-        // localStorage.setItem('deviceId', data.deviceId);
-
-        // window.addEventListener('popstate', () => {
-        //   client.connection.navigate.mutate({ location: window.location.href });
-        // });
-
-        // timer = setInterval(() => {
-        //   client.connection.heartbeat.mutate(undefined).then(noop);
-        // }, 100);
-
-        // const { connectionId } = data;
-        console.log(connectionId);
+        localStorage.setItem('refreshToken', entity.authTokens.refreshToken);
+        localStorage.setItem('accessToken', entity.authTokens.accessToken);
+        localStorage.setItem('deviceId', entity.deviceId);
 
         setMyConnectionId(connectionId);
-
-        console.log(Array.from(world.entities));
       });
     return () => {
       clearInterval(timer);

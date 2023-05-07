@@ -51,14 +51,14 @@ export const createConnectionMachine = ({
     ConnectionCommand,
     ConnectionTypeState
   >({
-    /** @xstate-layout N4IgpgJg5mDOIC5QGED2A7dYDGAXAlhgLICG2AFvlgHQCS6+BJANvgF6TUBiLsYAxLQBytACq0AggBlaALQCiAbQAMAXUSgADqliNC6DSAAeiAIwBWAMzUAHADYA7KZsPzAGhABPM-eqm7pgAs5jaWYeGWpgC+UR5omDgExGSUNPR6LOyc6UysbFRQ-BAYYNRUAG6oANal8Vh4+qQUVKU5+JkcEHQMuewFCBWo2CRJ6Cqq44bauqOGJgjBAJy2js6uHt4IppG25hZ2AEzmMXEY9aNNqa097XnZNx0F-GAATi+oL9SazCMAZh8AW2odUSjRSLW6GTuXTaj3QUAG6Eqw1G40mSBA0z0GDmZisKycLncXjMlhs1DsAWCoQiYWiJxA6FQEDghhBDWSzSwUx02IMGPmAFpLMtzMoHDZTEcNohBYFAtRFgc1sdYiB2RdwWkHtCeTN9LiEOTAkqVTKFgdqOYJVLVacEhz0JcIbDodxeGA9XzDeY7NQTcqieagtYDvKHIt-JTo3ZFgyNWCudcoVkYTq+vCvbMBYgDotzNQJYtlIdiZttspqOLJUd42dQZyrpDep1qKIXgBXT0YrHZ0DzOzKazbA41st46zWscxGJAA */
+    // /** @xstate-layout N4IgpgJg5mDOIC5QGED2A7dYDGAXAlhgLICG2AFvlgHQCS6+BJANvgF6TUBiLsYAxLQBytACq0AggBlaALQCiAbQAMAXUSgADqliNC6DSAAeiAIwBWAMzUAHADYA7KZsPzAGhABPM-eqm7pgAs5jaWYeGWpgC+UR5omDgExGSUNPR6LOyc6UysbFRQ-BAYYNRUAG6oANal8Vh4+qQUVKU5+JkcEHQMuewFCBWo2CRJ6Cqq44bauqOGJgjBAJy2js6uHt4IppG25hZ2AEzmMXEY9aNNqa097XnZNx0F-GAATi+oL9SazCMAZh8AW2odUSjRSLW6GTuXTaj3QUAG6Eqw1G40mSBA0z0GDmZisKycLncXjMlhs1DsAWCoQiYWiJxA6FQEDghhBDWSzSwUx02IMGPmAFpLMtzMoHDZTEcNohBYFAtRFgc1sdYiB2RdwWkHtCeTN9LiEOTAkqVTKFgdqOYJVLVacEhz0JcIbDodxeGA9XzDeY7NQTcqieagtYDvKHIt-JTo3ZFgyNWCudcoVkYTq+vCvbMBYgDotzNQJYtlIdiZttspqOLJUd42dQZyrpDep1qKIXgBXT0YrHZ0DzOzKazbA41st46zWscxGJAA */
     id: 'ConnectionMachine',
     type: 'parallel',
-    context: {
-      deviceId: undefined,
-      authTokens: undefined,
-      location: undefined,
-    },
+    // context: {
+    //   deviceId: undefined,
+    //   authTokens: undefined,
+    //   location: undefined,
+    // },
     states: {
       Initialized: {
         initial: 'False',
@@ -79,8 +79,8 @@ export const createConnectionMachine = ({
                   ConnectionContext,
                   DoneInvokeEvent<InitializedConnectionContext>
                 >((context, { data }) => {
-                  context.location = data.location;
-                  context.deviceId = data.deviceId;
+                  // context.location = data.location;
+                  // context.deviceId = data.deviceId;
                   context.supabaseClient = data.supabaseClient;
                 }),
               },
@@ -174,16 +174,14 @@ export const createConnectionMachine = ({
 
                 const deviceId = event.deviceId || generateSnowflakeId();
 
-                // next:
-                // what's the best way to send the access tokens back ot the client?
-                // directly via a msg? synced via entity? or returned in the response.
+                connectionEntity.deviceId = deviceId;
+                connectionEntity.authTokens = {
+                  accessToken: supabaseSession.access_token,
+                  refreshToken: supabaseSession.refresh_token,
+                };
+                connectionEntity.location = initialLocation;
+
                 return {
-                  authTokens: {
-                    accessToken: supabaseSession.access_token,
-                    refreshToken: supabaseSession.refresh_token,
-                  },
-                  deviceId,
-                  location: initialLocation,
                   supabaseClient,
                 } satisfies InitializedConnectionContext;
               },

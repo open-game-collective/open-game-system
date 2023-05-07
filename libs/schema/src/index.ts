@@ -285,8 +285,6 @@ export type EntityListEvent =
       changedEntities: { id: SnowflakeId; patches: Patch[] }[];
     };
 
-const DeviceIdSchema = z.string().uuid();
-
 const AuthTokensSchema = z.object({
   accessToken: z.string(),
   refreshToken: z.string(),
@@ -294,20 +292,17 @@ const AuthTokensSchema = z.object({
 export type AuthTokens = z.infer<typeof AuthTokensSchema>;
 
 export type ConnectionContext = {
-  location?: string;
-  deviceId?: SnowflakeId;
-  authTokens?: AuthTokens;
   supabaseClient?: SupabaseClient<Database>;
 };
 
 export type InitializedConnectionContext = MakeRequired<
   ConnectionContext,
-  'deviceId' | 'authTokens' | 'location' | 'supabaseClient'
+  'supabaseClient'
 >;
 
 export type InitializedConnectionEntity = MakeRequired<
   ConnectionEntity,
-  'sessionId' | 'userId'
+  'sessionId' | 'userId' | 'authTokens' | 'deviceId' | 'location'
 > & {
   context: InitializedConnectionContext;
 };
@@ -737,16 +732,17 @@ export const SessionEntitySchema = EntityBaseSchema(
 export type SessionEntity = z.infer<typeof SessionEntitySchema>;
 
 // ------------ Connection Entity ------------
-const ConnectionContextSchema = z.object({
-  authTokens: AuthTokensSchema.optional(),
-  deviceId: SnowflakeIdSchema.optional(),
-});
+// const ConnectionContextSchema = z.object({
+//   foo: z.string()
+// });
 
 const ConnectionEntityPropsSchema = z.object({
   schema: ConnectionSchemaTypeLiteral,
-  // states:
   sessionId: SnowflakeIdSchema.optional(),
   userId: SnowflakeIdSchema.optional(),
+  authTokens: AuthTokensSchema.optional(),
+  deviceId: SnowflakeIdSchema.optional(),
+  location: z.string().url().optional(),
   instanceId: z.string().uuid(),
 });
 export type ConnectionEntityProps = z.infer<typeof ConnectionEntityPropsSchema>;

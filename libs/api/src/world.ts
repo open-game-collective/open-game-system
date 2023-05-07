@@ -21,7 +21,6 @@ export const waitForEntity = <TEntity extends Entity>(
   }
 
   return new Promise<TEntity>((resolve, reject) => {
-    console.log('WAIT callp', entity);
     const unsub = world.onEntityAdded.add((entity) => {
       if (entity.id === id) {
         resolve(entity as TEntity);
@@ -49,10 +48,7 @@ export const waitForCondition = async <TEntity extends Entity>(
   }
 
   return new Promise<TEntity>((resolve, reject) => {
-    console.log("check condition", entity, condition(entity));
-
     const unsub = entity.subscribe((s) => {
-      console.log('waiting for condition', entity);
       if (condition(entity)) {
         clearTimeout(timer);
         resolve(entity);
@@ -66,40 +62,3 @@ export const waitForCondition = async <TEntity extends Entity>(
     }, timeoutMs);
   });
 };
-
-// export const waitFor = <TEntity extends Entity>(
-//   entity: Entity,
-//   condition: (entity: TEntity) => boolean,
-//   timeoutMs = 10000
-// ) =>
-//   new Promise<TEntity>((resolve, reject) => {
-//     const entity = entitiesById.get(id) as TEntity | undefined;
-
-//     // if (!entity) {
-//     //     const sub = world.onEntityAdded.add((entity) => {
-
-//     //     })
-//     // }
-
-//     if (condition(entity)) {
-//       resolve(entity);
-//       return;
-//     }
-
-//     const timer = setTimeout(() => {
-//       unsub();
-//       reject(new Error('timed out waiting for entity' + entity.id));
-//     }, timeoutMs);
-//     clearTimeout(timer);
-//     // console.log('SET UP TIMEOUT', timeout);
-//     const unsub = entity.subscribe((s) => {
-//       // console.log('EVENT!', s, condition(entity));
-//       if (condition(entity)) {
-//         clearTimeout(timer);
-//         resolve(entity);
-//         unsub();
-//         return true;
-//       }
-//       return false;
-//     });
-//   });
