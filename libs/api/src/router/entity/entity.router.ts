@@ -1,6 +1,8 @@
 import {
   ConnectionEntity,
   Entity,
+  EntityCommandSchema,
+  EntityEvent,
   EntityListEvent,
   SnowflakeId,
 } from '@explorers-club/schema';
@@ -9,10 +11,13 @@ import { Patch } from 'immer';
 import { from, interval } from 'rxjs';
 import { AnyFunction } from 'xstate';
 import { TICK_RATE } from '../../ecs.constants';
-import { publicProcedure, router } from '../../trpc';
+import { protectedProcedure, publicProcedure, router } from '../../trpc';
 import { world } from '../../world';
 
 export const entityRouter = router({
+  send: protectedProcedure.input(EntityCommandSchema).mutation(({ ctx }) => {
+    // console.log('hi');
+  }),
   list: publicProcedure.subscription(({ ctx }) => {
     // Track if entities get removed
     const myEntities = new Map<SnowflakeId, Entity>();
@@ -23,13 +28,50 @@ export const entityRouter = router({
     // const entityPatches = new Map<SnowflakeId, Patch[]>();
     // const changedProps = new Map<SnowflakeId, Set<EntityDataKey>>();
 
+    const getEntityEventHandler = (entity: Entity) => {
+      return (event: EntityEvent) => {
+        console.log('ENTITY EVENT HANDLER', entity.id, JSON.stringify(event));
+        if (event.type === 'CHANGE') {
+          const previousHasAccess = myEntities.has(entity.id);
+          const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+
+          // I didnt have access but now I do
+          if (!previousHasAccess && nowHasAccess) {
+            myEntities.set(entity.id, entity);
+            addedIds.add(entity.id);
+            removedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
+
+          // I had access but now I don't, remove the entity
+          } else if (previousHasAccess && !nowHasAccess) {
+            myEntities.delete(entity.id);
+            removedIds.add(entity.id);
+            addedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
+
+          // If I had access and still have access, send patches
+          } else if (previousHasAccess && nowHasAccess) {
+            let patches = changePatches.get(entity.id);
+            if (!patches) {
+              patches = [];
+              changePatches.set(entity.id, event.patches);
+            }
+            patches.concat(event.patches);
+            console.log('PATCHES', JSON.stringify(patches));
+          }
+        }
+      };
+    };
+
+    // Initialize all existing entities
     for (const entity of world.entities) {
       if (hasAccess(entity, ctx.connectionEntity)) {
         myEntities.set(entity.id, entity);
         addedIds.add(entity.id);
       }
+      const unsub = entity.subscribe(getEntityEventHandler(entity));
+      myEntitySubscriptions.set(entity.id, unsub);
     }
 
+    // Listen for adding of new entities, and check to see if i have access
     const unsubscribeOnAdd = world.onEntityAdded.add((entity) => {
       const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
       if (nowHasAccess) {
@@ -37,34 +79,11 @@ export const entityRouter = router({
         addedIds.add(entity.id);
       }
 
-      // TODO cleanup these subscriptions
-      const unsub = entity.subscribe((event) => {
-        console.log(event);
-        if (event.type === 'CHANGE') {
-          console.log('CHANGE', event);
-          const previousHasAccess = myEntities.has(entity.id);
-          const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
-          if (!previousHasAccess && nowHasAccess) {
-            myEntities.set(entity.id, entity);
-            addedIds.add(entity.id);
-            removedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
-          } else if (previousHasAccess && !nowHasAccess) {
-            myEntities.delete(entity.id);
-            removedIds.add(entity.id);
-            addedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
-          }
-
-          let patches = changePatches.get(entity.id);
-          if (!patches) {
-            patches = [];
-            changePatches.set(entity.id, patches);
-          }
-          patches.concat(event.patches);
-        }
-      });
+      const unsub = entity.subscribe(getEntityEventHandler(entity));
       myEntitySubscriptions.set(entity.id, unsub);
     });
 
+    // Listen for removing of new entities, and check to see if i now have access
     const unsubscribeOnRemove = world.onEntityRemoved.add((entity) => {
       const previousHasAccess = myEntities.has(entity.id);
       if (previousHasAccess) {
@@ -95,6 +114,7 @@ export const entityRouter = router({
             };
           }
         );
+        console.log(JSON.stringify(changedEntities));
 
         emit.next({
           addedEntities,
@@ -114,12 +134,12 @@ export const entityRouter = router({
 
       // Every tick, check to see if entities were added or removed
       // If they were, flush them, then clear out the sets for tracking
-      const event$ = from(interval(1000 / TICK_RATE)).subscribe(() => {
+      const tick$ = from(interval(1000 / TICK_RATE)).subscribe(() => {
         flush(emit);
       });
 
       return () => {
-        event$.unsubscribe();
+        tick$.unsubscribe();
         unsubscribeOnAdd();
         unsubscribeOnRemove();
       };
@@ -141,8 +161,6 @@ function removeFunctions<T>(obj: T): OmitFunctions<T> {
   const result = {} as OmitFunctions<T>;
 
   for (const key in obj) {
-    console.log(key);
-    console.log(obj[key]);
     if (isNonFunctionKey(key, obj)) {
       result[key] = obj[key];
     }
@@ -152,6 +170,11 @@ function removeFunctions<T>(obj: T): OmitFunctions<T> {
 }
 
 const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
+  // Don't share connection entities with anyone other than yourself
+  if (entity.schema === 'connection' && entity.id !== connectionEntity.id) {
+    return false;
+  }
+
   // todo implement access checks here
   // ie (if room === "public") return true
   // each entity schema can have it's own function for implement access control

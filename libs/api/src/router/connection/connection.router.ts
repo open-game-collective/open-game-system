@@ -1,10 +1,5 @@
-import {
-  ConnectionInitializeInputSchema,
-  InitializedConnectionEntity,
-} from '@explorers-club/schema';
-import { z } from 'zod';
+import { ConnectionInitializeInputSchema } from '@explorers-club/schema';
 import { protectedProcedure, publicProcedure, router } from '../../trpc';
-import { waitFor } from '../../utils';
 
 export const connectionRouter = router({
   heartbeat: protectedProcedure.mutation(async ({ ctx }) => {
@@ -25,24 +20,11 @@ export const connectionRouter = router({
   initialize: publicProcedure
     .input(ConnectionInitializeInputSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log('SEND!');
       ctx.connectionEntity.send({
         type: 'INITIALIZE',
         ...input,
       });
 
-      const entity = (await waitFor(ctx.connectionEntity, (entity) => {
-        console.log('wait for', entity);
-        return entity.states.Initialized === 'True';
-      })) as InitializedConnectionEntity;
-      console.log('initialized');
-
-      const { authTokens, deviceId } = entity.context;
-
-      return {
-        connectionId: entity.id,
-        deviceId,
-        authTokens,
-      };
+      return ctx.connectionEntity.id;
     }),
 });

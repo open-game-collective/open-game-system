@@ -251,11 +251,12 @@ export type InitialEntityProps<TEntity extends Entity> = Omit<
 
 const EntityBaseSchema = <
   TEntityProps extends z.ZodRawShape,
-  TCommand extends AnyEventObject
+  TCommand extends AnyEventObject,
+  TStates extends z.ZodRawShape
 >(
   entityPropsSchema: z.ZodObject<TEntityProps>,
   commandSchema: z.ZodSchema<TCommand>,
-  stateSchema: z.ZodObject<z.ZodRawShape>
+  stateSchema: z.ZodObject<TStates>
   // contextSchema: z.ZodSchema<any>
 ) =>
   entityPropsSchema.merge(
@@ -795,6 +796,12 @@ export const EntitySchema = z.union([
   SessionEntitySchema,
 ]);
 export type Entity = z.infer<typeof EntitySchema>;
+export type EntityEvent = Parameters<Parameters<Entity['subscribe']>[0]>[0];
+
+export const EntityCommandSchema = z.union([
+  ConnectionCommandSchema,
+  SessionCommandSchema,
+]);
 
 export const EntitySchemas = {
   // user: UserEntitySchema,

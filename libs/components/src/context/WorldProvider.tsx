@@ -1,21 +1,19 @@
-import { trpc } from '@explorers-club/api-client';
+import { entitiesById, trpc, world } from '@explorers-club/api-client';
 import { Entity, SnowflakeId, SyncedEntityProps } from '@explorers-club/schema';
 import { applyPatches } from 'immer';
 import { World } from 'miniplex';
-import { FC, ReactNode, createContext, useEffect, useState } from 'react';
-
-// type Selector<T, R> = (entity: T) => R;
-
-type ClientEvent = { type: 'Hello' };
+import { FC, ReactNode, createContext, useCallback, useEffect } from 'react';
+import { Selector } from 'reselect';
+import { Subject } from 'rxjs';
+import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 
 // Update the WorldContextType to include the entity type T.
 type WorldContextType = {
   world: World<Entity>;
-  // useSend: (id: SnowflakeId) => (event: ClientEvent) => void;
-  // useEntitySelector: <T extends Entity, R>(
-  //   id: SnowflakeId,
-  //   selector: Selector<T, R>
-  // ) => R;
+  useEntitySelector: <T extends Entity, R>(
+    id: SnowflakeId,
+    selector: Selector<T, R>
+  ) => R;
 };
 
 export const WorldContext = createContext({} as WorldContextType);
@@ -26,21 +24,66 @@ declare global {
   }
 }
 
-// todo implement
-// client interface will be slightly different maybe?
-// but mabye not?
-// then we can pass entities around easily
-const createEntity = (entityProps: SyncedEntityProps<Entity>) => {
-  return {} as Entity;
-};
-
 export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { client } = trpc.useContext();
-  const [world] = useState(new World<Entity>());
+  type Callback = Parameters<Entity['subscribe']>[0];
   window.$WORLD = world;
-  const [entitiesById] = useState(new Map<SnowflakeId, Entity>()); // todo probably don't need, World tracks it's on id mapping
-  // const [entities$] = useState(new Subject<EntityListEvent>());
   const subscribersById = new Map<SnowflakeId, Set<() => void>>();
+  // const subjects$ById = new Map<SnowflakeId, Subject<Callback>>();
+  const nextFnById = new Map<SnowflakeId, Callback>();
+
+  const createEntity = useCallback(
+    <TEntity extends Entity>(entityProps: SyncedEntityProps<TEntity>) => {
+      type TCommand = Parameters<TEntity['send']>[0];
+      type TCallback = Parameters<TEntity['subscribe']>[0];
+      type TEvent = Parameters<TCallback>[0];
+
+      const id = entityProps.id;
+      const subscriptions = new Set<TCallback>();
+      // const subject = subjects$ById.get(id) || new Subject<Callback>();
+      // if (!subjects$ById.has(id)) {
+      //   subjects$ById.set(id, subject);
+      // }
+
+      const send = async (command: TCommand) => {
+        next({
+          type: 'SEND_TRIGGER',
+          command,
+        } as TEvent);
+        await client.entity.send.mutate(command);
+        next({
+          type: 'SEND_COMPLETE',
+          command,
+        } as TEvent);
+      };
+
+      const subscribe = (callback: TCallback) => {
+        console.log('subscribing to entity');
+        subscriptions.add(callback);
+
+        return () => {
+          subscriptions.delete(callback);
+        };
+      };
+
+      const next = (event: TEvent) => {
+        console.log(id, 'CALLED NEXT', event);
+        for (const callback of subscriptions) {
+          callback(event as any); // todo fix TS not liking nested union types on event
+        }
+      };
+      nextFnById.set(id, next);
+
+      const entity: TEntity = {
+        send,
+        subscribe,
+        ...entityProps,
+      } as unknown as TEntity;
+      // todo add send and subscribe methods here
+      return entity;
+    },
+    [client]
+  );
 
   useEffect(() => {
     const sub = client.entity.list.subscribe(undefined, {
@@ -57,7 +100,7 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
         for (const entityProps of event.removedEntities) {
           const entity = entitiesById.get(entityProps.id);
           if (!entity) {
-            console.warn('missing entity when trying to remove');
+            console.error('missing entity when trying to remove');
             return;
           }
 
@@ -66,83 +109,67 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
         for (const changedEntities of event.changedEntities) {
           const entity = entitiesById.get(changedEntities.id);
           if (!entity) {
-            console.warn('missing entity when trying to apply patches');
+            console.error('missing entity when trying to apply patches');
             return;
           }
 
           applyPatches(entity, changedEntities.patches);
+
+          const next = nextFnById.get(entity.id);
+          if (!next) {
+            throw new Error('expected next function for entity ' + entity.id);
+          }
+          next({
+            type: 'CHANGE',
+            patches: changedEntities.patches,
+          });
         }
       },
     });
 
     return sub.unsubscribe;
-  }, [client, world, entitiesById]);
+  }, [client, createEntity, nextFnById]);
 
-  const eventQueue: { event: ClientEvent; id: SnowflakeId }[] = [];
-
-  useEffect(() => {
-    let running = true;
-    const loop = () => {
-      // Process event queue
-      for (const instance of eventQueue) {
-        instance.id;
-        // instance.event
-        // machineMap[]
+  const useEntitySelector = <T extends Entity, R>(
+    id: SnowflakeId,
+    selector: Selector<T, R>
+  ) => {
+    const getSnapshot = () => {
+      const entity = entitiesById.get(id) as T | undefined;
+      if (!entity) {
+        throw new Error('entity missing: ' + entity);
       }
 
-      if (running) {
-        requestAnimationFrame(loop);
+      return entity;
+    };
+
+    const subscribe = (onStoreChange: () => void) => {
+      const entity = entitiesById.get(id);
+      if (!entity) {
+        throw new Error('entity missing: ' + entity);
       }
+
+      const unsub = entity.subscribe(onStoreChange);
+
+      return () => {
+        unsub();
+      };
     };
 
-    requestAnimationFrame(loop);
-
-    return () => {
-      running = false;
-    };
-  });
-
-  const useSend = (id: SnowflakeId) => {
-    return (event: ClientEvent) => {
-      eventQueue.push({ event, id });
-    };
+    return useSyncExternalStoreWithSelector(
+      subscribe,
+      getSnapshot,
+      getSnapshot,
+      selector
+    );
   };
-
-  // const useEntitySelector = <T extends Entity, R>(
-  //   id: SnowflakeId,
-  //   selector: Selector<T, R>
-  // ) => {
-  //   const subscribers = subscribersById.get(id) || new Set();
-  //   if (!subscribersById.has(id)) {
-  //     subscribersById.set(id, subscribers);
-  //   }
-
-  //   const getSnapshot = () => {
-  //     return entitiesById.get(id) as T;
-  //   };
-
-  //   const subscribe = (onStoreChange: () => void) => {
-  //     subscribers.add(onStoreChange);
-
-  //     return () => {
-  //       subscribers.delete(onStoreChange);
-  //     };
-  //   };
-
-  //   return useSyncExternalStoreWithSelector(
-  //     subscribe,
-  //     getSnapshot,
-  //     getSnapshot,
-  //     selector
-  //   );
-  // };
 
   return (
     <WorldContext.Provider
       value={{
         world,
         // useSend,
-        // useEntitySelector,
+        useEntitySelector,
       }}
     >
       {children}

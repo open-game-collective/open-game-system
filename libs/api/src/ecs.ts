@@ -4,12 +4,7 @@ import {
   InitialEntityProps,
   SnowflakeId,
 } from '@explorers-club/schema';
-import {
-  applyPatches,
-  enablePatches,
-  produceWithPatches,
-  setAutoFreeze,
-} from 'immer';
+import { enablePatches, produceWithPatches, setAutoFreeze } from 'immer';
 import { InterpreterFrom, interpret } from 'xstate';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
@@ -73,6 +68,7 @@ export const createEntity = <TEntity extends Entity>(
   type TInterpreter = InterpreterFrom<TMachine>;
   type TStateValue = TEntity['states'];
   type TCommand = Parameters<TEntity['send']>[0];
+  const id = generateSnowflakeId();
 
   const subscriptions = new Set<TCallback>();
 
@@ -85,6 +81,7 @@ export const createEntity = <TEntity extends Entity>(
 
   const next = (event: TEvent) => {
     for (const callback of subscriptions) {
+      console.log('CALLING', JSON.stringify(event));
       callback(event as any); // todo fix TS not liking nested union types on event
     }
   };
@@ -98,7 +95,7 @@ export const createEntity = <TEntity extends Entity>(
 
       target[property as PropNames] = value;
 
-      console.log(patches);
+      // console.log(patches);
       if (patches.length) {
         next({
           type: 'CHANGE',
@@ -129,7 +126,7 @@ export const createEntity = <TEntity extends Entity>(
   };
 
   const entityBase = {
-    id: generateSnowflakeId(),
+    id,
     send,
     subscribe,
   };
