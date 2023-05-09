@@ -1,13 +1,17 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { Room } from '@organisms/Room';
+import { ApplicationProvider } from '@context/ApplicationProvider';
+import logoRef from '../../../../static/base_logo_black_horizontal.png';
 
 const roomSlug = Astro.params.roomSlug!;
 ---
 
 <Layout title="Explorers Game">
   <main>
-    <div>Welcome to {roomSlug}</div>
-    <Room client:only slug="foo" />
+    <img src={logoRef} alt="Explorers Logo" />
+    <ApplicationProvider client:only trpcUrl={'ws://localhost:3001'}>
+      <Room client:only slug={roomSlug} />
+    </ApplicationProvider>
   </main>
 </Layout>

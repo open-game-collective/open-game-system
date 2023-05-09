@@ -6,14 +6,11 @@ import {
   EntityListEvent,
   SnowflakeId,
 } from '@explorers-club/schema';
+import { TRPCError } from '@trpc/server';
 import { Observer, observable } from '@trpc/server/observable';
-import { Patch } from 'immer';
-import { from, interval } from 'rxjs';
 import { AnyFunction } from 'xstate';
-import { TICK_RATE } from '../../ecs.constants';
 import { protectedProcedure, publicProcedure, router } from '../../trpc';
 import { world } from '../../world';
-import { TRPCError } from '@trpc/server';
 
 export const entityRouter = router({
   send: protectedProcedure.input(EntityCommandSchema).mutation(({ ctx }) => {
