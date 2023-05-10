@@ -5,12 +5,14 @@ import {
 } from '@explorers-club/api-client';
 import {
   ConnectionEntity,
+  Entity,
   InitializedConnectionEntity,
   SnowflakeId,
 } from '@explorers-club/schema';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createWSClient, loggerLink, wsLink } from '@trpc/client';
 import { enablePatches } from 'immer';
+import { World } from 'miniplex';
 import {
   FC,
   ReactNode,
@@ -26,9 +28,9 @@ enablePatches();
 
 export const ApplicationProvider: FC<{
   children: ReactNode;
+  world: World<Entity>;
   trpcUrl: string;
 }> = ({ children, trpcUrl }) => {
-  console.log('render');
   const [queryClient] = useState(
     () =>
       new QueryClient({

@@ -2,7 +2,13 @@
 export interface Props {
   title: string;
 }
+import { ApplicationProvider } from '@context/ApplicationProvider';
+import logoRef from '../../../../static/base_logo_black_horizontal.png';
 
+import type { Entity } from '@explorers-club/schema';
+import { World } from 'miniplex';
+
+const world = new World<Entity>();
 const { title } = Astro.props;
 ---
 
@@ -14,10 +20,25 @@ const { title } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <script>
+      import type { Entity } from '@explorers-club/schema';
+      import { World } from 'miniplex';
+
+      window.$WORLD = new World<Entity>();
+    </script>
   </head>
 
   <body>
-    <slot />
+    <ApplicationProvider
+      client:only
+      world={world}
+      trpcUrl={'ws://localhost:3001'}
+    >
+      <div class="splash">
+        <img src={logoRef} alt="Explorers Logo" />
+      </div>
+      <slot />
+    </ApplicationProvider>
   </body>
 </html>
 
