@@ -1,0 +1,1 @@
+import{e as t,j as e}from"./jsx-runtime.fa3cf36c.js";import"./index.03be2d59.js";t();const c=({slug:o})=>{const s=()=>{console.log("ress")};return e.jsx("button",{onClick:s,children:o})};export{c as Room};
