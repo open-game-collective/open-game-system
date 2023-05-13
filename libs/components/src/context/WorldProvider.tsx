@@ -2,10 +2,15 @@ import { entitiesById, trpc, world } from '@explorers-club/api-client';
 import { Entity, SnowflakeId, SyncedEntityProps } from '@explorers-club/schema';
 import { applyPatches } from 'immer';
 import { World } from 'miniplex';
-import { FC, ReactNode, createContext, useCallback, useEffect } from 'react';
+import {
+  FC,
+  ReactNode,
+  createContext,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { Selector } from 'reselect';
-import { useState } from 'react';
-import { Subject } from 'rxjs';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 
 // Update the WorldContextType to include the entity type T.

@@ -1,9 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import { ContestList } from '@organisms/contest-list';
 ---
 
 <Layout title="Explorers Game">
   <main>
-    <div>Home</div>
+    <a href="/new">Create New Room</a>
+    <ContestList />
   </main>
 </Layout>
