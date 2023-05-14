@@ -81,6 +81,7 @@
       "@games/sailors": ["games/sailors/src/index.ts"],
       "@molecules/*": ["libs/components/src/molecules/*"],
       "@organisms/*": ["libs/components/src/organisms/*"],
+      "@state/*": ["libs/components/src/state/*"],
       "@storybook-decorators/*": ["libs/components/src/decorators/*"],
       "@templates/*": ["libs/components/src/templates/*"]
     }

@@ -1,4 +1,6 @@
-import { entitiesById, trpc, world } from '@explorers-club/api-client';
+import { entitiesById, trpc } from '@explorers-club/api-client';
+import { useStore } from '@nanostores/react';
+import { worldStore } from '@state/world';
 import { Entity, SnowflakeId, SyncedEntityProps } from '@explorers-club/schema';
 import { applyPatches } from 'immer';
 import { World } from 'miniplex';
@@ -15,7 +17,6 @@ import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-s
 
 // Update the WorldContextType to include the entity type T.
 type WorldContextType = {
-  world: World<Entity>;
   useEntitySelector: <T extends Entity, R>(
     id: SnowflakeId,
     selector: Selector<T, R>
@@ -33,6 +34,7 @@ declare global {
 export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { client } = trpc.useContext();
   type Callback = Parameters<Entity['subscribe']>[0];
+  const world = useStore(worldStore);
   window.$WORLD = world;
   // const [subscribersById] = useState(new Map<SnowflakeId, Set<() => void>>());
   const [nextFnById] = useState(new Map<SnowflakeId, Callback>());
@@ -170,7 +172,6 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <WorldContext.Provider
       value={{
-        world,
         // useSend,
         useEntitySelector,
       }}
