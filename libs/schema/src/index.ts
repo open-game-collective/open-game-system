@@ -1,26 +1,19 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import { Database } from '@explorers-club/database';
 import { IndexByType, MakeRequired } from '@explorers-club/utils';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { Operation } from 'fast-json-patch';
+import { Patch } from 'immer';
 import {
   AnyEventObject,
-  AnyStateMachine,
   InterpreterFrom,
-  Machine,
+  State,
   StateFrom,
   StateMachine,
   StateSchema,
   StateValue,
-  Typestate,
-  assign,
 } from 'xstate';
 import { z } from 'zod';
-import { CodebreakersState } from '../@types/generated/CodebreakersState';
-import { DiffusionaryState } from '../@types/generated/DiffusionaryState';
-import { LittleVigilanteState } from '../@types/generated/LittleVigilanteState';
-import { TriviaJamState } from '../@types/generated/TriviaJamState';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@explorers-club/database';
-import { Subject } from 'rxjs';
-import { Patch } from 'immer';
 
 // export const ClubRoomIdSchema = z.custom<`club-${string}`>((val) => {
 //   return /^club-\w+$/.test(val as string);
@@ -43,7 +36,6 @@ import { Patch } from 'immer';
 //     return /^little_vigilante-\w+$/.test(val as string);
 //   });
 
-// export type ClubRoomId = z.infer<typeof ClubRoomIdSchema>;
 // export type TriviaJamRoomId = z.infer<typeof TriviaJamRoomIdSchema>;
 // export type DiffusionaryRoomId = z.infer<typeof DiffusionaryRoomIdSchema>;
 // export type LittleVigilanteRoomId = z.infer<typeof LittleVigilanteRoomIdSchema>;
@@ -61,7 +53,9 @@ import { Patch } from 'immer';
 //   | LittleVigilanteRoomId
 //   | CodebreakersRoomId;
 
-// export type RoomId = ClubRoomId | GameRoomId;
+export type NewRoomServiceId = 'new-room-service';
+
+export type ServiceId = NewRoomServiceId;
 
 // export type ClubMetadata = {
 //   clubName: string;
@@ -265,6 +259,7 @@ const EntityBaseSchema = <
       send: SendFunctionSchema(commandSchema),
       states: stateSchema,
       command: commandSchema,
+      services: z.record(z.unknown()), // Mapping of keys to JSON objects
       subscribe: z
         .function()
         .args(CallbackFunctionSchema(commandSchema))
@@ -282,7 +277,7 @@ export type EntityListEvent =
   | { type: 'REMOVED'; entities: SyncedEntityProps<Entity>[] }
   | {
       type: 'CHANGED';
-      changedEntities: { id: SnowflakeId; patches: Patch[] }[];
+      changedEntities: { id: SnowflakeId; patches: Operation[] }[];
     };
 
 const AuthTokensSchema = z.object({
@@ -521,7 +516,7 @@ const EntityTransitionStateEventSchema = z.object({
 
 const EntityChangeEventSchema = z.object({
   type: z.literal('CHANGE'),
-  patches: z.array(z.custom<Patch>()),
+  patches: z.array(z.custom<Operation>()),
 });
 
 const EntityEventSchema = <TEvent extends AnyEventObject>(
@@ -731,10 +726,41 @@ export const SessionEntitySchema = EntityBaseSchema(
 
 export type SessionEntity = z.infer<typeof SessionEntitySchema>;
 
-// ------------ Connection Entity ------------
-// const ConnectionContextSchema = z.object({
-//   foo: z.string()
-// });
+const NewRoomStateValueSchema = z.enum(['SelectedGame', 'EnterName']);
+
+export type NewRoomStateValue = z.infer<typeof NewRoomStateValueSchema>;
+
+export type NewRoomStateSchema = StateSchemaFromStateValue<NewRoomStateValue>;
+
+const NewRoomContextSchema = z.object({
+  foo: z.string(),
+});
+export type NewRoomContext = z.infer<typeof NewRoomContextSchema>;
+
+const NewRoomCommandSchema = z.union([
+  z.object({
+    type: z.literal('RECONNECT'),
+  }),
+  z.object({
+    type: z.literal('DISCONNECT'),
+  }),
+]);
+export type NewRoomCommand = z.infer<typeof NewRoomCommandSchema>;
+
+export type NewRoomMachine = StateMachine<
+  NewRoomContext,
+  NewRoomStateSchema,
+  NewRoomCommand
+>;
+
+export type NewRoomState = State<
+  NewRoomContext,
+  NewRoomCommand,
+  NewRoomStateSchema,
+  | { value: 'EnterName'; context: NewRoomContext }
+  | { value: 'SelectingGame'; context: NewRoomContext }
+>;
+export type NewRoomService = InterpreterFrom<NewRoomMachine>;
 
 const ConnectionEntityPropsSchema = z.object({
   schema: ConnectionSchemaTypeLiteral,
@@ -743,6 +769,13 @@ const ConnectionEntityPropsSchema = z.object({
   authTokens: AuthTokensSchema.optional(),
   deviceId: SnowflakeIdSchema.optional(),
   location: z.string().url().optional(),
+  newRoomService: z
+    .object({
+      context: NewRoomContextSchema,
+      value: NewRoomStateValueSchema,
+      event: NewRoomCommandSchema,
+    })
+    .optional(),
   instanceId: z.string().uuid(),
 });
 export type ConnectionEntityProps = z.infer<typeof ConnectionEntityPropsSchema>;

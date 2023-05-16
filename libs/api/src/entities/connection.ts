@@ -8,6 +8,9 @@ import {
   ConnectionTypeState,
   Entity,
   InitializedConnectionContext,
+  NewRoomService,
+  NewRoomState,
+  NewRoomStateValue,
   SessionEntity,
 } from '@explorers-club/schema';
 import { assertEventType, generateRandomString } from '@explorers-club/utils';
@@ -15,10 +18,12 @@ import { Session, createClient } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { assign } from '@xstate/immer';
 import { World } from 'miniplex';
-import { DoneInvokeEvent, Machine, createMachine } from 'xstate';
+import { DoneInvokeEvent, Machine, createMachine, interpret } from 'xstate';
 import { generateSnowflakeId } from '../ecs';
 import { createSchemaIndex } from '../indices';
 import { world } from '../world';
+import { z } from 'zod';
+import { newRoomMachine } from '../services';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -60,6 +65,13 @@ export const createConnectionMachine = ({
     //   location: undefined,
     // },
     states: {
+      OtherState: {
+        initial: 'Foo',
+        states: {
+          Foo: {},
+          Bar: {},
+        },
+      },
       Initialized: {
         initial: 'False',
         states: {
@@ -162,6 +174,7 @@ export const createConnectionMachine = ({
                   sessionEntity = createEntity<SessionEntity>({
                     schema: 'session',
                     userId,
+                    services: {},
                   });
                   // connectionEntity.sessionId = sessionEntity.id;
                   world.addComponent(
@@ -180,6 +193,29 @@ export const createConnectionMachine = ({
                   refreshToken: supabaseSession.refresh_token,
                 };
                 connectionEntity.location = initialLocation;
+
+                const url = new URL(initialLocation);
+
+                // TODO move logic to a router
+                if (url.pathname === '/new') {
+                  const newRoomService = interpret(
+                    newRoomMachine
+                  ) as unknown as NewRoomService;
+                  newRoomService.start();
+                  newRoomService.onTransition((state) => {
+                    connectionEntity.newRoomService = {
+                      context: state.context,
+                      value: state.value as NewRoomStateValue,
+                      event: state.event,
+                    };
+                  });
+                  const state = newRoomService.getSnapshot();
+                  connectionEntity.newRoomService = {
+                    context: state.context,
+                    value: state.value as NewRoomStateValue,
+                    event: state.event,
+                  };
+                }
 
                 return {
                   supabaseClient,

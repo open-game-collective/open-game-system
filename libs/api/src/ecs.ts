@@ -2,12 +2,20 @@ import {
   Entity,
   EntityMachineMap,
   InitialEntityProps,
+  ServiceId,
   SnowflakeId,
 } from '@explorers-club/schema';
-import { enablePatches, produceWithPatches, setAutoFreeze } from 'immer';
-import { InterpreterFrom, interpret } from 'xstate';
+import { compare } from 'fast-json-patch';
+import { enablePatches, produce, setAutoFreeze } from 'immer';
+import {
+  AnyStateMachine,
+  InterpreterFrom,
+  createMachine,
+  interpret,
+} from 'xstate';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
+import { newRoomMachine } from './services';
 import { world } from './world';
 enablePatches();
 setAutoFreeze(false);
@@ -51,6 +59,50 @@ export function generateSnowflakeId(): string {
 
 export const entitiesById = new Map<SnowflakeId, Entity>();
 
+const getMachineForServiceId = (serviceId: ServiceId) => {
+  if (serviceId === 'new-room-service') {
+    return newRoomMachine;
+  }
+
+  // Always fall a not found service
+  return createMachine({
+    id: 'NotFoundService',
+    initial: 'Error',
+    states: {
+      Error: {},
+    },
+  });
+};
+
+export const attachService = (entity: Entity, serviceId: ServiceId) => {
+  const machine = getMachineForServiceId(serviceId) as AnyStateMachine;
+  const service = interpret(machine);
+  service.start();
+
+  const json = JSON.parse(JSON.stringify(service.getSnapshot()));
+  entity.services = {
+    ...entity.services,
+    [serviceId]: json,
+  };
+
+  service.onTransition((state) => {
+    const json = JSON.parse(JSON.stringify(service.getSnapshot()));
+    if (!state.done) {
+      // todo calculate diff and apply those
+      entity.services = {
+        ...entity.services,
+        [serviceId]: json,
+      };
+    } else {
+      const nextServices = { ...entity.services };
+      delete nextServices[serviceId];
+      entity.services = nextServices;
+    }
+  });
+
+  return service;
+};
+
 // TODO update this to infer TEntity from
 /**
  * Isomorphic function for creating an entity.
@@ -81,21 +133,20 @@ export const createEntity = <TEntity extends Entity>(
 
   const next = (event: TEvent) => {
     for (const callback of subscriptions) {
-      console.log('CALLING', JSON.stringify(event));
       callback(event as any); // todo fix TS not liking nested union types on event
     }
   };
 
   const handler: ProxyHandler<TEntity> = {
     set: (target, property, value) => {
-      const [_, patches] = produceWithPatches(target, (draft) => {
+      const nextTarget = produce(target, (draft) => {
         type Prop = keyof typeof draft;
         draft[property as Prop] = value;
       });
 
+      const patches = compare(target, nextTarget);
       target[property as PropNames] = value;
 
-      // console.log(patches);
       if (patches.length) {
         next({
           type: 'CHANGE',

@@ -1,8 +1,7 @@
 import { entitiesById, trpc } from '@explorers-club/api-client';
 import { useStore } from '@nanostores/react';
-import { worldStore } from '@state/world';
+import { worldStore } from '../state/world';
 import { Entity, SnowflakeId, SyncedEntityProps } from '@explorers-club/schema';
-import { applyPatches } from 'immer';
 import { World } from 'miniplex';
 import {
   FC,
@@ -14,6 +13,7 @@ import {
 } from 'react';
 import { Selector } from 'reselect';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
+import { applyOperation, applyPatch } from 'fast-json-patch';
 
 // Update the WorldContextType to include the entity type T.
 type WorldContextType = {
@@ -53,7 +53,7 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
           type: 'SEND_TRIGGER',
           command,
         } as TEvent);
-        await client.entity.send.mutate(command);
+        await client.entity.send.mutate(command as any);
         next({
           type: 'SEND_COMPLETE',
           command,
@@ -116,7 +116,23 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
               console.error('missing entity when trying to apply patches');
               return;
             }
-            world.update(entity, applyPatches(entity, change.patches)); // todo is there a more efficient way to apply? or is this fast?
+
+            for (const operation of change.patches) {
+              if (operation.path.match(/^\/\w+$/) && operation.op === 'add') {
+                const pathParts = operation.path.split('/');
+                const component = pathParts[1] as keyof typeof entity;
+                world.addComponent(entity, component, operation.value);
+              } else if (
+                operation.path.match(/^\/\w+$/) &&
+                operation.op === 'remove'
+              ) {
+                const pathParts = operation.path.split('/');
+                const component = pathParts[1] as keyof typeof entity;
+                world.removeComponent(entity, component);
+              } else {
+                applyPatch(entity, change.patches);
+              }
+            }
 
             const next = nextFnById.get(entity.id);
             if (!next) {
@@ -133,7 +149,7 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
     });
 
     return sub.unsubscribe;
-  }, [client, createEntity, nextFnById]);
+  }, [client, createEntity, nextFnById, world]);
 
   const useEntitySelector = <T extends Entity, R>(
     id: SnowflakeId,

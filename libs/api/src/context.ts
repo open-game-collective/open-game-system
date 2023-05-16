@@ -62,11 +62,11 @@ export const createContext = async (opts: {
   res: WebSocket;
 }) => {
   const socket = opts.res;
-  // console.log(opts.req);
 
   const connectionEntity = createEntity<ConnectionEntity>({
     schema: 'connection',
     instanceId,
+    services: {},
   });
   world.add(connectionEntity);
 

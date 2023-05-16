@@ -5,17 +5,42 @@ import {
   EntityEvent,
   EntityListEvent,
   SnowflakeId,
+  SnowflakeIdSchema,
 } from '@explorers-club/schema';
 import { TRPCError } from '@trpc/server';
 import { Observer, observable } from '@trpc/server/observable';
 import { AnyFunction } from 'xstate';
 import { protectedProcedure, publicProcedure, router } from '../../trpc';
-import { world } from '../../world';
+import { world, entitiesById } from '../../world';
+import { z } from 'zod';
+
+const SendMutationSchema = z.object({
+  id: SnowflakeIdSchema,
+  event: EntityCommandSchema,
+});
 
 export const entityRouter = router({
-  send: protectedProcedure.input(EntityCommandSchema).mutation(({ ctx }) => {
-    // console.log('hi');
-  }),
+  send: protectedProcedure
+    .input(SendMutationSchema)
+    .mutation(({ ctx, input }) => {
+      const entity = entitiesById.get(input.id);
+      if (!entity) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `entity ${input.id} not found`,
+        });
+      }
+
+      if (!hasWriteAccess(entity, ctx.connectionEntity)) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: `connection not authorized`,
+        });
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      entity.send(input.event as any);
+    }),
   list: publicProcedure.subscription(({ ctx }) => {
     // Track if entities get removed
     const myEntities = new Map<SnowflakeId, Entity>();
@@ -28,7 +53,7 @@ export const entityRouter = router({
       return (event: EntityEvent) => {
         if (event.type === 'CHANGE') {
           const previousHasAccess = myEntities.has(entity.id);
-          const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+          const nowHasAccess = hasRadAccess(entity, ctx.connectionEntity);
 
           // I didnt have access but now I do
           if (!previousHasAccess && nowHasAccess) {
@@ -66,7 +91,7 @@ export const entityRouter = router({
       // Emit all existing entities I have access to
       // and set up a subscription to each one to sync updates
       for (const entity of world.entities) {
-        if (hasAccess(entity, ctx.connectionEntity)) {
+        if (hasRadAccess(entity, ctx.connectionEntity)) {
           myEntities.set(entity.id, entity);
         }
 
@@ -80,7 +105,7 @@ export const entityRouter = router({
 
       // Listen for new entities being added to the world and set up subscriptions to listen for changes
       const unsubscribeOnAdd = world.onEntityAdded.add((entity) => {
-        const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+        const nowHasAccess = hasRadAccess(entity, ctx.connectionEntity);
         if (nowHasAccess) {
           myEntities.set(entity.id, entity);
           emit.next({
@@ -277,7 +302,7 @@ function removeFunctions<T>(obj: T): OmitFunctions<T> {
   return result;
 }
 
-const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
+const hasRadAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
   // Don't share connection entities with anyone other than yourself
   if (entity.schema === 'connection' && entity.id !== connectionEntity.id) {
     return false;
@@ -287,6 +312,11 @@ const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
   // ie (if room === "public") return true
   // each entity schema can have it's own function for implement access control
   return true;
+};
+
+const hasWriteAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
+  // Only conneciton entities can be sent to and it must match the sender
+  return entity.id === connectionEntity.id;
 };
 
 // // const [baseEntityIndex, baseEntityIndex$] = createArchetypeIndex(
