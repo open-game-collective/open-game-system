@@ -84,6 +84,7 @@
     "nanostores": "^0.8.1",
     "observable-hooks": "^4.2.1",
     "openapi-typescript": "^5.4.1",
+    "path-to-regexp": "^6.2.1",
     "r3f-perf": "^7.1.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

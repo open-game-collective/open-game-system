@@ -1,19 +1,11 @@
-import { Heading } from '../../atoms/Heading';
+import { ConnectionEntity, SnowflakeId } from '@explorers-club/schema';
 import { useStore } from '@nanostores/react';
-import { entitiesByIdStore, worldStore } from '../../state/world';
-import { useSelector } from '@xstate/react';
-import { FC, useState, useSyncExternalStore } from 'react';
-import {
-  ConnectionEntity,
-  Entity,
-  NewRoomState,
-  SnowflakeId,
-} from '@explorers-club/schema';
 import { With } from 'miniplex';
 import { useEntities } from 'miniplex/react';
-import { Selector } from 'reselect';
-import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import { isDeepStrictEqual } from 'util';
+import { FC, useState } from 'react';
+import { Heading } from '../../atoms/Heading';
+import { useEntitySelector } from '../../hooks/useEntitySelector';
+import { worldStore } from '../../state/world';
 
 type NewRoomServiceEntity = With<ConnectionEntity, 'newRoomService'>;
 
@@ -31,39 +23,6 @@ export const NewRoomFlow = () => {
   }
 
   return <NewRoomFlowComponent entityId={entity.id} />;
-
-  // console.log(entity.newRoomState.value);
-};
-
-const useEntitySelector = <T extends Entity, R = ReturnType<(arg: T) => any>>(
-  id: SnowflakeId,
-  selector: (state: T) => R
-): R => {
-  const entitiesById = useStore(entitiesByIdStore);
-  const entity = entitiesById.get(id) as T | undefined;
-  if (!entity) {
-    throw new Error('entity missing: ' + entity);
-  }
-  let value = selector(entity) as R;
-  const getSnapshot = () => {
-    return value;
-  };
-
-  const subscribe = (onStoreChange: () => void) => {
-    const unsub = entity.subscribe((event) => {
-      const nextValue = selector(entity) as R;
-      if (value !== nextValue) {
-        value = nextValue;
-        onStoreChange();
-      }
-    });
-
-    return () => {
-      unsub();
-    };
-  };
-
-  return useSyncExternalStore(subscribe, getSnapshot) as R;
 };
 
 const NewRoomFlowComponent: FC<{ entityId: SnowflakeId }> = ({ entityId }) => {

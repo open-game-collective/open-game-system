@@ -321,6 +321,7 @@ export const ConnectionInitializeInputSchema = z.object({
 
 const ConnectionStateValueSchema = z.object({
   Initialized: z.enum(['True', 'False', 'Initializing', 'Error']),
+  Route: z.enum(['Unitialized', 'Home', 'NewRoom', 'Room']),
   // Nested: z.object({
   //   Active: z.enum(['On', 'Off']),
   // }),
@@ -725,6 +726,27 @@ export const SessionEntitySchema = EntityBaseSchema(
 // >;
 
 export type SessionEntity = z.infer<typeof SessionEntitySchema>;
+const GameListStateValueSchema = z.enum(['Initializing', 'Loaded']);
+
+export type GameListStateValue = z.infer<typeof GameListStateValueSchema>;
+
+export type GameListStateSchema = StateSchemaFromStateValue<GameListStateValue>;
+
+const GameListContextSchema = z.object({
+  gameInstanceIds: z.array(SnowflakeIdSchema),
+});
+export type GameListContext = z.infer<typeof GameListContextSchema>;
+
+const GameListCommandSchema = z.object({
+  type: z.literal('REFRESH'),
+});
+export type GameListCommand = z.infer<typeof GameListCommandSchema>;
+
+export type GameListMachine = StateMachine<
+  GameListContext,
+  GameListStateSchema,
+  GameListCommand
+>;
 
 const NewRoomStateValueSchema = z.enum(['SelectedGame', 'EnterName']);
 
@@ -776,6 +798,13 @@ const ConnectionEntityPropsSchema = z.object({
       event: NewRoomCommandSchema,
     })
     .optional(),
+  gameListService: z
+    .object({
+      context: GameListContextSchema,
+      value: GameListStateValueSchema,
+      event: GameListCommandSchema,
+    })
+    .optional(),
   instanceId: z.string().uuid(),
 });
 export type ConnectionEntityProps = z.infer<typeof ConnectionEntityPropsSchema>;
@@ -783,11 +812,6 @@ export type ConnectionEntityProps = z.infer<typeof ConnectionEntityPropsSchema>;
 const ConnectionHeartbeatCommandSchema = z.object({
   type: z.literal('HEARTBEAT'),
 });
-
-// const ConnectionNavigateCommandSchema = z.object({
-//   type: z.literal('NAVIGATE'),
-//   location: z.string().url(),
-// });
 
 const ConnectionCommandSchema = z.union([
   ConnectionInitializeCommandSchema,

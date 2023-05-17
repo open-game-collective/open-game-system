@@ -13,6 +13,9 @@ export const newRoomMachine = createMachine({
       entry: () => {
         console.log('enter name');
       },
+      after: {
+        5000: 'ConfirmDetails',
+      },
     },
     SelectingGame: {
       invoke: {
@@ -27,6 +30,9 @@ export const newRoomMachine = createMachine({
       },
     },
     ConfirmDetails: {
+      after: {
+        3000: 'Complete',
+      },
       on: {
         NEXT: 'EnterName',
       },

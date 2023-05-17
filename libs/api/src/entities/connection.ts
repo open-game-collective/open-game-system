@@ -3,27 +3,32 @@ import {
   ConnectionCommand,
   ConnectionContext,
   ConnectionEntity,
-  ConnectionMachine,
-  ConnectionStateSchema,
   ConnectionTypeState,
   Entity,
   InitializedConnectionContext,
   NewRoomService,
-  NewRoomState,
   NewRoomStateValue,
-  SessionEntity,
+  SessionEntity
 } from '@explorers-club/schema';
 import { assertEventType, generateRandomString } from '@explorers-club/utils';
 import { Session, createClient } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { assign } from '@xstate/immer';
 import { World } from 'miniplex';
-import { DoneInvokeEvent, Machine, createMachine, interpret } from 'xstate';
+import {
+  MatchFunction,
+  match,
+  pathToRegexp
+} from 'path-to-regexp';
+import {
+  DoneInvokeEvent,
+  createMachine,
+  interpret
+} from 'xstate';
 import { generateSnowflakeId } from '../ecs';
 import { createSchemaIndex } from '../indices';
-import { world } from '../world';
-import { z } from 'zod';
 import { newRoomMachine } from '../services';
+import { world } from '../world';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -41,6 +46,17 @@ if (
 }
 
 const [sessionsByUserId] = createSchemaIndex(world, 'session', 'userId');
+
+const matchPath = (location: string, path: string) => {
+  pathToRegexp(path);
+};
+
+const homeRoute = match('/');
+const newRoomRoute = match('/new');
+const roomRoute = match('/:id');
+
+const matchesRoute = (location: string, route: MatchFunction<object>) =>
+  !!route(new URL(location).pathname);
 
 export const createConnectionMachine = ({
   world,
@@ -65,11 +81,83 @@ export const createConnectionMachine = ({
     //   location: undefined,
     // },
     states: {
-      OtherState: {
-        initial: 'Foo',
+      Route: {
+        initial: 'Uninitialized',
         states: {
-          Foo: {},
-          Bar: {},
+          Uninitialized: {
+            on: {
+              INITIALIZE: [
+                {
+                  target: 'Home',
+                  actions: (_, event) => {
+                    connectionEntity.location = event.initialLocation
+                  },
+                  cond: (_, event) =>
+                    matchesRoute(event.initialLocation, homeRoute),
+                },
+                {
+                  target: 'NewRoom',
+                  cond: (_, event) =>
+                    matchesRoute(event.initialLocation, newRoomRoute),
+                  actions: (_, event) => {
+                    connectionEntity.location = event.initialLocation
+                  }
+                },
+                {
+                  target: 'Room',
+                  actions: (_, event) => {
+                    connectionEntity.location = event.initialLocation
+                  },
+                  cond: (_, event) =>
+                    matchesRoute(event.initialLocation, roomRoute),
+                },
+              ],
+            },
+          },
+          Home: {
+          },
+          NewRoom: {
+            invoke: {
+              src: () =>
+                new Promise((resolve) => {
+                  const newRoomService = interpret(
+                    newRoomMachine
+                  ) as unknown as NewRoomService;
+                  newRoomService.start();
+
+                  // Set initial state on entity
+                  const state = newRoomService.getSnapshot();
+                  connectionEntity.newRoomService = {
+                    context: state.context,
+                    value: state.value as NewRoomStateValue,
+                    event: state.event,
+                  };
+
+                  // Update on transitions
+                  newRoomService.onTransition((state) => {
+                    connectionEntity.newRoomService = {
+                      context: state.context,
+                      value: state.value as NewRoomStateValue,
+                      event: state.event,
+                    };
+
+                    // Return promise if machine is done
+                    if (state.done) {
+                      resolve(null);
+                    }
+                  });
+                }),
+
+              onDone: 'Room',
+            },
+          },
+          Room: {
+            invoke: {
+              src: () => {
+                return Promise.resolve(true);
+              },
+            },
+          },
         },
       },
       Initialized: {
@@ -192,30 +280,30 @@ export const createConnectionMachine = ({
                   accessToken: supabaseSession.access_token,
                   refreshToken: supabaseSession.refresh_token,
                 };
-                connectionEntity.location = initialLocation;
+                // connectionEntity.location = initialLocation;
 
-                const url = new URL(initialLocation);
+                // const url = new URL(initialLocation);
 
                 // TODO move logic to a router
-                if (url.pathname === '/new') {
-                  const newRoomService = interpret(
-                    newRoomMachine
-                  ) as unknown as NewRoomService;
-                  newRoomService.start();
-                  newRoomService.onTransition((state) => {
-                    connectionEntity.newRoomService = {
-                      context: state.context,
-                      value: state.value as NewRoomStateValue,
-                      event: state.event,
-                    };
-                  });
-                  const state = newRoomService.getSnapshot();
-                  connectionEntity.newRoomService = {
-                    context: state.context,
-                    value: state.value as NewRoomStateValue,
-                    event: state.event,
-                  };
-                }
+                // if (url.pathname === '/new') {
+                //   const newRoomService = interpret(
+                //     newRoomMachine
+                //   ) as unknown as NewRoomService;
+                //   newRoomService.start();
+                //   newRoomService.onTransition((state) => {
+                //     connectionEntity.newRoomService = {
+                //       context: state.context,
+                //       value: state.value as NewRoomStateValue,
+                //       event: state.event,
+                //     };
+                //   });
+                //   const state = newRoomService.getSnapshot();
+                //   connectionEntity.newRoomService = {
+                //     context: state.context,
+                //     value: state.value as NewRoomStateValue,
+                //     event: state.event,
+                //   };
+                // }
 
                 return {
                   supabaseClient,
