@@ -1,3 +1,4 @@
+import { NewRoomCommand, NewRoomContext } from '@explorers-club/schema';
 import { createMachine } from 'xstate';
 
 type Event = { type: 'NEXT' };
@@ -5,8 +6,12 @@ type Event = { type: 'NEXT' };
 export const newRoomMachine = createMachine({
   id: 'NewRoomMachine',
   initial: 'SelectingGame',
+  context: {
+    roomSlug: 'hello',
+  },
   schema: {
-    events: {} as Event,
+    events: {} as NewRoomCommand,
+    context: {} as NewRoomContext,
   },
   states: {
     EnterName: {

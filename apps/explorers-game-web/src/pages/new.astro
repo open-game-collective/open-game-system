@@ -1,9 +1,6 @@
 ---
-import { NewRoomFlow } from '@organisms/new-room-flow';
+import { LayoutProps, NewRoomLayoutProps } from '@explorers-club/schema';
 import Layout from '../layouts/Layout.astro';
-
 ---
 
-<Layout title="Create New Game">
-  <NewRoomFlow client:only />
-</Layout>
+<Layout title="Explorers Game" initialLayoutProps={NewRoomLayoutProps} />

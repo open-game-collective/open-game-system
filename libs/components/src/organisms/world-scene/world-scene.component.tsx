@@ -1,5 +1,5 @@
 import { FC } from 'react';
 
-export const WorldScene: FC<{ slug: string }> = ({ slug }) => {
-  return <div>World - {slug}</div>;
+export const WorldScene = () => {
+  return <div>World - Canvas</div>;
 };

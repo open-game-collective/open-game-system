@@ -1,18 +1,12 @@
 ---
-import { Room } from '@organisms/Room';
+import { LayoutProps, RoomLayoutProps, RouteProps } from '@explorers-club/schema';
 import Layout from '../layouts/Layout.astro';
-import { Chat } from '@organisms/chat';
 import { GamePanel } from '@organisms/game-panel';
-import { WorldScene } from '@organisms/world-scene';
-// import { ApplicationProvider } from '@context/ApplicationProvider';
-
-const roomSlug = Astro.params.roomSlug!;
+import { Chat } from '@organisms/chat';
 ---
 
-<Layout title="Explorers Game">
-  <main>
-    <WorldScene slug={roomSlug} />
-    <GamePanel slug={roomSlug} />
-    <Chat slug={roomSlug} />
-  </main>
+<Layout title="Create New Game Room" initialLayoutProps={RoomLayoutProps}>
+  <GamePanel slot="MainPanel" />
+  <GamePanel slot="MainScene" />
+  <Chat slot="Chat" />
 </Layout>

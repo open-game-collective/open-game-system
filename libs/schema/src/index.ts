@@ -3,17 +3,21 @@ import { Database } from '@explorers-club/database';
 import { IndexByType, MakeRequired } from '@explorers-club/utils';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Operation } from 'fast-json-patch';
-import { Patch } from 'immer';
 import {
   AnyEventObject,
   InterpreterFrom,
   State,
-  StateFrom,
   StateMachine,
   StateSchema,
   StateValue,
 } from 'xstate';
 import { z } from 'zod';
+
+const SlugSchema = z
+  .string()
+  .min(1)
+  .max(30)
+  .regex(/^[a-z0-9-]+$/);
 
 // export const ClubRoomIdSchema = z.custom<`club-${string}`>((val) => {
 //   return /^club-\w+$/.test(val as string);
@@ -297,7 +301,7 @@ export type InitializedConnectionContext = MakeRequired<
 
 export type InitializedConnectionEntity = MakeRequired<
   ConnectionEntity,
-  'sessionId' | 'userId' | 'authTokens' | 'deviceId' | 'location'
+  'sessionId' | 'userId' | 'authTokens' | 'deviceId' | 'layoutProps'
 > & {
   context: InitializedConnectionContext;
 };
@@ -754,14 +758,34 @@ export type NewRoomStateValue = z.infer<typeof NewRoomStateValueSchema>;
 
 export type NewRoomStateSchema = StateSchemaFromStateValue<NewRoomStateValue>;
 
+const ChatStateValueSchema = z.enum(['Initializing', 'Loaded']);
+
+export type ChatStateValue = z.infer<typeof ChatStateValueSchema>;
+
+const ChatContextSchema = z.object({
+  roomSlug: z.string(),
+});
+export type ChatContext = z.infer<typeof ChatContextSchema>;
+
+const ChatCommandSchema = z.union([
+  z.object({
+    type: z.literal('TYPE'),
+  }),
+  z.object({
+    type: z.literal('SEND'),
+    message: z.string(),
+  }),
+]);
+export type ChatCommand = z.infer<typeof ChatCommandSchema>;
+
 const NewRoomContextSchema = z.object({
-  foo: z.string(),
+  roomSlug: z.string(),
 });
 export type NewRoomContext = z.infer<typeof NewRoomContextSchema>;
 
 const NewRoomCommandSchema = z.union([
   z.object({
-    type: z.literal('RECONNECT'),
+    type: z.literal('NEXT'),
   }),
   z.object({
     type: z.literal('DISCONNECT'),
@@ -784,13 +808,72 @@ export type NewRoomState = State<
 >;
 export type NewRoomService = InterpreterFrom<NewRoomMachine>;
 
+export const LayoutPropsSchema = z.object({
+  focusArea: z
+    .enum(['Menu', 'MainScene', 'MainPanel', 'Chat', 'Modal'])
+    .default('MainScene'),
+  mainPanel: z
+    .object({
+      expanded: z.boolean(),
+    })
+    .default({
+      expanded: false,
+    }),
+  chat: z
+    .object({
+      expanded: z.boolean(),
+    })
+    .default({
+      expanded: false,
+    }),
+  menu: z
+    .object({
+      open: z.boolean(),
+      expanded: z.boolean(),
+    })
+    .default({
+      open: false,
+      expanded: false,
+    }),
+  modal: z
+    .object({
+      open: z.boolean(),
+      expanded: z.boolean(),
+    })
+    .default({
+      open: false,
+      expanded: false,
+    }),
+});
+export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
+
+export const HomeLayoutProps = LayoutPropsSchema.parse({
+  focusArea: 'MainScene',
+});
+
+export const NewRoomLayoutProps = LayoutPropsSchema.parse({
+  focusArea: 'MainPanel',
+});
+
+export const RoomLayoutProps = LayoutPropsSchema.parse({
+  focusArea: 'MainScene',
+});
+
 const ConnectionEntityPropsSchema = z.object({
   schema: ConnectionSchemaTypeLiteral,
   sessionId: SnowflakeIdSchema.optional(),
   userId: SnowflakeIdSchema.optional(),
   authTokens: AuthTokensSchema.optional(),
   deviceId: SnowflakeIdSchema.optional(),
-  location: z.string().url().optional(),
+  layoutProps: LayoutPropsSchema.optional(),
+  currentRoomSlug: SlugSchema.optional(),
+  chatService: z
+    .object({
+      context: ChatContextSchema,
+      value: ChatStateValueSchema,
+      event: ChatCommandSchema,
+    })
+    .optional(),
   newRoomService: z
     .object({
       context: NewRoomContextSchema,
@@ -813,9 +896,35 @@ const ConnectionHeartbeatCommandSchema = z.object({
   type: z.literal('HEARTBEAT'),
 });
 
+export const HomeRoutePropsSchema = z.object({
+  name: z.literal('Home'),
+});
+
+export const NewRoomRoutePropsSchema = z.object({
+  name: z.literal('NewRoom'),
+});
+
+export const RoomRoutePropsSchema = z.object({
+  name: z.literal('Room'),
+  roomSlug: z.string(),
+});
+
+export const RoutePropsSchema = z.union([
+  HomeRoutePropsSchema,
+  NewRoomRoutePropsSchema,
+  RoomRoutePropsSchema,
+]);
+export type RouteProps = z.infer<typeof RoutePropsSchema>;
+
+const ConnectionNavigateCommandSchema = z.object({
+  type: z.literal('NAVIGATE'),
+  route: RoutePropsSchema,
+});
+
 const ConnectionCommandSchema = z.union([
   ConnectionInitializeCommandSchema,
   ConnectionHeartbeatCommandSchema,
+  ConnectionNavigateCommandSchema,
 ]);
 export type ConnectionCommand = z.infer<typeof ConnectionCommandSchema>;
 

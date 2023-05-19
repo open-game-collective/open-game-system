@@ -5,26 +5,25 @@ import {
   ConnectionEntity,
   ConnectionTypeState,
   Entity,
+  HomeLayoutProps,
+  HomeRoutePropsSchema,
   InitializedConnectionContext,
+  LayoutPropsSchema,
+  NewRoomLayoutProps,
+  NewRoomRoutePropsSchema,
   NewRoomService,
   NewRoomStateValue,
-  SessionEntity
+  RoomLayoutProps,
+  RoomRoutePropsSchema,
+  SessionEntity,
 } from '@explorers-club/schema';
 import { assertEventType, generateRandomString } from '@explorers-club/utils';
 import { Session, createClient } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { assign } from '@xstate/immer';
 import { World } from 'miniplex';
-import {
-  MatchFunction,
-  match,
-  pathToRegexp
-} from 'path-to-regexp';
-import {
-  DoneInvokeEvent,
-  createMachine,
-  interpret
-} from 'xstate';
+import { MatchFunction, match, pathToRegexp } from 'path-to-regexp';
+import { DoneInvokeEvent, createMachine, interpret } from 'xstate';
 import { generateSnowflakeId } from '../ecs';
 import { createSchemaIndex } from '../indices';
 import { newRoomMachine } from '../services';
@@ -55,6 +54,18 @@ const homeRoute = match('/');
 const newRoomRoute = match('/new');
 const roomRoute = match('/:id');
 
+const routes = [homeRoute, newRoomRoute, roomRoute];
+
+const getRoute = (location: string) => {
+  for (const route of routes) {
+    if (matchesRoute(location, route)) {
+      return route;
+    }
+  }
+
+  return undefined;
+};
+
 const matchesRoute = (location: string, route: MatchFunction<object>) =>
   !!route(new URL(location).pathname);
 
@@ -83,15 +94,31 @@ export const createConnectionMachine = ({
     states: {
       Route: {
         initial: 'Uninitialized',
+        on: {
+          NAVIGATE: [
+            {
+              target: 'Route.Home',
+              cond: (_, event) =>
+                HomeRoutePropsSchema.safeParse(event.route).success,
+            },
+            {
+              target: 'Route.NewRoom',
+              cond: (_, event) =>
+                NewRoomRoutePropsSchema.safeParse(event.route).success,
+            },
+            {
+              target: 'Route.Room',
+              cond: (_, event) =>
+                RoomRoutePropsSchema.safeParse(event.route).success,
+            },
+          ],
+        },
         states: {
           Uninitialized: {
             on: {
               INITIALIZE: [
                 {
                   target: 'Home',
-                  actions: (_, event) => {
-                    connectionEntity.location = event.initialLocation
-                  },
                   cond: (_, event) =>
                     matchesRoute(event.initialLocation, homeRoute),
                 },
@@ -99,14 +126,14 @@ export const createConnectionMachine = ({
                   target: 'NewRoom',
                   cond: (_, event) =>
                     matchesRoute(event.initialLocation, newRoomRoute),
-                  actions: (_, event) => {
-                    connectionEntity.location = event.initialLocation
-                  }
                 },
                 {
                   target: 'Room',
                   actions: (_, event) => {
-                    connectionEntity.location = event.initialLocation
+                    const roomSlug = new URL(
+                      event.initialLocation
+                    ).pathname.split('/')[1];
+                    connectionEntity.currentRoomSlug = roomSlug;
                   },
                   cond: (_, event) =>
                     matchesRoute(event.initialLocation, roomRoute),
@@ -115,10 +142,16 @@ export const createConnectionMachine = ({
             },
           },
           Home: {
+            entry: () => {
+              connectionEntity.layoutProps = HomeLayoutProps;
+            },
           },
           NewRoom: {
+            entry: () => {
+              connectionEntity.layoutProps = NewRoomLayoutProps;
+            },
             invoke: {
-              src: () =>
+              src: (_, event) =>
                 new Promise((resolve) => {
                   const newRoomService = interpret(
                     newRoomMachine
@@ -141,19 +174,31 @@ export const createConnectionMachine = ({
                       event: state.event,
                     };
 
-                    // Return promise if machine is done
+                    // Return promise with result if machine is done
                     if (state.done) {
-                      resolve(null);
+                      resolve(state.context.roomSlug);
                     }
                   });
                 }),
-
-              onDone: 'Room',
+              onDone: {
+                target: 'Room',
+                actions: (_, event) => {
+                  connectionEntity.currentRoomSlug = event.data;
+                },
+              },
             },
           },
           Room: {
+            entry: () => {
+              connectionEntity.layoutProps = RoomLayoutProps;
+            },
             invoke: {
+              id: 'room',
               src: () => {
+                if (!connectionEntity.currentRoomSlug) {
+                  throw new Error("Couldn't find current room slug");
+                }
+
                 return Promise.resolve(true);
               },
             },
@@ -188,7 +233,7 @@ export const createConnectionMachine = ({
               src: async (context, event) => {
                 assertEventType(event, 'INITIALIZE');
 
-                const { authTokens, initialLocation } = event;
+                const { authTokens } = event;
 
                 const supabaseClient = createClient<Database>(
                   supabaseUrl,
@@ -281,6 +326,9 @@ export const createConnectionMachine = ({
                   refreshToken: supabaseSession.refresh_token,
                 };
                 // connectionEntity.location = initialLocation;
+                // const url = new URL(initialLocation);
+                // url.pathname
+                // url.hostname
 
                 // const url = new URL(initialLocation);
 

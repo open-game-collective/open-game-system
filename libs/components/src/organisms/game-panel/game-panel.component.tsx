@@ -1,5 +1,3 @@
-import { FC } from 'react';
-
-export const GamePanel: FC<{ slug: string }> = ({ slug }) => {
-  return <div>Panel - {slug}</div>;
+export const GamePanel = () => {
+  return <div>Game Panel</div>;
 };

@@ -1,12 +1,6 @@
 ---
+import { HomeLayoutProps } from '@explorers-club/schema';
 import Layout from '../layouts/Layout.astro';
-import Header from '../components/Header.astro';
-import { GameList } from '@organisms/contest-list';
 ---
 
-<Layout title="Explorers Game">
-  <main>
-    <a href="/new">Create New Room</a>
-    <GameList />
-  </main>
-</Layout>
+<Layout title="Explorers Game" initialLayoutProps={HomeLayoutProps} />

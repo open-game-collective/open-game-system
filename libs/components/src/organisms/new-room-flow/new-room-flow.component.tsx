@@ -11,12 +11,13 @@ type NewRoomServiceEntity = With<ConnectionEntity, 'newRoomService'>;
 
 export const NewRoomFlow = () => {
   const world = useStore(worldStore);
-  // const [query] = useState(world.archetype<NewRoomState>("newRoomState"));
   const [archetype] = useState(
     world.with<NewRoomServiceEntity>('newRoomService')
   );
   const bucket = useEntities(archetype);
 
+  // logic assumes newRoomService exists on only one entity in the world
+  // (our connection entity)
   const entity = bucket.entities.length && bucket.entities[0];
   if (!entity) {
     return <div>Loading</div>;
