@@ -301,7 +301,7 @@ export type InitializedConnectionContext = MakeRequired<
 
 export type InitializedConnectionEntity = MakeRequired<
   ConnectionEntity,
-  'sessionId' | 'userId' | 'authTokens' | 'deviceId' | 'layoutProps'
+  'sessionId' | 'userId' | 'authTokens' | 'deviceId'
 > & {
   context: InitializedConnectionContext;
 };
@@ -323,12 +323,13 @@ export const ConnectionInitializeInputSchema = z.object({
   authTokens: AuthTokensSchema.optional(),
 });
 
+export const RouteNameSchema = z.enum(['Home', 'NewRoom', 'Room']);
+
+export type RouteName = z.infer<typeof RouteNameSchema>;
+
 const ConnectionStateValueSchema = z.object({
   Initialized: z.enum(['True', 'False', 'Initializing', 'Error']),
-  Route: z.enum(['Unitialized', 'Home', 'NewRoom', 'Room']),
-  // Nested: z.object({
-  //   Active: z.enum(['On', 'Off']),
-  // }),
+  Route: RouteNameSchema,
 });
 
 type ConnectionStateValue = z.infer<typeof ConnectionStateValueSchema>;
@@ -808,56 +809,19 @@ export type NewRoomState = State<
 >;
 export type NewRoomService = InterpreterFrom<NewRoomMachine>;
 
+const LayoutIslandSchema = z.enum([
+  'Menu',
+  'MainScene',
+  'MainPanel',
+  'Chat',
+  'Modal',
+]);
+export type LayoutIsland = z.infer<typeof LayoutIslandSchema>;
+
 export const LayoutPropsSchema = z.object({
-  focusArea: z
-    .enum(['Menu', 'MainScene', 'MainPanel', 'Chat', 'Modal'])
-    .default('MainScene'),
-  mainPanel: z
-    .object({
-      expanded: z.boolean(),
-    })
-    .default({
-      expanded: false,
-    }),
-  chat: z
-    .object({
-      expanded: z.boolean(),
-    })
-    .default({
-      expanded: false,
-    }),
-  menu: z
-    .object({
-      open: z.boolean(),
-      expanded: z.boolean(),
-    })
-    .default({
-      open: false,
-      expanded: false,
-    }),
-  modal: z
-    .object({
-      open: z.boolean(),
-      expanded: z.boolean(),
-    })
-    .default({
-      open: false,
-      expanded: false,
-    }),
+  focusArea: z.array(LayoutIslandSchema),
 });
 export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
-
-export const HomeLayoutProps = LayoutPropsSchema.parse({
-  focusArea: 'MainScene',
-});
-
-export const NewRoomLayoutProps = LayoutPropsSchema.parse({
-  focusArea: 'MainPanel',
-});
-
-export const RoomLayoutProps = LayoutPropsSchema.parse({
-  focusArea: 'MainScene',
-});
 
 const ConnectionEntityPropsSchema = z.object({
   schema: ConnectionSchemaTypeLiteral,
@@ -865,7 +829,6 @@ const ConnectionEntityPropsSchema = z.object({
   userId: SnowflakeIdSchema.optional(),
   authTokens: AuthTokensSchema.optional(),
   deviceId: SnowflakeIdSchema.optional(),
-  layoutProps: LayoutPropsSchema.optional(),
   currentRoomSlug: SlugSchema.optional(),
   chatService: z
     .object({

@@ -6,6 +6,7 @@ import {
 import {
   ConnectionEntity,
   InitializedConnectionEntity,
+  RouteProps,
   SnowflakeId,
 } from '@explorers-club/schema';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

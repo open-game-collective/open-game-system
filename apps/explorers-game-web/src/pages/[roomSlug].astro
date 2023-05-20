@@ -1,11 +1,15 @@
 ---
-import { LayoutProps, RoomLayoutProps, RouteProps } from '@explorers-club/schema';
-import Layout from '../layouts/Layout.astro';
-import { GamePanel } from '@organisms/game-panel';
 import { Chat } from '@organisms/chat';
+import { GamePanel } from '@organisms/game-panel';
+import Layout from '../layouts/Layout.astro';
+
+const { roomSlug } = Astro.params;
 ---
 
-<Layout title="Create New Game Room" initialLayoutProps={RoomLayoutProps}>
+<Layout
+  title="Create New Game Room"
+  routeProps={{ name: 'Room', roomSlug: roomSlug! }}
+>
   <GamePanel slot="MainPanel" />
   <GamePanel slot="MainScene" />
   <Chat slot="Chat" />

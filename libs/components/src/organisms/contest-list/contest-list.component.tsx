@@ -1,6 +1,6 @@
 import { ConnectionEntity, SnowflakeId } from '@explorers-club/schema';
 import { useStore } from '@nanostores/react';
-import { useEntities } from 'miniplex/react';
+import { useEntities } from '@miniplex/react';
 import { FC, useState } from 'react';
 import { useEntitySelector } from '../../hooks/useEntitySelector';
 import { worldStore } from '../../state/world';

@@ -3,7 +3,7 @@ import { worldStore } from '../../state/world';
 import { With } from "miniplex";
 import { ConnectionEntity } from "@explorers-club/schema";
 import { useState } from "react";
-import { useEntities } from "miniplex/react";
+import { useEntities } from "@miniplex/react";
 
 type ChatServiceEntity = With<ConnectionEntity, 'chatService'>;
 

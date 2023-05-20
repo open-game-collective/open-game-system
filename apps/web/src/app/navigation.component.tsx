@@ -1,12 +1,12 @@
 import { Button } from '@atoms/Button';
+import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
-import { useEntities } from 'miniplex/react';
-import { Text } from '@atoms/Text';
-import { Heading } from '@atoms/Heading';
 import { Flex } from '@atoms/Flex';
+import { Heading } from '@atoms/Heading';
 import { IconButton } from '@atoms/IconButton';
 import { Image } from '@atoms/Image';
 import { ScrollAreaRoot } from '@atoms/ScrollArea';
+import { Text } from '@atoms/Text';
 import { styled } from '@explorers-club/styles';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Cross2Icon, OpenInNewWindowIcon } from '@radix-ui/react-icons';
@@ -16,12 +16,8 @@ import {
   ScrollAreaViewport,
 } from '@radix-ui/react-scroll-area';
 import * as Tabs from '@radix-ui/react-tabs';
-import { useCallback, useContext } from 'react';
+import { useCallback } from 'react';
 import { useAppSend, useServiceSelector } from '../services';
-import { AppState } from '../state/app.machine';
-import { WorldContext } from '../state/world.context';
-import { useSubscription } from 'observable-hooks';
-import { Caption } from '@atoms/Caption';
 import { selectNavIsOpen } from './app.selectors';
 
 export const Navigation = () => {

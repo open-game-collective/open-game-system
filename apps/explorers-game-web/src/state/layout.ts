@@ -1,36 +1,34 @@
-import { LayoutProps, LayoutPropsSchema } from '@explorers-club/schema';
-import { atom, computed, listenKeys, onMount } from 'nanostores';
-import { myConnectionEntityStore, worldStore } from '@state/world';
+import type { LayoutIsland, LayoutProps, RouteName, RouteProps } from '@explorers-club/schema';
+import { atom } from 'nanostores';
 
-export const layoutPropsStore = atom<LayoutProps>(LayoutPropsSchema.parse({}));
+const defaultLayoutPropsByRoute: Record<RouteName, LayoutProps> = {
+  Home: {
+    focusArea: []
+  },
+  NewRoom: {
+    focusArea: ["MainPanel"]
+  },
+  Room: {
+    focusArea: []
+  },
+};
 
-/**
- * Keeps the layoutProps updated with latest from the connection entity
- */
-onMount(layoutPropsStore, () => {
-  const unsub = myConnectionEntityStore.subscribe((entity) => {
-    if (!entity) {
-      return;
-    }
+// How do I calculate the focus area
 
-    const unsub = entity.subscribe((event) => {
-      if (entity.layoutProps) {
-        layoutPropsStore.set(entity.layoutProps);
-      }
-    });
+// export const focusAreasStore = atom<Set<LayoutIsland>>(new Set());
 
-    return unsub;
-  });
+// const routeStore = atom<RouteProps>();
 
-  return unsub;
-});
+// const modalIsOpenStore = computed(myInitializedConnectionEntityStore, (entity) => {
+//   return entity?.states.Route
+// })
 
-export const modalIsOpenStore = computed(
-  layoutPropsStore,
-  (layoutProps) => layoutProps.modal.open
-);
+// export const modalIsOpenStore = computed(
+//   layoutPropsStore,
+//   (layoutProps) => layoutProps.modal.open
+// );
 
-export const menuIsOpenStore = computed(
-  layoutPropsStore,
-  (layoutProps) => layoutProps.menu.open
-);
+// export const menuIsOpenStore = computed(
+//   layoutPropsStore,
+//   (layoutProps) => layoutProps.menu.open
+// );

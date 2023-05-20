@@ -1,6 +1,5 @@
 ---
-import { LayoutProps, NewRoomLayoutProps } from '@explorers-club/schema';
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Explorers Game" initialLayoutProps={NewRoomLayoutProps} />
+<Layout title="Explorers Game" routeProps={{ name: 'NewRoom' }} />

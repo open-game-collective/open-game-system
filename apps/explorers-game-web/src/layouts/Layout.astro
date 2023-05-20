@@ -1,25 +1,14 @@
 ---
 export interface Props {
   title: string;
-  initialLayoutProps: LayoutProps;
+  routeProps: RouteProps;
 }
-import { Box } from '@atoms/Box';
 import { ApplicationProvider } from '@context/ApplicationProvider';
-import { HamburgerMenuIcon } from '@radix-ui/react-icons';
-import logoRef from '../../../../static/base_logo_black_horizontal.png';
-import type { LayoutProps } from '@explorers-club/schema';
-import { ModalContainer } from '../components/ModalContainer';
-import { MainPanelContainer } from '../components/MainPanelContainer';
-import { MainSceneContainer } from '../components/MainSceneContainer';
-import { ChatContainer } from '../components/ChatContainer';
-import { Header } from '../components/Header';
-import { getCssText } from '@explorers-club/styles';
+import type { RouteProps } from '@explorers-club/schema';
+import { App } from '../components/App';
 import { GlobalStyles } from '../components/Styles';
-const { title, initialLayoutProps } = Astro.props;
 
-console.log({ f: getCssText() });
-
-// const { intialRoute } = Astro.props;
+const { title, routeProps } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -34,26 +23,8 @@ console.log({ f: getCssText() });
   </head>
 
   <body>
-    <ApplicationProvider
-      client:only
-      trpcUrl={import.meta.env.PUBLIC_API_SERVER_URL}
-    >
-      <Header client:load />
-      <MainPanelContainer client:load>
-        <slot name="MainPanel" />
-      </MainPanelContainer>
-      <MainSceneContainer client:load>
-        <slot name="MainScene" />
-      </MainSceneContainer>
-      <ChatContainer client:load>
-        <slot name="Chat" />
-      </ChatContainer>
-      <ModalContainer client:load>
-        <slot name="Modal" />
-      </ModalContainer>
-      <!-- <WorldScene />
-      <GamePanel />
-      <Chat /> -->
+    <ApplicationProvider client:only trpcUrl={import.meta.env.PUBLIC_API_SERVER_URL}>
+      <App initialRouteProps={routeProps} />
     </ApplicationProvider>
   </body>
 </html>

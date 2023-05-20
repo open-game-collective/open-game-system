@@ -5,15 +5,11 @@ import {
   ConnectionEntity,
   ConnectionTypeState,
   Entity,
-  HomeLayoutProps,
   HomeRoutePropsSchema,
   InitializedConnectionContext,
-  LayoutPropsSchema,
-  NewRoomLayoutProps,
   NewRoomRoutePropsSchema,
   NewRoomService,
   NewRoomStateValue,
-  RoomLayoutProps,
   RoomRoutePropsSchema,
   SessionEntity,
 } from '@explorers-club/schema';
@@ -141,15 +137,8 @@ export const createConnectionMachine = ({
               ],
             },
           },
-          Home: {
-            entry: () => {
-              connectionEntity.layoutProps = HomeLayoutProps;
-            },
-          },
+          Home: {},
           NewRoom: {
-            entry: () => {
-              connectionEntity.layoutProps = NewRoomLayoutProps;
-            },
             invoke: {
               src: (_, event) =>
                 new Promise((resolve) => {
@@ -189,9 +178,6 @@ export const createConnectionMachine = ({
             },
           },
           Room: {
-            entry: () => {
-              connectionEntity.layoutProps = RoomLayoutProps;
-            },
             invoke: {
               id: 'room',
               src: () => {
