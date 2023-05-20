@@ -7,6 +7,7 @@ import { MainPanelContainer } from '../components/MainPanelContainer';
 import { MainSceneContainer } from '../components/MainSceneContainer';
 import { ModalContainer } from '../components/ModalContainer';
 import { currentRouteStore } from '../state/navigation';
+import { Menu } from './Menu';
 
 interface Props {
   initialRouteProps: RouteProps;
@@ -20,6 +21,7 @@ export const App: FC<Props> = ({ initialRouteProps }) => {
   return (
     <>
       <Header />
+      <Menu />
       <MainPanelContainer>
         <slot name="MainPanel" />
       </MainPanelContainer>

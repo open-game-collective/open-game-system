@@ -1,15 +1,18 @@
 import { Flex } from '@atoms/Flex';
 import { IconButton } from '@atoms/IconButton';
-import { useStore } from '@nanostores/react';
 import { HamburgerMenuIcon, PersonIcon } from '@radix-ui/react-icons';
 import { useCallback } from 'react';
 import logoRef from '../../../../static/base_logo_black_horizontal.png';
+import { isMenuOpenStore } from '../state/layout';
 
 export const Header = () => {
-  // const menuIsOpen = useStore(menuIsOpenStore);
   const handlePressMenu = useCallback(() => {
-    console.log('OPEN');
-  }, []);
+    if (isMenuOpenStore.get()) {
+      isMenuOpenStore.set(false);
+    } else {
+      isMenuOpenStore.set(true);
+    }
+  }, [isMenuOpenStore]);
 
   return (
     <Flex
@@ -20,7 +23,7 @@ export const Header = () => {
         top: '$2',
         left: '$2',
         right: '$2',
-        zIndex: 30,
+        zIndex: 200,
       }}
     >
       <IconButton variant="raised" size="3" onClick={handlePressMenu}>

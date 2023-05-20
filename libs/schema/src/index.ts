@@ -819,7 +819,7 @@ const LayoutIslandSchema = z.enum([
 export type LayoutIsland = z.infer<typeof LayoutIslandSchema>;
 
 export const LayoutPropsSchema = z.object({
-  focusArea: z.array(LayoutIslandSchema),
+  focusArea: z.record(LayoutIslandSchema, z.boolean()),
 });
 export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
 

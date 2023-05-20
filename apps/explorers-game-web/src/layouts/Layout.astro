@@ -24,7 +24,7 @@ const { title, routeProps } = Astro.props;
 
   <body>
     <ApplicationProvider client:only trpcUrl={import.meta.env.PUBLIC_API_SERVER_URL}>
-      <App initialRouteProps={routeProps} />
+      <App client:load initialRouteProps={routeProps} />
     </ApplicationProvider>
   </body>
 </html>

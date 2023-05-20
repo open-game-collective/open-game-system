@@ -1,34 +1,22 @@
-import type { LayoutIsland, LayoutProps, RouteName, RouteProps } from '@explorers-club/schema';
+import type { LayoutProps, RouteName } from '@explorers-club/schema';
 import { atom } from 'nanostores';
 
 const defaultLayoutPropsByRoute: Record<RouteName, LayoutProps> = {
   Home: {
-    focusArea: []
+    focusArea: {},
   },
   NewRoom: {
-    focusArea: ["MainPanel"]
+    focusArea: {
+      MainPanel: true,
+    },
   },
   Room: {
-    focusArea: []
+    focusArea: {},
   },
 };
 
-// How do I calculate the focus area
+export const layoutPropsStore = atom<LayoutProps>({
+  focusArea: {},
+});
 
-// export const focusAreasStore = atom<Set<LayoutIsland>>(new Set());
-
-// const routeStore = atom<RouteProps>();
-
-// const modalIsOpenStore = computed(myInitializedConnectionEntityStore, (entity) => {
-//   return entity?.states.Route
-// })
-
-// export const modalIsOpenStore = computed(
-//   layoutPropsStore,
-//   (layoutProps) => layoutProps.modal.open
-// );
-
-// export const menuIsOpenStore = computed(
-//   layoutPropsStore,
-//   (layoutProps) => layoutProps.menu.open
-// );
+export const isMenuOpenStore = atom<boolean>(false);
