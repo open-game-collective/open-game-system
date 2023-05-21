@@ -9,8 +9,4 @@ const { roomSlug } = Astro.params;
 <Layout
   title="Create New Game Room"
   routeProps={{ name: 'Room', roomSlug: roomSlug! }}
->
-  <GamePanel slot="MainPanel" />
-  <GamePanel slot="MainScene" />
-  <Chat slot="Chat" />
-</Layout>
+/>

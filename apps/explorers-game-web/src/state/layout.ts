@@ -1,22 +1,21 @@
+import { atom, computed, onMount } from 'nanostores';
+import { currentRouteStore } from './navigation';
 import type { LayoutProps, RouteName } from '@explorers-club/schema';
-import { atom } from 'nanostores';
 
 const defaultLayoutPropsByRoute: Record<RouteName, LayoutProps> = {
-  Home: {
-    focusArea: {},
-  },
+  Home: {},
   NewRoom: {
-    focusArea: {
-      MainPanel: true,
-    },
+    focusArea: 'MainPanel',
   },
-  Room: {
-    focusArea: {},
-  },
+  Room: {},
 };
 
-export const layoutPropsStore = atom<LayoutProps>({
-  focusArea: {},
-});
-
 export const isMenuOpenStore = atom<boolean>(false);
+export const isMainSceneFocusedStore = atom<boolean>(false);
+export const isMainPanelFocusedStore = atom<boolean>(false);
+
+currentRouteStore.subscribe((route) => {
+  const defaults = defaultLayoutPropsByRoute[route];
+  isMainSceneFocusedStore.set(defaults.focusArea === 'MainScene');
+  isMainPanelFocusedStore.set(defaults.focusArea === 'MainPanel');
+});

@@ -809,17 +809,11 @@ export type NewRoomState = State<
 >;
 export type NewRoomService = InterpreterFrom<NewRoomMachine>;
 
-const LayoutIslandSchema = z.enum([
-  'Menu',
-  'MainScene',
-  'MainPanel',
-  'Chat',
-  'Modal',
-]);
+const LayoutIslandSchema = z.enum(['MainScene', 'MainPanel', 'Chat']);
 export type LayoutIsland = z.infer<typeof LayoutIslandSchema>;
 
 export const LayoutPropsSchema = z.object({
-  focusArea: z.record(LayoutIslandSchema, z.boolean()),
+  focusArea: LayoutIslandSchema.optional(),
 });
 export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
 
