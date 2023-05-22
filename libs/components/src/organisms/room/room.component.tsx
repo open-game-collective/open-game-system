@@ -1,12 +1,11 @@
-import { world } from '@explorers-club/api-client';
+import { InitializedConnectionEntityContext } from '../../context/Entity';
 import { enablePatches } from 'immer';
-import { FC } from 'react';
+import { useContext } from 'react';
 enablePatches();
 
-export const Room: FC<{ slug: string }> = ({ slug }) => {
-  const handlePressButton = () => {
-    console.log('ress', world);
-  };
+export const Room = () => {
+  const connectionEntity = useContext(InitializedConnectionEntityContext);
+  console.log({ connectionEntity });
 
-  return <button onClick={handlePressButton}>{slug}</button>;
+  return <div>room</div>;
 };

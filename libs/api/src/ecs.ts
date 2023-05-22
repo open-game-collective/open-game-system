@@ -10,6 +10,7 @@ import { enablePatches, produce, setAutoFreeze } from 'immer';
 import {
   AnyStateMachine,
   InterpreterFrom,
+  Prop,
   createMachine,
   interpret,
 } from 'xstate';
@@ -74,34 +75,34 @@ const getMachineForServiceId = (serviceId: ServiceId) => {
   });
 };
 
-export const attachService = (entity: Entity, serviceId: ServiceId) => {
-  const machine = getMachineForServiceId(serviceId) as AnyStateMachine;
-  const service = interpret(machine);
-  service.start();
+// export const attachService = (entity: Entity, serviceId: ServiceId) => {
+//   const machine = getMachineForServiceId(serviceId) as AnyStateMachine;
+//   const service = interpret(machine);
+//   service.start();
 
-  const json = JSON.parse(JSON.stringify(service.getSnapshot()));
-  entity.services = {
-    ...entity.services,
-    [serviceId]: json,
-  };
+//   const json = JSON.parse(JSON.stringify(service.getSnapshot()));
+//   entity.services = {
+//     ...entity.services,
+//     [serviceId]: json,
+//   };
 
-  service.onTransition((state) => {
-    const json = JSON.parse(JSON.stringify(service.getSnapshot()));
-    if (!state.done) {
-      // todo calculate diff and apply those
-      entity.services = {
-        ...entity.services,
-        [serviceId]: json,
-      };
-    } else {
-      const nextServices = { ...entity.services };
-      delete nextServices[serviceId];
-      entity.services = nextServices;
-    }
-  });
+//   service.onTransition((state) => {
+//     const json = JSON.parse(JSON.stringify(service.getSnapshot()));
+//     if (!state.done) {
+//       // todo calculate diff and apply those
+//       entity.services = {
+//         ...entity.services,
+//         [serviceId]: json,
+//       };
+//     } else {
+//       const nextServices = { ...entity.services };
+//       delete nextServices[serviceId];
+//       entity.services = nextServices;
+//     }
+//   });
 
-  return service;
-};
+//   return service;
+// };
 
 // TODO update this to infer TEntity from
 /**
@@ -197,6 +198,16 @@ export const createEntity = <TEntity extends Entity>(
   service.start();
   proxy.states = service.getSnapshot().value as TStateValue;
   service.onTransition((state) => {
+    for (const child in state.children) {
+      const childService = state.children[child];
+      const snap = childService.getSnapshot();
+      // if (snap) {
+      //   proxy[child as PropNames].value = snap.value;
+      //   proxy[child as PropNames].context = snap.context; // todo can we make this conditional dependent on the service?
+      // }
+      // console.log(child, state.children[child].getSnapshot().value);
+    }
+    // for (const child of state.children)
     proxy.states = state.value as TStateValue;
   });
 

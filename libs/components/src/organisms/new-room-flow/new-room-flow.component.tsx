@@ -2,10 +2,23 @@ import { ConnectionEntity, SnowflakeId } from '@explorers-club/schema';
 import { useStore } from '@nanostores/react';
 import { With } from 'miniplex';
 import { useEntities } from '@miniplex/react';
-import { FC, useState } from 'react';
+import {
+  FC,
+  FormEventHandler,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from 'react';
 import { Heading } from '../../atoms/Heading';
 import { useEntitySelector } from '../../hooks/useEntitySelector';
 import { worldStore } from '../../state/world';
+import { Flex } from '../../atoms/Flex';
+import { Button } from '../../atoms/Button';
+import { Label } from '../../atoms/Label';
+import { Text } from '../../atoms/Text';
+import { TextField } from '../../atoms/TextField';
+import { InitializedConnectionEntityContext } from '../../context/Entity';
 
 type NewRoomServiceEntity = With<ConnectionEntity, 'newRoomService'>;
 
@@ -42,7 +55,45 @@ const NewRoomFlowComponent: FC<{ entityId: SnowflakeId }> = ({ entityId }) => {
 };
 
 const EnterName = () => {
-  return <Heading>Enter Name</Heading>;
+  const connectionEntity = useContext(InitializedConnectionEntityContext);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const handleSubmitName: FormEventHandler = useCallback(
+    (event) => {
+      event.preventDefault();
+
+      const value = nameRef.current?.value;
+      if (!value || value === '') {
+        return;
+      }
+
+      // connectionEntity.send({
+      //   type: 'SUBMIT_NAME',
+      //   name: nameRef.current?.value,
+      // });
+    },
+    [nameRef, connectionEntity]
+  );
+
+  const handlePressLogin = useCallback(() => {
+    console.log('login');
+  }, [connectionEntity]);
+
+  return (
+    <Flex>
+      <Heading>Enter your name</Heading>
+      <Text>
+        Already have an account?{' '}
+        <Button onClick={handlePressLogin}>Login</Button>
+      </Text>
+      <form onSubmit={handleSubmitName}>
+        <Label htmlFor="name">Name</Label>
+        <TextField name="name" type="text" ref={nameRef} />
+        <Button size="3" fullWidth>
+          Submit
+        </Button>
+      </form>
+    </Flex>
+  );
 };
 
 const SelectGame = () => {

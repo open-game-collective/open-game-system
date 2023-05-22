@@ -5,7 +5,10 @@ import { useStore } from '@nanostores/react';
 import type { FC } from 'react';
 import { useIsomorphicLayoutEffect } from 'usehooks-ts';
 import { Header } from '../components/Header';
-import { isMainSceneFocusedStore } from '../state/layout';
+import {
+  isMainPanelFocusedStore,
+  isMainSceneFocusedStore,
+} from '../state/layout';
 import { currentRouteStore } from '../state/navigation';
 import { MainScene } from './MainScene';
 import { Menu } from './Menu';
@@ -18,9 +21,7 @@ interface Props {
 }
 
 export const App: FC<Props> = ({ initialRouteProps }) => {
-  useIsomorphicLayoutEffect(() => {
-    currentRouteStore.set(initialRouteProps.name);
-  }, []);
+  currentRouteStore.set(initialRouteProps.name);
 
   return (
     <Flex
@@ -46,17 +47,15 @@ export const App: FC<Props> = ({ initialRouteProps }) => {
   );
 };
 
-// export const;
-
 const MainUI = () => {
-  // const isMainPanelFocued = useStore(isMainPanelFocusedStore);
   const isMainSceneFocused = useStore(isMainSceneFocusedStore);
+  const isMainPanelFocused = useStore(isMainPanelFocusedStore);
 
   return (
     <Flex
       direction="column"
       css={{
-        background: 'blue',
+        background: 'white',
         width: '100%',
         flexShrink: 3,
         flexGrow: isMainSceneFocused ? 1 : 0,

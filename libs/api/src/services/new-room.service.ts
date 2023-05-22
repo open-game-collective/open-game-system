@@ -43,6 +43,7 @@ export const newRoomMachine = createMachine({
       },
     },
     Complete: {
+      data: (context) => context.roomSlug,
       type: 'final',
     },
   },

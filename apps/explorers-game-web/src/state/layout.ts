@@ -8,6 +8,7 @@ const defaultLayoutPropsByRoute: Record<RouteName, LayoutProps> = {
     focusArea: 'MainPanel',
   },
   Room: {},
+  NotFound: {},
 };
 
 export const isMenuOpenStore = atom<boolean>(false);

@@ -140,35 +140,9 @@ export const createConnectionMachine = ({
           Home: {},
           NewRoom: {
             invoke: {
-              src: (_, event) =>
-                new Promise((resolve) => {
-                  const newRoomService = interpret(
-                    newRoomMachine
-                  ) as unknown as NewRoomService;
-                  newRoomService.start();
-
-                  // Set initial state on entity
-                  const state = newRoomService.getSnapshot();
-                  connectionEntity.newRoomService = {
-                    context: state.context,
-                    value: state.value as NewRoomStateValue,
-                    event: state.event,
-                  };
-
-                  // Update on transitions
-                  newRoomService.onTransition((state) => {
-                    connectionEntity.newRoomService = {
-                      context: state.context,
-                      value: state.value as NewRoomStateValue,
-                      event: state.event,
-                    };
-
-                    // Return promise with result if machine is done
-                    if (state.done) {
-                      resolve(state.context.roomSlug);
-                    }
-                  });
-                }),
+              id: 'newRoomService',
+              src: newRoomMachine,
+              autoForward: true,
               onDone: {
                 target: 'Room',
                 actions: (_, event) => {

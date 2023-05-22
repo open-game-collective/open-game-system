@@ -1,7 +1,7 @@
 import { entitiesById, trpc } from '@explorers-club/api-client';
-import { useStore } from '@nanostores/react';
-import { worldStore } from '../state/world';
 import { Entity, SnowflakeId, SyncedEntityProps } from '@explorers-club/schema';
+import { useStore } from '@nanostores/react';
+import { applyPatch } from 'fast-json-patch';
 import { World } from 'miniplex';
 import {
   FC,
@@ -13,7 +13,7 @@ import {
 } from 'react';
 import { Selector } from 'reselect';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import { applyOperation, applyPatch } from 'fast-json-patch';
+import { worldStore } from '../state/world';
 
 // Update the WorldContextType to include the entity type T.
 type WorldContextType = {
