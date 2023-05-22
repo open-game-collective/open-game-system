@@ -31,5 +31,5 @@ export const useEntitySelector = <T extends Entity, R = ReturnType<(arg: T) => a
     };
   };
 
-  return useSyncExternalStore(subscribe, getSnapshot) as R;
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot) as R;
 };
