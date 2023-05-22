@@ -3,13 +3,30 @@ import { Box } from '@atoms/Box';
 import { CompanyLogo } from '@atoms/Logo';
 import Layout from '../layouts/Layout.astro';
 import Card from '../components/Card.astro';
+import { Heading } from '@atoms/Heading';
+import { Paragraph } from '@atoms/Paragraph';
+import { Flex } from '@atoms/Flex';
 ---
 
 <Layout title="Explorers, Inc.">
   <main>
-    <Box>
-      <CompanyLogo />
-    </Box>
+    <Flex direction="column" gap="2">
+      <Heading>Explorers Co. is a <strong>play</strong> company.</Heading>
+      <Paragraph>
+        Play is taking the windy path even when a straight one exists. We
+        believe play is the best portal we have for exploring and expanding our
+        unique innate abilities.
+      </Paragraph>
+      <Paragraph>
+        We aim to the inspire the world to play more by creating environments
+        for us to test our skills and ideas in cooperation and competition.
+      </Paragraph>
+      <Heading size="1">Links</Heading>
+      <Paragraph>
+        <a href="https://discord.gg/n8TWakM7k8">Discord</a>
+        <a href="https://github.com/explorers-game/main">Github</a>
+      </Paragraph>
+    </Flex>
   </main>
 </Layout>
 
