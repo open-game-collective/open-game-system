@@ -1,19 +1,15 @@
 import {
   Entity,
   EntityMachineMap,
+  EntityServiceKeys,
+  EntityServices,
   InitialEntityProps,
   ServiceId,
   SnowflakeId,
 } from '@explorers-club/schema';
 import { compare } from 'fast-json-patch';
 import { enablePatches, produce, setAutoFreeze } from 'immer';
-import {
-  AnyStateMachine,
-  InterpreterFrom,
-  Prop,
-  createMachine,
-  interpret,
-} from 'xstate';
+import { AnyActorRef, InterpreterFrom, createMachine, interpret } from 'xstate';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
 import { newRoomMachine } from './services';
@@ -60,51 +56,6 @@ export function generateSnowflakeId(): string {
 
 export const entitiesById = new Map<SnowflakeId, Entity>();
 
-const getMachineForServiceId = (serviceId: ServiceId) => {
-  if (serviceId === 'new-room-service') {
-    return newRoomMachine;
-  }
-
-  // Always fall a not found service
-  return createMachine({
-    id: 'NotFoundService',
-    initial: 'Error',
-    states: {
-      Error: {},
-    },
-  });
-};
-
-// export const attachService = (entity: Entity, serviceId: ServiceId) => {
-//   const machine = getMachineForServiceId(serviceId) as AnyStateMachine;
-//   const service = interpret(machine);
-//   service.start();
-
-//   const json = JSON.parse(JSON.stringify(service.getSnapshot()));
-//   entity.services = {
-//     ...entity.services,
-//     [serviceId]: json,
-//   };
-
-//   service.onTransition((state) => {
-//     const json = JSON.parse(JSON.stringify(service.getSnapshot()));
-//     if (!state.done) {
-//       // todo calculate diff and apply those
-//       entity.services = {
-//         ...entity.services,
-//         [serviceId]: json,
-//       };
-//     } else {
-//       const nextServices = { ...entity.services };
-//       delete nextServices[serviceId];
-//       entity.services = nextServices;
-//     }
-//   });
-
-//   return service;
-// };
-
-// TODO update this to infer TEntity from
 /**
  * Isomorphic function for creating an entity.
  * We need to dynamically register the machines on the client.
@@ -115,6 +66,7 @@ export const createEntity = <TEntity extends Entity>(
   entityProps: InitialEntityProps<TEntity>
 ) => {
   type PropNames = keyof TEntity;
+  type ServiceId = EntityServiceKeys<TEntity>;
   type TCallback = Parameters<TEntity['subscribe']>[0];
   type TEvent = Parameters<TCallback>[0];
   type TMachine = EntityMachineMap[typeof entityProps.schema]['machine'];
@@ -197,17 +149,41 @@ export const createEntity = <TEntity extends Entity>(
   const service = interpret(machine as any) as unknown as TInterpreter;
   service.start();
   proxy.states = service.getSnapshot().value as TStateValue;
+
+  const attachedServices: Partial<Record<ServiceId, AnyActorRef>> = {};
+
+  const attachService = (serviceId: ServiceId, actor: AnyActorRef) => {
+    attachedServices[serviceId] = actor;
+
+    actor.subscribe((state) => {
+      proxy[serviceId] = {
+        value: state.value,
+        context: state.context,
+      } as any;
+    });
+  };
+
+  const detachService = (serviceId: ServiceId) => {
+    delete attachedServices[serviceId];
+    proxy[serviceId] = undefined as any; // better way ?;
+  };
+
   service.onTransition((state) => {
     for (const child in state.children) {
-      const childService = state.children[child];
-      const snap = childService.getSnapshot();
-      // if (snap) {
-      //   proxy[child as PropNames].value = snap.value;
-      //   proxy[child as PropNames].context = snap.context; // todo can we make this conditional dependent on the service?
-      // }
-      // console.log(child, state.children[child].getSnapshot().value);
+      const serviceId = child as ServiceId; // Is this safe to assume?
+      const actor = state.children[child];
+      if (!attachedServices[serviceId] && actor.getSnapshot()) {
+        attachService(serviceId, state.children[child]);
+      }
     }
-    // for (const child of state.children)
+
+    for (const serviceId in attachedServices) {
+      const actor = state.children[serviceId];
+      if (!actor) {
+        detachService(serviceId);
+      }
+    }
+
     proxy.states = state.value as TStateValue;
   });
 

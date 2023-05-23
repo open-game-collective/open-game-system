@@ -828,26 +828,40 @@ const ConnectionEntityPropsSchema = z.object({
     .object({
       context: ChatContextSchema,
       value: ChatStateValueSchema,
-      event: ChatCommandSchema,
+      // event: ChatCommandSchema,
     })
     .optional(),
   newRoomService: z
     .object({
       context: NewRoomContextSchema,
       value: NewRoomStateValueSchema,
-      event: NewRoomCommandSchema,
+      // event: NewRoomCommandSchema,
     })
     .optional(),
   gameListService: z
     .object({
       context: GameListContextSchema,
       value: GameListStateValueSchema,
-      event: GameListCommandSchema,
+      // event: GameListCommandSchema,
     })
     .optional(),
-  instanceId: z.string().uuid(),
+  instanceId: z.string().uuid().optional(),
 });
 export type ConnectionEntityProps = z.infer<typeof ConnectionEntityPropsSchema>;
+
+type Service = {
+  context: unknown,
+  value: unknown,
+  event: unknown,
+};
+
+type IsService<T, K> = T extends Service ? K : never;
+
+export type EntityServices<T extends Entity> = {
+    [K in keyof T as IsService<T[K], K>]: T[K]
+};
+
+export type EntityServiceKeys<TEntity extends Entity> = keyof EntityServices<TEntity>;
 
 const ConnectionHeartbeatCommandSchema = z.object({
   type: z.literal('HEARTBEAT'),
