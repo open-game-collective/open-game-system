@@ -3,6 +3,9 @@ import { isMainSceneFocusedStore } from '../state/layout';
 import { computed } from 'nanostores';
 import { useStore } from '@nanostores/react';
 import { Box } from '@atoms/Box';
+import { Canvas } from '@react-three/fiber';
+import { CafeModel } from './Cafe';
+import { Environment, OrbitControls } from '@react-three/drei';
 
 export const MainScene = () => {
   const isMainSceneFocused = useStore(isMainSceneFocusedStore);
@@ -21,7 +24,11 @@ export const MainScene = () => {
         },
       }}
     >
-      Main Scene
+      <Canvas camera={{ position: [0, 5, 20] }}>
+        <OrbitControls />
+        <CafeModel />
+        <Environment preset="sunset" />
+      </Canvas>
     </Box>
   );
 };
