@@ -53,7 +53,10 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
           type: 'SEND_TRIGGER',
           command,
         } as TEvent);
-        await client.entity.send.mutate(command as any);
+        await client.entity.send.mutate({
+          id,
+          event: command,
+        });
         next({
           type: 'SEND_COMPLETE',
           command,

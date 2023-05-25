@@ -7,9 +7,8 @@ import {
   Entity,
   HomeRoutePropsSchema,
   InitializedConnectionContext,
+  LoginRoutePropsSchema,
   NewRoomRoutePropsSchema,
-  NewRoomService,
-  NewRoomStateValue,
   RoomRoutePropsSchema,
   SessionEntity,
 } from '@explorers-club/schema';
@@ -48,19 +47,20 @@ const matchPath = (location: string, path: string) => {
 
 const homeRoute = match('/');
 const newRoomRoute = match('/new');
+const loginRoute = match('/login');
 const roomRoute = match('/:id');
 
-const routes = [homeRoute, newRoomRoute, roomRoute];
+// const routes = [homeRoute, newRoomRoute, roomRoute, loginRoute];
 
-const getRoute = (location: string) => {
-  for (const route of routes) {
-    if (matchesRoute(location, route)) {
-      return route;
-    }
-  }
+// const getRoute = (location: string) => {
+//   for (const route of routes) {
+//     if (matchesRoute(location, route)) {
+//       return route;
+//     }
+//   }
 
-  return undefined;
-};
+//   return undefined;
+// };
 
 const matchesRoute = (location: string, route: MatchFunction<object>) =>
   !!route(new URL(location).pathname);
@@ -103,6 +103,11 @@ export const createConnectionMachine = ({
                 NewRoomRoutePropsSchema.safeParse(event.route).success,
             },
             {
+              target: 'Route.Login',
+              cond: (_, event) =>
+                LoginRoutePropsSchema.safeParse(event.route).success,
+            },
+            {
               target: 'Route.Room',
               cond: (_, event) =>
                 RoomRoutePropsSchema.safeParse(event.route).success,
@@ -117,6 +122,11 @@ export const createConnectionMachine = ({
                   target: 'Home',
                   cond: (_, event) =>
                     matchesRoute(event.initialLocation, homeRoute),
+                },
+                {
+                  target: 'Login',
+                  cond: (_, event) =>
+                    matchesRoute(event.initialLocation, loginRoute),
                 },
                 {
                   target: 'NewRoom',
@@ -138,6 +148,7 @@ export const createConnectionMachine = ({
             },
           },
           Home: {},
+          Login: {},
           NewRoom: {
             invoke: {
               id: 'newRoomService',
@@ -178,6 +189,7 @@ export const createConnectionMachine = ({
           Error: {},
           Initializing: {
             invoke: {
+              onError: 'Error',
               onDone: {
                 target: 'True',
                 actions: assign<
@@ -189,7 +201,6 @@ export const createConnectionMachine = ({
                   context.supabaseClient = data.supabaseClient;
                 }),
               },
-              onError: 'Error',
               src: async (context, event) => {
                 assertEventType(event, 'INITIALIZE');
 
@@ -285,33 +296,6 @@ export const createConnectionMachine = ({
                   accessToken: supabaseSession.access_token,
                   refreshToken: supabaseSession.refresh_token,
                 };
-                // connectionEntity.location = initialLocation;
-                // const url = new URL(initialLocation);
-                // url.pathname
-                // url.hostname
-
-                // const url = new URL(initialLocation);
-
-                // TODO move logic to a router
-                // if (url.pathname === '/new') {
-                //   const newRoomService = interpret(
-                //     newRoomMachine
-                //   ) as unknown as NewRoomService;
-                //   newRoomService.start();
-                //   newRoomService.onTransition((state) => {
-                //     connectionEntity.newRoomService = {
-                //       context: state.context,
-                //       value: state.value as NewRoomStateValue,
-                //       event: state.event,
-                //     };
-                //   });
-                //   const state = newRoomService.getSnapshot();
-                //   connectionEntity.newRoomService = {
-                //     context: state.context,
-                //     value: state.value as NewRoomStateValue,
-                //     event: state.event,
-                //   };
-                // }
 
                 return {
                   supabaseClient,

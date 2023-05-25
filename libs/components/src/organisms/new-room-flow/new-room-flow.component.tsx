@@ -1,7 +1,12 @@
-import { ConnectionEntity, SnowflakeId } from '@explorers-club/schema';
+import type {
+  ConnectionEntity,
+  Entity,
+  GameId,
+  SnowflakeId,
+} from '@explorers-club/schema';
+import { useEntities } from '@miniplex/react';
 import { useStore } from '@nanostores/react';
 import { With } from 'miniplex';
-import { useEntities } from '@miniplex/react';
 import {
   FC,
   FormEventHandler,
@@ -9,16 +14,18 @@ import {
   useContext,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
-import { Heading } from '../../atoms/Heading';
-import { useEntitySelector } from '../../hooks/useEntitySelector';
-import { worldStore } from '../../state/world';
-import { Flex } from '../../atoms/Flex';
 import { Button } from '../../atoms/Button';
+import { Flex } from '../../atoms/Flex';
+import { Heading } from '../../atoms/Heading';
 import { Label } from '../../atoms/Label';
 import { Text } from '../../atoms/Text';
 import { TextField } from '../../atoms/TextField';
 import { InitializedConnectionEntityContext } from '../../context/Entity';
+import { ListRadioCard, RadioCardGroup } from '../../molecules/RadioCard';
+import { createEntityStore, worldStore } from '../../state/world';
+import { useEntitySelector } from '../../hooks/useEntitySelector';
 
 type NewRoomServiceEntity = With<ConnectionEntity, 'newRoomService'>;
 
@@ -39,17 +46,22 @@ export const NewRoomFlow = () => {
   return <NewRoomFlowComponent entityId={entity.id} />;
 };
 
-const NewRoomFlowComponent: FC<{ entityId: SnowflakeId }> = ({ entityId }) => {
-  const stateValue = useEntitySelector<NewRoomServiceEntity>(
-    entityId,
-    (state) => state.newRoomService.value
+export const newRoomServiceEntityStore =
+  createEntityStore<NewRoomServiceEntity>(
+    (entity) => entity.schema === 'connection' && !!entity.newRoomService
   );
+
+const NewRoomFlowComponent: FC<{ entityId: SnowflakeId }> = ({ entityId }) => {
+  const entity = useContext(InitializedConnectionEntityContext);
+  const currentState = useEntitySelector(entity, (entity) => {
+    return entity.newRoomService?.value;
+  });
 
   return (
     <>
-      {stateValue === 'EnterName' && <EnterName />}
-      {stateValue === 'SelectingGame' && <SelectGame />}
-      {stateValue === 'ConfirmDetails' && <ConfirmDetails />}
+      {currentState === 'SelectGame' && <SelectGame />}
+      {currentState === 'Configure' && <Configure />}
+      {currentState === 'EnterName' && <EnterName />}
     </>
   );
 };
@@ -66,20 +78,23 @@ const EnterName = () => {
         return;
       }
 
-      // connectionEntity.send({
-      //   type: 'SUBMIT_NAME',
-      //   name: nameRef.current?.value,
-      // });
+      connectionEntity.send({
+        type: 'SUBMIT_NAME',
+        name: nameRef.current?.value,
+      });
     },
     [nameRef, connectionEntity]
   );
 
   const handlePressLogin = useCallback(() => {
-    console.log('login');
+    connectionEntity.send({
+      type: 'NAVIGATE',
+      route: { name: 'Login' },
+    });
   }, [connectionEntity]);
 
   return (
-    <Flex>
+    <Flex direction="column" gap="2" css={{ p: '$3' }}>
       <Heading>Enter your name</Heading>
       <Text>
         Already have an account?{' '}
@@ -97,9 +112,85 @@ const EnterName = () => {
 };
 
 const SelectGame = () => {
-  return <Heading>Select Game</Heading>;
+  const selectionRef = useRef<GameId>();
+  const connectionEntity = useContext(InitializedConnectionEntityContext);
+
+  const handleChange = useCallback(
+    (value: string) => {
+      if (selectionRef.current) {
+        return;
+      }
+
+      const gameId = value as GameId;
+
+      selectionRef.current = gameId;
+
+      connectionEntity.send({
+        type: 'SELECT_GAME',
+        gameId,
+      });
+    },
+    [connectionEntity]
+  );
+
+  return (
+    <Flex direction="column" css={{ p: '$3' }} gap="2">
+      <Heading>Select Game</Heading>
+      <RadioCardGroup onValueChange={handleChange}>
+        <Flex direction="column" gap="3">
+          <ListRadioCard
+            value={'little_vigilante'}
+            css={{ p: '$2', width: '100%' }}
+          >
+            <Text css={{ fontWeight: 'bold' }} size="5">
+              Little Vigilante
+            </Text>
+          </ListRadioCard>
+          <ListRadioCard value={'traders'} css={{ p: '$2', width: '100%' }}>
+            <Text css={{ fontWeight: 'bold' }} size="5">
+              Traders
+            </Text>
+          </ListRadioCard>
+          <ListRadioCard
+            value={'codebreakers'}
+            css={{ p: '$2', width: '100%' }}
+          >
+            <Text css={{ fontWeight: 'bold' }} size="5">
+              Codebreakers
+            </Text>
+          </ListRadioCard>
+        </Flex>
+      </RadioCardGroup>
+    </Flex>
+  );
 };
 
-const ConfirmDetails = () => {
-  return <Heading>Confirm Details</Heading>;
+const Configure = () => {
+  const connectionEntity = useContext(InitializedConnectionEntityContext);
+
+  const handleSubmit: FormEventHandler = useCallback(
+    (event) => {
+      event.preventDefault();
+      event.currentTarget.setAttribute('disabled', 'true');
+      connectionEntity.send({
+        type: 'CONFIGURE_GAME',
+        configuration: {
+          gameId: 'traders',
+          data: {
+            numPlayers: 4,
+          },
+        },
+      });
+    },
+    [connectionEntity]
+  );
+
+  return (
+    <Flex direction="column" css={{ p: '$3' }} gap="2">
+      <Heading>Game Settings</Heading>
+      <form onSubmit={handleSubmit}>
+        <Button type="submit">Continue</Button>
+      </form>
+    </Flex>
+  );
 };

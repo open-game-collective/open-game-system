@@ -6,7 +6,6 @@ import { Operation } from 'fast-json-patch';
 import {
   AnyEventObject,
   InterpreterFrom,
-  State,
   StateMachine,
   StateSchema,
   StateValue,
@@ -122,17 +121,32 @@ export const ClubNameSchema = z.string();
 
 export const PlayerNameSchema = z.string();
 
-const GameIdSchema = z.enum(['little_vigilante', 'codebreakers', 'sailors']);
+const LitlteVigilanteGameId = z.literal('little_vigilante');
+const CodebreakersGameId = z.literal('codebreakers');
+const TradersGameId = z.literal('traders');
+const GameConfigurationSchema = z.discriminatedUnion('gameId', [
+  z.object({
+    gameId: LitlteVigilanteGameId,
+    data: z.object({
+      numPlayers: z.number().min(4).max(4),
+    }),
+  }),
+  z.object({
+    gameId: CodebreakersGameId,
+    data: z.object({
+      numPlayers: z.number().min(4).max(4),
+    }),
+  }),
+  z.object({
+    gameId: TradersGameId,
+    data: z.object({
+      numPlayers: z.number().min(4).max(4),
+    }),
+  }),
+]);
 
-const GameInstanceIdSchema = z.string();
-
-const ClientIdSchema = SnowflakeIdSchema;
-
-const ClientSchema = z.object({
-  id: ClientIdSchema,
-});
-
-const RoomIdSchema = ClubNameSchema;
+const GameIdSchema = z.enum(['little_vigilante', 'codebreakers', 'traders']);
+export type GameId = z.infer<typeof GameIdSchema>;
 
 const StateValueSchema: z.ZodType<StateValue> = z.union([
   z.string(),
@@ -323,7 +337,13 @@ export const ConnectionInitializeInputSchema = z.object({
   authTokens: AuthTokensSchema.optional(),
 });
 
-export const RouteNameSchema = z.enum(['Home', 'NewRoom', 'Room']);
+export const RouteNameSchema = z.enum([
+  'Home',
+  'NewRoom',
+  'Room',
+  'Login',
+  'NotFound',
+]);
 
 export type RouteName = z.infer<typeof RouteNameSchema>;
 
@@ -753,7 +773,12 @@ export type GameListMachine = StateMachine<
   GameListCommand
 >;
 
-const NewRoomStateValueSchema = z.enum(['SelectedGame', 'EnterName']);
+const NewRoomStateValueSchema = z.enum([
+  'SelectGame',
+  'EnterName',
+  'Configure',
+  'Complete',
+]);
 
 export type NewRoomStateValue = z.infer<typeof NewRoomStateValueSchema>;
 
@@ -780,16 +805,24 @@ const ChatCommandSchema = z.union([
 export type ChatCommand = z.infer<typeof ChatCommandSchema>;
 
 const NewRoomContextSchema = z.object({
-  roomSlug: z.string(),
+  roomSlug: z.string().optional(),
+  gameId: GameIdSchema.optional(),
+  gameConfiguration: GameConfigurationSchema.optional(),
 });
 export type NewRoomContext = z.infer<typeof NewRoomContextSchema>;
 
 const NewRoomCommandSchema = z.union([
   z.object({
-    type: z.literal('NEXT'),
+    type: z.literal('SELECT_GAME'),
+    gameId: GameIdSchema,
   }),
   z.object({
-    type: z.literal('DISCONNECT'),
+    type: z.literal('SUBMIT_NAME'),
+    name: z.string(),
+  }),
+  z.object({
+    type: z.literal('CONFIGURE_GAME'),
+    configuration: GameConfigurationSchema,
   }),
 ]);
 export type NewRoomCommand = z.infer<typeof NewRoomCommandSchema>;
@@ -800,13 +833,13 @@ export type NewRoomMachine = StateMachine<
   NewRoomCommand
 >;
 
-export type NewRoomState = State<
-  NewRoomContext,
-  NewRoomCommand,
-  NewRoomStateSchema,
-  | { value: 'EnterName'; context: NewRoomContext }
-  | { value: 'SelectingGame'; context: NewRoomContext }
->;
+// export type NewRoomState = State<
+//   NewRoomContext,
+//   NewRoomCommand,
+//   NewRoomStateSchema,
+//   | { value: 'EnterName'; context: NewRoomContext }
+//   | { value: 'SelectingGame'; context: NewRoomContext }
+// >;
 export type NewRoomService = InterpreterFrom<NewRoomMachine>;
 
 const LayoutIslandSchema = z.enum(['MainScene', 'MainPanel', 'Chat']);
@@ -850,18 +883,19 @@ const ConnectionEntityPropsSchema = z.object({
 export type ConnectionEntityProps = z.infer<typeof ConnectionEntityPropsSchema>;
 
 type Service = {
-  context: unknown,
-  value: unknown,
-  event: unknown,
+  context: unknown;
+  value: unknown;
+  event: unknown;
 };
 
 type IsService<T, K> = T extends Service ? K : never;
 
 export type EntityServices<T extends Entity> = {
-    [K in keyof T as IsService<T[K], K>]: T[K]
+  [K in keyof T as IsService<T[K], K>]: T[K];
 };
 
-export type EntityServiceKeys<TEntity extends Entity> = keyof EntityServices<TEntity>;
+export type EntityServiceKeys<TEntity extends Entity> =
+  keyof EntityServices<TEntity>;
 
 const ConnectionHeartbeatCommandSchema = z.object({
   type: z.literal('HEARTBEAT'),
@@ -869,6 +903,10 @@ const ConnectionHeartbeatCommandSchema = z.object({
 
 export const HomeRoutePropsSchema = z.object({
   name: z.literal('Home'),
+});
+
+export const LoginRoutePropsSchema = z.object({
+  name: z.literal('Login'),
 });
 
 export const NewRoomRoutePropsSchema = z.object({
@@ -884,6 +922,7 @@ export const RoutePropsSchema = z.union([
   HomeRoutePropsSchema,
   NewRoomRoutePropsSchema,
   RoomRoutePropsSchema,
+  LoginRoutePropsSchema,
 ]);
 export type RouteProps = z.infer<typeof RoutePropsSchema>;
 
@@ -892,10 +931,15 @@ const ConnectionNavigateCommandSchema = z.object({
   route: RoutePropsSchema,
 });
 
-const ConnectionCommandSchema = z.union([
+const BaseConnectionCommandSchema = z.union([
   ConnectionInitializeCommandSchema,
   ConnectionHeartbeatCommandSchema,
   ConnectionNavigateCommandSchema,
+]);
+
+const ConnectionCommandSchema = z.union([
+  BaseConnectionCommandSchema,
+  NewRoomCommandSchema,
 ]);
 export type ConnectionCommand = z.infer<typeof ConnectionCommandSchema>;
 

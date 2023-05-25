@@ -1,25 +1,15 @@
-import { Entity, SnowflakeId } from '@explorers-club/schema';
-import { entitiesByIdStore } from '../state/world';
-import { useStore } from '@nanostores/react';
+import { Entity } from '@explorers-club/schema';
 import { useSyncExternalStore } from 'react';
 
-export const useEntitySelector = <T extends Entity, R = ReturnType<(arg: T) => any>>(
-  id: SnowflakeId,
-  selector: (state: T) => R
-): R => {
-  const entitiesById = useStore(entitiesByIdStore);
-  const entity = entitiesById.get(id) as T | undefined;
-  if (!entity) {
-    throw new Error('entity missing: ' + entity);
-  }
-  let value = selector(entity) as R;
-  const getSnapshot = () => {
-    return value;
-  };
+export const useEntitySelector = <TEntity extends Entity, TResult>(
+  entity: TEntity,
+  selector: (entity: TEntity) => TResult
+) => {
+  let value = selector(entity) as TResult;
 
   const subscribe = (onStoreChange: () => void) => {
     const unsub = entity.subscribe((event) => {
-      const nextValue = selector(entity) as R;
+      const nextValue = selector(entity) as TResult;
       if (value !== nextValue) {
         value = nextValue;
         onStoreChange();
@@ -31,5 +21,9 @@ export const useEntitySelector = <T extends Entity, R = ReturnType<(arg: T) => a
     };
   };
 
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot) as R;
+  const getSnapshot = () => {
+    return value;
+  };
+
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot) as TResult;
 };

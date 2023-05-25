@@ -1,49 +1,51 @@
 import { NewRoomCommand, NewRoomContext } from '@explorers-club/schema';
-import { createMachine } from 'xstate';
-
-type Event = { type: 'NEXT' };
+import { assign, createMachine } from 'xstate';
 
 export const newRoomMachine = createMachine({
   id: 'NewRoomMachine',
-  initial: 'SelectingGame',
+  initial: 'SelectGame',
   context: {
-    roomSlug: 'hello',
+    gameId: undefined,
+    gameConfiguration: undefined,
+    roomSlug: undefined,
   },
   schema: {
     events: {} as NewRoomCommand,
     context: {} as NewRoomContext,
   },
   states: {
-    EnterName: {
-      entry: () => {
-        console.log('enter name');
-      },
-      after: {
-        5000: 'ConfirmDetails',
-      },
-    },
-    SelectingGame: {
-      invoke: {
-        src: () => {
-          console.log('invoking!');
-          return Promise.resolve(true);
+    SelectGame: {
+      on: {
+        SELECT_GAME: {
+          target: 'Configure',
+          actions: assign({
+            gameId: (_, event) => event.gameId,
+          }),
         },
-        onDone: 'EnterName',
-      },
-      on: {
-        NEXT: 'ConfirmDetails',
       },
     },
-    ConfirmDetails: {
-      after: {
-        3000: 'Complete',
-      },
+    Configure: {
       on: {
-        NEXT: 'EnterName',
+        CONFIGURE_GAME: {
+          target: 'EnterName',
+          actions: assign({
+            gameConfiguration: (_, event) => event.configuration,
+          }),
+        },
+      },
+    },
+    EnterName: {
+      on: {
+        SUBMIT_NAME: {
+          target: 'Complete',
+          actions: assign({
+            roomSlug: (_, event) => event.name,
+          }),
+        },
       },
     },
     Complete: {
-      data: (context) => context.roomSlug,
+      data: (context) => context,
       type: 'final',
     },
   },

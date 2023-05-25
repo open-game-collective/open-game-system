@@ -5,8 +5,6 @@ import { Room } from '@organisms/room';
 import { myInitializedConnectionEntityStore } from '@state/world';
 import { currentRouteStore } from '../state/navigation';
 import { InitializedConnectionEntityContext } from '@context/Entity';
-import { createContext } from 'react';
-import type { InitializedConnectionEntity } from '@explorers-club/schema';
 
 export const MainPanel = () => {
   const currentRoute = useStore(currentRouteStore);
@@ -15,6 +13,7 @@ export const MainPanel = () => {
     <Box>
       {currentRoute === 'Home' && <HomePanel />}
       {currentRoute === 'NewRoom' && <NewRoomPanel />}
+      {currentRoute === 'Login' && <LoginPanel />}
       {currentRoute === 'Room' && <RoomPanel />}
     </Box>
   );
@@ -22,6 +21,10 @@ export const MainPanel = () => {
 
 const HomePanel = () => {
   return <div>Home</div>;
+};
+
+const LoginPanel = () => {
+  return <div>Login</div>;
 };
 
 const NewRoomPanel = () => {

@@ -1,7 +1,11 @@
-import { ConnectionEntity, Entity, InitializedConnectionEntity, LayoutProps, RouteName, SnowflakeId } from '@explorers-club/schema';
-import { O } from '@mobily/ts-belt';
+import type {
+  ConnectionEntity,
+  Entity,
+  InitializedConnectionEntity,
+  SnowflakeId,
+} from '@explorers-club/schema';
 import { World } from 'miniplex';
-import { atom, computed, onMount } from 'nanostores';
+import { atom } from 'nanostores';
 
 const world = new World<Entity>();
 
@@ -31,6 +35,16 @@ export const createEntityStore = <TEntity extends Entity>(
     if (query(entity as TEntity)) {
       store.set(entity as TEntity);
     }
+
+    entity.subscribe(() => {
+      if (!store.get() && query(entity as TEntity)) {
+        store.set(entity as TEntity);
+      }
+
+      if (store.get() && !query(entity as TEntity)) {
+        store.set(null);
+      }
+    });
   });
 
   world.onEntityRemoved.add((entity) => {
@@ -58,13 +72,13 @@ export const createEntityStore = <TEntity extends Entity>(
 //   });
 // };
 
-export const myConnectionEntityStore = createEntityStore<ConnectionEntity>(
-  (entity) => entity.schema === 'connection'
-);
+export const myConnectionEntityStore =
+  createEntityStore<ConnectionEntity>(
+    (entity) => entity.schema === 'connection'
+  );
 
-export const myInitializedConnectionEntityStore = computed(myConnectionEntityStore, (entity) => {
-  if (entity && entity.states.Initialized === "True") {
-    return entity as InitializedConnectionEntity;
-  }
-  return undefined;
-})
+export const myInitializedConnectionEntityStore =
+  createEntityStore<InitializedConnectionEntity>(
+    (entity) =>
+      entity.schema === 'connection' && entity.states.Initialized === 'True'
+  );

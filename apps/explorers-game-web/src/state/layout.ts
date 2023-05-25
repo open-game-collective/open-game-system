@@ -7,6 +7,9 @@ const defaultLayoutPropsByRoute: Record<RouteName, LayoutProps> = {
   NewRoom: {
     focusArea: 'MainPanel',
   },
+  Login: {
+    focusArea: 'MainPanel',
+  },
   Room: {},
   NotFound: {},
 };
