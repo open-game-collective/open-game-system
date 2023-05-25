@@ -79,6 +79,7 @@
       "@explorers-club/trivia-jam/ui": ["games/trivia-jam/src/ui/index.ts"],
       "@explorers-club/utils": ["libs/utils/src/index.ts"],
       "@games/sailors": ["games/sailors/src/index.ts"],
+      "@hooks/*": ["libs/components/src/hooks/*"],
       "@molecules/*": ["libs/components/src/molecules/*"],
       "@organisms/*": ["libs/components/src/organisms/*"],
       "@state/*": ["libs/components/src/state/*"],

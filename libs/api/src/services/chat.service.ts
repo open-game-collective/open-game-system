@@ -16,7 +16,7 @@ export const chatMachine = createMachine({
   states: {
     Initializing: {
       entry: (context, event) => {
-        console.log(context, event);
+        console.log('HELLO FROM CHAT SERVICE');
       },
     },
   },

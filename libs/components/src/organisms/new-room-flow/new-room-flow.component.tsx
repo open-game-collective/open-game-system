@@ -96,10 +96,6 @@ const EnterName = () => {
   return (
     <Flex direction="column" gap="2" css={{ p: '$3' }}>
       <Heading>Enter your name</Heading>
-      <Text>
-        Already have an account?{' '}
-        <Button onClick={handlePressLogin}>Login</Button>
-      </Text>
       <form onSubmit={handleSubmitName}>
         <Label htmlFor="name">Name</Label>
         <TextField name="name" type="text" ref={nameRef} />
@@ -107,6 +103,10 @@ const EnterName = () => {
           Submit
         </Button>
       </form>
+      <Text>
+        Already have an account?{' '}
+        <Button onClick={handlePressLogin}>Login</Button>
+      </Text>
     </Flex>
   );
 };

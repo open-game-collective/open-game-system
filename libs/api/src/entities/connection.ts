@@ -148,51 +148,18 @@ export const createConnectionMachine = ({
           },
           Room: {
             entry: () => {
-              console.log('HI!');
               if (!connectionEntity.currentRoomSlug) {
                 throw new Error('expected currentRoomslug but none found');
               }
-              const ref = spawn(
+              // todo clean up ref
+              // wasnt able to get assign on entry to be called so gave up
+              spawn(
                 chatMachine.withContext({
                   roomSlug: connectionEntity.currentRoomSlug,
                 }),
                 'chatService'
               );
-              // console.log({ ref });
             },
-            // entry: assign<ConnectionContext>({
-            //   chatServiceRef: (context, event) => {
-            //     console.log('HELLO!!!!!');
-            //     console.log('SPAWNING!!!!!');
-            //     if (!connectionEntity.currentRoomSlug) {
-            //       throw new Error('expected currentRoomslug but none found');
-            //     }
-            //     return spawn(
-            //       chatMachine.withContext({
-            //         roomSlug: connectionEntity.currentRoomSlug,
-            //       }),
-            //       'chatService'
-            //     );
-            //   },
-            // }),
-            // entry: assign<ConnectionContext>((context) => {
-            //   console.log('SPAWNING!!!!!');
-            //   if (!connectionEntity.currentRoomSlug) {
-            //     throw new Error('expected currentRoomslug but none found');
-            //   }
-
-            //   context.chatServiceRef = spawn(
-            //     chatMachine.withContext({
-            //       roomSlug: connectionEntity.currentRoomSlug,
-            //     }),
-            //     'chatService'
-            //   );
-            // }),
-            // invoke: {
-            //   id: 'chatService',
-            //   src: chatService,
-            //   autoForward: true,
-            // },
           },
         },
       },

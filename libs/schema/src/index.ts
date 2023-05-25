@@ -323,9 +323,7 @@ export type InitializedConnectionContext = MakeRequired<
 export type InitializedConnectionEntity = MakeRequired<
   ConnectionEntity,
   'sessionId' | 'userId' | 'authTokens' | 'deviceId'
-> & {
-  context: InitializedConnectionContext;
-};
+>;
 
 // CONNECTION ENTITY
 export type ConnectionTypeState =

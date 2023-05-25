@@ -182,9 +182,6 @@ const GamesTabContent = () => {
         <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
           Hello
         </Card>
-        <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-          Hello
-        </Card>
         <Card
           css={{
             p: '$3',
