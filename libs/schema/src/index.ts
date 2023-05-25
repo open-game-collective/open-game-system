@@ -4,6 +4,7 @@ import { IndexByType, MakeRequired } from '@explorers-club/utils';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Operation } from 'fast-json-patch';
 import {
+  ActorRefFrom,
   AnyEventObject,
   InterpreterFrom,
   StateMachine,
@@ -277,7 +278,6 @@ const EntityBaseSchema = <
       send: SendFunctionSchema(commandSchema),
       states: stateSchema,
       command: commandSchema,
-      services: z.record(z.unknown()), // Mapping of keys to JSON objects
       subscribe: z
         .function()
         .args(CallbackFunctionSchema(commandSchema))
@@ -304,8 +304,15 @@ const AuthTokensSchema = z.object({
 });
 export type AuthTokens = z.infer<typeof AuthTokensSchema>;
 
+export type ChatMachine = StateMachine<
+  ChatContext,
+  ChatStateSchema,
+  ChatCommand
+>;
+
 export type ConnectionContext = {
   supabaseClient?: SupabaseClient<Database>;
+  chatServiceRef?: ActorRefFrom<ChatMachine>;
 };
 
 export type InitializedConnectionContext = MakeRequired<
@@ -788,6 +795,8 @@ const ChatStateValueSchema = z.enum(['Initializing', 'Loaded']);
 
 export type ChatStateValue = z.infer<typeof ChatStateValueSchema>;
 
+export type ChatStateSchema = StateSchemaFromStateValue<ChatStateValue>;
+
 const ChatContextSchema = z.object({
   roomSlug: z.string(),
 });
@@ -857,25 +866,24 @@ const ConnectionEntityPropsSchema = z.object({
   authTokens: AuthTokensSchema.optional(),
   deviceId: SnowflakeIdSchema.optional(),
   currentRoomSlug: SlugSchema.optional(),
+  connectedRoomSlugs: z.array(SlugSchema),
+  activeRoomSlugs: z.array(SlugSchema),
   chatService: z
     .object({
       context: ChatContextSchema,
       value: ChatStateValueSchema,
-      // event: ChatCommandSchema,
     })
     .optional(),
   newRoomService: z
     .object({
       context: NewRoomContextSchema,
       value: NewRoomStateValueSchema,
-      // event: NewRoomCommandSchema,
     })
     .optional(),
   gameListService: z
     .object({
       context: GameListContextSchema,
       value: GameListStateValueSchema,
-      // event: GameListCommandSchema,
     })
     .optional(),
   instanceId: z.string().uuid().optional(),

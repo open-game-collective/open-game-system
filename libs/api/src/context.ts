@@ -66,7 +66,8 @@ export const createContext = async (opts: {
   const connectionEntity = createEntity<ConnectionEntity>({
     schema: 'connection',
     instanceId,
-    services: {},
+    connectedRoomSlugs: [],
+    activeRoomSlugs: [],
   });
   world.add(connectionEntity);
 

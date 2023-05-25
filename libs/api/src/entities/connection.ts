@@ -15,13 +15,14 @@ import {
 import { assertEventType, generateRandomString } from '@explorers-club/utils';
 import { Session, createClient } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
-import { assign } from '@xstate/immer';
+import { assign as assignImmer } from '@xstate/immer';
 import { World } from 'miniplex';
 import { MatchFunction, match, pathToRegexp } from 'path-to-regexp';
-import { DoneInvokeEvent, createMachine, interpret } from 'xstate';
+import { DoneInvokeEvent, createMachine, spawn } from 'xstate';
 import { generateSnowflakeId } from '../ecs';
 import { createSchemaIndex } from '../indices';
 import { newRoomMachine } from '../services';
+import { chatMachine } from '../services/chat.service';
 import { world } from '../world';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
@@ -50,18 +51,6 @@ const newRoomRoute = match('/new');
 const loginRoute = match('/login');
 const roomRoute = match('/:id');
 
-// const routes = [homeRoute, newRoomRoute, roomRoute, loginRoute];
-
-// const getRoute = (location: string) => {
-//   for (const route of routes) {
-//     if (matchesRoute(location, route)) {
-//       return route;
-//     }
-//   }
-
-//   return undefined;
-// };
-
 const matchesRoute = (location: string, route: MatchFunction<object>) =>
   !!route(new URL(location).pathname);
 
@@ -82,11 +71,6 @@ export const createConnectionMachine = ({
     // /** @xstate-layout N4IgpgJg5mDOIC5QGED2A7dYDGAXAlhgLICG2AFvlgHQCS6+BJANvgF6TUBiLsYAxLQBytACq0AggBlaALQCiAbQAMAXUSgADqliNC6DSAAeiAIwBWAMzUAHADYA7KZsPzAGhABPM-eqm7pgAs5jaWYeGWpgC+UR5omDgExGSUNPR6LOyc6UysbFRQ-BAYYNRUAG6oANal8Vh4+qQUVKU5+JkcEHQMuewFCBWo2CRJ6Cqq44bauqOGJgjBAJy2js6uHt4IppG25hZ2AEzmMXEY9aNNqa097XnZNx0F-GAATi+oL9SazCMAZh8AW2odUSjRSLW6GTuXTaj3QUAG6Eqw1G40mSBA0z0GDmZisKycLncXjMlhs1DsAWCoQiYWiJxA6FQEDghhBDWSzSwUx02IMGPmAFpLMtzMoHDZTEcNohBYFAtRFgc1sdYiB2RdwWkHtCeTN9LiEOTAkqVTKFgdqOYJVLVacEhz0JcIbDodxeGA9XzDeY7NQTcqieagtYDvKHIt-JTo3ZFgyNWCudcoVkYTq+vCvbMBYgDotzNQJYtlIdiZttspqOLJUd42dQZyrpDep1qKIXgBXT0YrHZ0DzOzKazbA41st46zWscxGJAA */
     id: 'ConnectionMachine',
     type: 'parallel',
-    // context: {
-    //   deviceId: undefined,
-    //   authTokens: undefined,
-    //   location: undefined,
-    // },
     states: {
       Route: {
         initial: 'Uninitialized',
@@ -163,16 +147,52 @@ export const createConnectionMachine = ({
             },
           },
           Room: {
-            invoke: {
-              id: 'room',
-              src: () => {
-                if (!connectionEntity.currentRoomSlug) {
-                  throw new Error("Couldn't find current room slug");
-                }
-
-                return Promise.resolve(true);
-              },
+            entry: () => {
+              console.log('HI!');
+              if (!connectionEntity.currentRoomSlug) {
+                throw new Error('expected currentRoomslug but none found');
+              }
+              const ref = spawn(
+                chatMachine.withContext({
+                  roomSlug: connectionEntity.currentRoomSlug,
+                }),
+                'chatService'
+              );
+              // console.log({ ref });
             },
+            // entry: assign<ConnectionContext>({
+            //   chatServiceRef: (context, event) => {
+            //     console.log('HELLO!!!!!');
+            //     console.log('SPAWNING!!!!!');
+            //     if (!connectionEntity.currentRoomSlug) {
+            //       throw new Error('expected currentRoomslug but none found');
+            //     }
+            //     return spawn(
+            //       chatMachine.withContext({
+            //         roomSlug: connectionEntity.currentRoomSlug,
+            //       }),
+            //       'chatService'
+            //     );
+            //   },
+            // }),
+            // entry: assign<ConnectionContext>((context) => {
+            //   console.log('SPAWNING!!!!!');
+            //   if (!connectionEntity.currentRoomSlug) {
+            //     throw new Error('expected currentRoomslug but none found');
+            //   }
+
+            //   context.chatServiceRef = spawn(
+            //     chatMachine.withContext({
+            //       roomSlug: connectionEntity.currentRoomSlug,
+            //     }),
+            //     'chatService'
+            //   );
+            // }),
+            // invoke: {
+            //   id: 'chatService',
+            //   src: chatService,
+            //   autoForward: true,
+            // },
           },
         },
       },
@@ -192,7 +212,7 @@ export const createConnectionMachine = ({
               onError: 'Error',
               onDone: {
                 target: 'True',
-                actions: assign<
+                actions: assignImmer<
                   ConnectionContext,
                   DoneInvokeEvent<InitializedConnectionContext>
                 >((context, { data }) => {
@@ -278,7 +298,6 @@ export const createConnectionMachine = ({
                   sessionEntity = createEntity<SessionEntity>({
                     schema: 'session',
                     userId,
-                    services: {},
                   });
                   // connectionEntity.sessionId = sessionEntity.id;
                   world.addComponent(
@@ -307,6 +326,7 @@ export const createConnectionMachine = ({
         },
       },
     },
+    predictableActionArguments: true,
   });
   return connectionMachine;
 };

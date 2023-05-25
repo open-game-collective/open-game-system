@@ -54,6 +54,7 @@ export const createSessionMachine = ({
       Initialized: {},
       Error: {},
     },
+    predictableActionArguments: true,
     // ADD_CONNECTION: {
     //   actions: (context, event) => {
     //     world.update(entity, 'connectionIds', [
