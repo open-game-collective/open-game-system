@@ -1,4 +1,3 @@
-import { Box } from '@atoms/Box';
 import { Flex } from '@atoms/Flex';
 import type { RouteProps } from '@explorers-club/schema';
 import { useStore } from '@nanostores/react';
