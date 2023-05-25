@@ -1,10 +1,11 @@
 {
+  "name": "room-server",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/room-server/src",
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nrwl/node:webpack",
+      "executor": "@nx/node:webpack",
       "outputs": ["{options.outputPath}"],
       "options": {
         "generatePackageJson": true,
@@ -28,15 +29,15 @@
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/apps/room-server"],
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/apps/room-server"],
       "options": {
         "jestConfig": "apps/room-server/jest.config.ts",
         "passWithNoTests": true
       }
     },
     "serve": {
-      "executor": "@nrwl/node:node",
+      "executor": "@nx/node:node",
       "options": {
         "buildTarget": "room-server:build"
       },
@@ -47,7 +48,7 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["apps/room-server/**/*.ts"]
@@ -55,7 +56,11 @@
     },
     "deploy-staging": {
       "executor": "nx:run-commands",
-      "dependsOn": [{ "projects": "self", "target": "build" }],
+      "dependsOn": [
+        {
+          "target": "build"
+        }
+      ],
       "options": {
         "parallel": false,
         "commands": [
@@ -68,7 +73,11 @@
     },
     "deploy-production": {
       "executor": "nx:run-commands",
-      "dependsOn": [{ "projects": "self", "target": "build" }],
+      "dependsOn": [
+        {
+          "target": "build"
+        }
+      ],
       "options": {
         "parallel": false,
         "commands": [

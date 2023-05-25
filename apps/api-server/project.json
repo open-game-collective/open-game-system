@@ -5,7 +5,7 @@
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nrwl/webpack:webpack",
+      "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
       "options": {
         "generatePackageJson": true,
@@ -31,7 +31,7 @@
       }
     },
     "serve": {
-      "executor": "@nrwl/js:node",
+      "executor": "@nx/js:node",
       "options": {
         "buildTarget": "api-server:build"
       },
@@ -42,7 +42,7 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["apps/api-server/**/*.ts"]
@@ -50,7 +50,11 @@
     },
     "deploy-staging": {
       "executor": "nx:run-commands",
-      "dependsOn": [{ "projects": "self", "target": "build" }],
+      "dependsOn": [
+        {
+          "target": "build"
+        }
+      ],
       "options": {
         "parallel": false,
         "commands": [
@@ -62,7 +66,11 @@
     },
     "deploy-production": {
       "executor": "nx:run-commands",
-      "dependsOn": [{ "projects": "self", "target": "build" }],
+      "dependsOn": [
+        {
+          "target": "build"
+        }
+      ],
       "options": {
         "parallel": false,
         "commands": [

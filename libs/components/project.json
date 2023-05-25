@@ -1,24 +1,22 @@
 {
+  "name": "components",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/components/src",
   "projectType": "library",
   "tags": [],
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["libs/components/**/*.{ts,tsx,js,jsx}"]
       }
     },
     "storybook": {
-      "executor": "@nrwl/storybook:storybook",
+      "executor": "@nx/storybook:storybook",
       "options": {
-        "uiFramework": "@storybook/react",
         "port": 4400,
-        "config": {
-          "configFolder": "libs/components/.storybook"
-        }
+        "configDir": "libs/components/.storybook"
       },
       "configurations": {
         "ci": {
@@ -27,14 +25,11 @@
       }
     },
     "build-storybook": {
-      "executor": "@nrwl/storybook:build",
-      "outputs": ["{options.outputPath}"],
+      "executor": "@nx/storybook:build",
+      "outputs": ["{options.outputDir}"],
       "options": {
-        "uiFramework": "@storybook/react",
-        "outputPath": "dist/storybook/components",
-        "config": {
-          "configFolder": "libs/components/.storybook"
-        }
+        "configDir": "libs/components/.storybook",
+        "outputDir": "dist/storybook/components"
       },
       "configurations": {
         "ci": {

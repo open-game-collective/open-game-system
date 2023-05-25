@@ -1,10 +1,11 @@
 {
+  "name": "explorers-game-web-e2e",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/explorers-game-web-e2e/src",
   "projectType": "application",
   "targets": {
     "e2e": {
-      "executor": "@nrwl/cypress:cypress",
+      "executor": "@nx/cypress:cypress",
       "options": {
         "cypressConfig": "apps/explorers-game-web-e2e/cypress.config.ts",
         "devServerTarget": "explorers-game-web:dev",
@@ -12,7 +13,7 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["apps/explorers-game-web-e2e/**/*.{js,ts}"]

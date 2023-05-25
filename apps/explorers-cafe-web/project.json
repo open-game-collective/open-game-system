@@ -1,10 +1,13 @@
 {
+  "name": "explorers-cafe-web",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/explorers-cafe-web/src",
   "targets": {
     "build": {
-      "outputs": ["dist/apps/explorers-cafe-web"],
+      "outputs": [
+        "{workspaceRoot}/dist/apps/explorers-cafe-web"
+      ],
       "executor": "@nxtensions/astro:build",
       "options": {}
     },
@@ -15,8 +18,7 @@
     "preview": {
       "dependsOn": [
         {
-          "target": "build",
-          "projects": "self"
+          "target": "build"
         }
       ],
       "executor": "@nxtensions/astro:preview",

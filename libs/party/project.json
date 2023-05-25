@@ -1,18 +1,19 @@
 {
+  "name": "party",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/party/src",
   "projectType": "library",
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["libs/party/**/*.ts"]
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/party"],
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/party"],
       "options": {
         "jestConfig": "libs/party/jest.config.ts",
         "passWithNoTests": true

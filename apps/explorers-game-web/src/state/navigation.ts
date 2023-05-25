@@ -24,7 +24,6 @@ const getCurrentRouteFromState = (entity: ConnectionEntity) => {
 };
 
 const updateUrl = (path: string) => {
-  console.log('updating', path);
   if (typeof window !== 'undefined' && path !== window.location.pathname) {
     history.replaceState({}, '', path);
   }

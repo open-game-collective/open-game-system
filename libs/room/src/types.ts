@@ -5,7 +5,7 @@ import {
   Schema,
   SetSchema,
 } from '@colyseus/schema';
-// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import {
   DiscussMessage,
   DiscussMessageSchema,

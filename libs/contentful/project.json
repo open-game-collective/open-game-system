@@ -1,4 +1,5 @@
 {
+  "name": "contentful",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/contentful/src",
   "projectType": "library",
@@ -6,20 +7,22 @@
     "codegen": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["contentful-typescript-codegen --output @types/generated/contentful.d.ts"],
+        "commands": [
+          "contentful-typescript-codegen --output @types/generated/contentful.d.ts"
+        ],
         "cwd": "libs/contentful"
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["libs/contentful/**/*.ts"]
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/contentful"],
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/contentful"],
       "options": {
         "jestConfig": "libs/contentful/jest.config.ts",
         "passWithNoTests": true

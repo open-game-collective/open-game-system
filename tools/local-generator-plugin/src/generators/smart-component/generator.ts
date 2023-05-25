@@ -5,7 +5,7 @@ import {
   offsetFromRoot,
   readProjectConfiguration,
   Tree,
-} from '@nrwl/devkit';
+} from '@nx/devkit';
 import * as path from 'path';
 import { SmartComponentGeneratorSchema } from './schema';
 

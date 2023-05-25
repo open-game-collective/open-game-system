@@ -1,10 +1,13 @@
 {
+  "name": "explorers-store-web",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/explorers-store-web/src",
   "targets": {
     "build": {
-      "outputs": ["dist/apps/explorers-store-web"],
+      "outputs": [
+        "{workspaceRoot}/dist/apps/explorers-store-web"
+      ],
       "executor": "@nxtensions/astro:build",
       "options": {}
     },
@@ -15,8 +18,7 @@
     "preview": {
       "dependsOn": [
         {
-          "target": "build",
-          "projects": "self"
+          "target": "build"
         }
       ],
       "executor": "@nxtensions/astro:preview",

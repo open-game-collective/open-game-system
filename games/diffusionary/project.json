@@ -1,24 +1,22 @@
 {
+  "name": "diffusionary",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "games/diffusionary/src",
   "projectType": "library",
   "tags": [],
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["games/diffusionary/**/*.{ts,tsx,js,jsx}"]
       }
     },
     "storybook": {
-      "executor": "@nrwl/storybook:storybook",
+      "executor": "@nx/storybook:storybook",
       "options": {
-        "uiFramework": "@storybook/react",
         "port": 4400,
-        "config": {
-          "configFolder": "games/diffusionary/.storybook"
-        }
+        "configDir": "games/diffusionary/.storybook"
       },
       "configurations": {
         "ci": {
@@ -27,14 +25,11 @@
       }
     },
     "build-storybook": {
-      "executor": "@nrwl/storybook:build",
-      "outputs": ["{options.outputPath}"],
+      "executor": "@nx/storybook:build",
+      "outputs": ["{options.outputDir}"],
       "options": {
-        "uiFramework": "@storybook/react",
-        "outputPath": "dist/storybook/diffusionary",
-        "config": {
-          "configFolder": "games/diffusionary/.storybook"
-        }
+        "configDir": "games/diffusionary/.storybook",
+        "outputDir": "dist/storybook/diffusionary"
       },
       "configurations": {
         "ci": {

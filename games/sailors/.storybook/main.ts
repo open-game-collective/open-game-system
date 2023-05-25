@@ -12,7 +12,11 @@ const config: StorybookConfig = {
     '../src/**/*.stories.@(js|jsx|ts|tsx)',
   ],
   staticDirs: [{ from: '../../../static', to: '/assets' }],
-  addons: [...(rootMain.addons || []), '@nrwl/react/plugins/storybook'],
+  addons: [
+    '@storybook/addon-essentials',
+    ...(rootMain.addons || []),
+    '@nx/react/plugins/storybook',
+  ],
   typescript: { reactDocgen: false },
   webpackFinal: async (config, { configType }: Options) => {
     // apply any global webpack configs that might have been specified in .storybook/main.ts

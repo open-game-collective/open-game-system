@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/schema",
-  "cli": "nx",
   "$id": "SmartComponent",
   "title": "",
   "type": "object",
@@ -29,5 +28,9 @@
       "x-prompt": "What sub-directory should this componeng go in?"
     }
   },
-  "required": ["name", "project", "directory"]
+  "required": [
+    "name",
+    "project",
+    "directory"
+  ]
 }

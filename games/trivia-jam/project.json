@@ -1,32 +1,30 @@
 {
+  "name": "trivia-jam",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "games/trivia-jam/src",
   "projectType": "library",
   "tags": [],
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["games/trivia-jam/**/*.{ts,tsx,js,jsx}"]
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/games/trivia-jam"],
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/games/trivia-jam"],
       "options": {
         "jestConfig": "games/trivia-jam/jest.config.ts",
         "passWithNoTests": true
       }
     },
     "storybook": {
-      "executor": "@nrwl/storybook:storybook",
+      "executor": "@nx/storybook:storybook",
       "options": {
-        "uiFramework": "@storybook/react",
         "port": 4400,
-        "config": {
-          "configFolder": "games/trivia-jam/.storybook"
-        }
+        "configDir": "games/trivia-jam/.storybook"
       },
       "configurations": {
         "ci": {
@@ -35,14 +33,11 @@
       }
     },
     "build-storybook": {
-      "executor": "@nrwl/storybook:build",
-      "outputs": ["{options.outputPath}"],
+      "executor": "@nx/storybook:build",
+      "outputs": ["{options.outputDir}"],
       "options": {
-        "uiFramework": "@storybook/react",
-        "outputPath": "dist/storybook/trivia-jam",
-        "config": {
-          "configFolder": "games/trivia-jam/.storybook"
-        }
+        "configDir": "games/trivia-jam/.storybook",
+        "outputDir": "dist/storybook/trivia-jam"
       },
       "configurations": {
         "ci": {
