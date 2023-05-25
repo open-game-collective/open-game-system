@@ -157,7 +157,7 @@ export const createConnectionMachine = ({
               onDone: {
                 target: 'Room',
                 actions: (_, event) => {
-                  connectionEntity.currentRoomSlug = event.data;
+                  connectionEntity.currentRoomSlug = event.data.roomSlug;
                 },
               },
             },
