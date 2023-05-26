@@ -1,4 +1,9 @@
-import { Entity, EntitySchemas, SchemaType, SnowflakeId } from '@explorers-club/schema';
+import {
+  Entity,
+  EntitySchemas,
+  SchemaType,
+  SnowflakeId,
+} from '@explorers-club/schema';
 import { FromSubject } from '@explorers-club/utils';
 import { World } from 'miniplex';
 import { Observable, Subject } from 'rxjs';
@@ -92,7 +97,7 @@ export const createSchemaIndex = <TKey extends IndexKey>(
 
   subject.next({
     type: 'INIT',
-    data: world.entities, // todo filter for access
+    data: world.entities as TEntity[], // todo filter for access
   });
 
   return [index, subject as Observable<FromSubject<typeof subject>>] as const;

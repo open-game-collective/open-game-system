@@ -10,6 +10,7 @@ import {
   LoginRoutePropsSchema,
   NewRoomContext,
   NewRoomRoutePropsSchema,
+  RoomEntity,
   RoomRoutePropsSchema,
   SessionEntity,
 } from '@explorers-club/schema';
@@ -147,17 +148,16 @@ export const createConnectionMachine = ({
 
                   const { gameId, roomSlug } = event.data;
 
-                  // Get the
-
-                  const entity = createEntity({
+                  const entity = createEntity<RoomEntity>({
                     schema: 'room',
                     slug: roomSlug,
+                    connectedPlayerIds: [],
                     ownerHostId: sessionEntity.userId!,
                     gameId,
-                    // ownerHostId:
                   });
+                  world.add(entity);
 
-                  // event.data.
+                  // [??]: does this need to be addComponent
                   connectionEntity.currentRoomSlug = roomSlug;
                 },
               },
@@ -271,7 +271,7 @@ export const createConnectionMachine = ({
                 const userId = supabaseSession.user.id;
                 sessionEntity = sessionsByUserId.get(userId);
                 if (sessionEntity) {
-                  // connectionEntity.sessionId = sessionEntity.id;
+                  // add the session Id to the connectionEntity
                   world.addComponent(
                     connectionEntity,
                     'sessionId',
@@ -283,7 +283,7 @@ export const createConnectionMachine = ({
                     schema: 'session',
                     userId,
                   });
-                  // connectionEntity.sessionId = sessionEntity.id;
+                  // add the session Id to the connection
                   world.addComponent(
                     connectionEntity,
                     'sessionId',
@@ -294,6 +294,7 @@ export const createConnectionMachine = ({
 
                 const deviceId = event.deviceId || generateSnowflakeId();
 
+                // Do I need to use addComponent
                 connectionEntity.deviceId = deviceId;
                 connectionEntity.authTokens = {
                   accessToken: supabaseSession.access_token,

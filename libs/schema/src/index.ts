@@ -325,7 +325,6 @@ export type InitializedConnectionEntity = MakeRequired<
   'sessionId' | 'userId' | 'authTokens' | 'deviceId'
 >;
 
-// CONNECTION ENTITY
 export type ConnectionTypeState =
   | {
       value: 'Initialized';
@@ -412,57 +411,6 @@ export type SessionMachine = StateMachine<
   SessionStateSchema,
   SessionCommand
 >;
-
-// type ModificationEvent =
-//   | { type: 'ARRAY_ADD'; index: number; value: any }
-//   | { type: 'ARRAY_REMOVE'; index: number; value: any }
-//   | { type: 'SET_ADD'; value: any }
-//   | { type: 'SET_DELETE'; value: any }
-//   | { type: 'MAP_SET'; key: any; value: any }
-//   | { type: 'MAP_DELETE'; key: any }
-//   | { type: 'OBJECT_SET'; key: PropertyKey; value: any }
-//   | { type: 'OBJECT_DELETE'; key: PropertyKey };
-
-// z.union([
-//   z.object({
-//     type: z.literal('CHANGE'),
-//     property: entitySchema.keyof(),
-//     value: z.any(),
-//     prevValue: z.any(),
-//   }),
-// EntityPropArrayAddEventSchema(entitySchema),
-// EntityPropArrayRemoveEventSchema(entitySchema),
-// EntityPropSetAddEventSchema(entitySchema),
-// EntityPropSetDeleteEventSchema(entitySchema),
-// EntityPropMapSetEventSchema(entitySchema),
-// EntityPropMapDeleteEventSchema(entitySchema),
-// EntityPropObjectSetEventSchema(entitySchema),
-// EntityPropObjectDeleteEventSchema(entitySchema),
-// ]);
-
-// EntityPropArrayAddEventSchema(entitySchema),
-// EntityPropArrayRemoveEventSchema(entitySchema),
-// EntityPropSetAddEventSchema(entitySchema),
-// EntityPropSetDeleteEventSchema(entitySchema),
-// EntityPropMapSetEventSchema(entitySchema),
-// EntityPropMapDeleteEventSchema(entitySchema),
-// EntityPropObjectSetEventSchema(entitySchema),
-// EntityPropObjectDeleteEventSchema(entitySchema),
-
-// export type EntityPropChangeDelta<TEntity extends Entity> = {
-//   property: keyof TEntity;
-//   value: TEntity[keyof TEntity];
-//   prevValue: TEntity[keyof TEntity];
-// };
-
-// type EntityPropArrayAddEvent<TEntity> = {
-//   [K in keyof TEntity]: TEntity[K] extends Array<infer TElement> ? {
-//     type: 'ARRAY_ADD';
-//     prop: K;
-//     index: number;
-//     value: TElement;
-//   } : never;
-// }[keyof TEntity];
 
 const EntitySendTriggerEventSchema = <TEvent extends AnyEventObject>(
   commandSchema: z.ZodSchema<TEvent>
@@ -582,19 +530,10 @@ export type UserTypeState = z.infer<typeof UserTypeStateSchema>;
 // export type UserEntity = z.infer<typeof UserEntitySchema>;
 
 // ------------ Room Entity ------------
-const RoomContextSchema = z.object({});
+const RoomContextSchema = z.object({
+  foo: z.string(),
+});
 export type RoomContext = z.infer<typeof RoomContextSchema>;
-
-const SailorsGameOptionSchema = z.object({
-  playerIds: z.array(SnowflakeIdSchema),
-});
-
-const SailorsGameStateConfigSchema = z.object({});
-
-const SailorsGameStateSchema = z.object({
-  config: SailorsGameStateConfigSchema,
-  playerIds: z.array(SnowflakeIdSchema),
-});
 
 const RoomEntityPropsSchema = z.object({
   schema: RoomSchemaTypeLiteral,
@@ -605,16 +544,22 @@ const RoomEntityPropsSchema = z.object({
   configuration: GameConfigurationSchema.optional(),
 });
 
+const StartCommandSchema = z.object({
+  type: z.literal('START'),
+});
+
+const JoinCommandSchema = z.object({
+  type: z.literal('JOIN'),
+});
+
+const LeaveCommandSchema = z.object({
+  type: z.literal('LEAVE'),
+});
+
 const RoomCommandSchema = z.union([
-  z.object({
-    type: z.literal('JOIN'),
-  }),
-  z.object({
-    type: z.literal('LEAVE'),
-  }),
-  z.object({
-    type: z.literal('START'),
-  }),
+  JoinCommandSchema,
+  StartCommandSchema,
+  LeaveCommandSchema,
 ]);
 
 export type RoomCommand = z.infer<typeof RoomCommandSchema>;
@@ -908,6 +853,7 @@ export type EntityEvent = Parameters<Parameters<Entity['subscribe']>[0]>[0];
 export const EntityCommandSchema = z.union([
   ConnectionCommandSchema,
   SessionCommandSchema,
+  RoomCommandSchema,
 ]);
 
 export const EntitySchemas = {
@@ -930,10 +876,10 @@ export type EntityMachine =
       type: 'connection';
       machine: ConnectionMachine;
     }
-  // | {
-  //     type: 'user';
-  //     machine: UserMachine;
-  //   }
+  | {
+      type: 'user';
+      machine: UserMachine;
+    }
   | {
       type: 'room';
       machine: RoomMachine;
