@@ -15,9 +15,17 @@ export const chatMachine = createMachine({
   },
   states: {
     Initializing: {
-      entry: (context, event) => {
-        console.log('HELLO FROM CHAT SERVICE');
+      invoke: {
+        onError: 'Error',
+        onDone: 'Loaded',
+        src: async () => {
+          // Fetch the initial messages
+          // Where would these come from?
+          return 'hi';
+        },
       },
     },
+    Error: {},
+    Loaded: {},
   },
 });

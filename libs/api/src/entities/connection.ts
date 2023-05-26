@@ -8,6 +8,7 @@ import {
   HomeRoutePropsSchema,
   InitializedConnectionContext,
   LoginRoutePropsSchema,
+  NewRoomContext,
   NewRoomRoutePropsSchema,
   RoomRoutePropsSchema,
   SessionEntity,
@@ -15,11 +16,12 @@ import {
 import { assertEventType, generateRandomString } from '@explorers-club/utils';
 import { Session, createClient } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
+import { assert } from '@explorers-club/utils';
 import { assign as assignImmer } from '@xstate/immer';
 import { World } from 'miniplex';
-import { MatchFunction, match, pathToRegexp } from 'path-to-regexp';
+import { MatchFunction, match } from 'path-to-regexp';
 import { DoneInvokeEvent, createMachine, spawn } from 'xstate';
-import { generateSnowflakeId } from '../ecs';
+import { createEntity, generateSnowflakeId } from '../ecs';
 import { createSchemaIndex } from '../indices';
 import { newRoomMachine } from '../services';
 import { chatMachine } from '../services/chat.service';
@@ -42,10 +44,6 @@ if (
 
 const [sessionsByUserId] = createSchemaIndex(world, 'session', 'userId');
 
-const matchPath = (location: string, path: string) => {
-  pathToRegexp(path);
-};
-
 const homeRoute = match('/');
 const newRoomRoute = match('/new');
 const loginRoute = match('/login');
@@ -62,6 +60,7 @@ export const createConnectionMachine = ({
   entity: Entity;
 }) => {
   const connectionEntity = entity as ConnectionEntity;
+  let sessionEntity: ReturnType<typeof sessionsByUserId.get> = undefined;
 
   const connectionMachine = createMachine<
     ConnectionContext,
@@ -140,8 +139,26 @@ export const createConnectionMachine = ({
               autoForward: true,
               onDone: {
                 target: 'Room',
-                actions: (_, event) => {
-                  connectionEntity.currentRoomSlug = event.data.roomSlug;
+                actions: (
+                  _,
+                  event: DoneInvokeEvent<Required<NewRoomContext>>
+                ) => {
+                  assert(sessionEntity, 'expected sessionEntity but not found');
+
+                  const { gameId, roomSlug } = event.data;
+
+                  // Get the
+
+                  const entity = createEntity({
+                    schema: 'room',
+                    slug: roomSlug,
+                    ownerHostId: sessionEntity.userId!,
+                    gameId,
+                    // ownerHostId:
+                  });
+
+                  // event.data.
+                  connectionEntity.currentRoomSlug = roomSlug;
                 },
               },
             },
@@ -252,7 +269,7 @@ export const createConnectionMachine = ({
                 }
 
                 const userId = supabaseSession.user.id;
-                let sessionEntity = sessionsByUserId.get(userId);
+                sessionEntity = sessionsByUserId.get(userId);
                 if (sessionEntity) {
                   // connectionEntity.sessionId = sessionEntity.id;
                   world.addComponent(

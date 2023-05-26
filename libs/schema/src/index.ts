@@ -382,77 +382,24 @@ type StateSchemaFromStateValue<T> = StateSchema & {
 export type ConnectionStateSchema =
   StateSchemaFromStateValue<ConnectionStateValue>;
 
+export type RoomStateSchema = StateSchemaFromStateValue<RoomStateValue>;
+
+export type RoomMachine = StateMachine<
+  RoomContext,
+  RoomStateSchema,
+  RoomCommand
+>;
+
 const ConnectionInitializeCommandSchema =
   ConnectionInitializeInputSchema.extend({
     type: z.literal('INITIALIZE'),
   });
 
-// Define the shape of your context
-interface MyContext {
-  count: number;
-}
-
-// Define the shape of your event
-type MyEvent = { type: 'INCREMENT' } | { type: 'DECREMENT' };
-
-// Define the shape of your state schema
-interface MyStateSchema {
-  states: {
-    active: {
-      states: {
-        yes: {};
-        no: {};
-      };
-    };
-    inactive: {};
-  };
-}
-
-// todo, how do i expose typed interfaces here for the services?
-// Create the state machine
-// const connectionMachine = Machine<MyContext, MyStateSchema, MyEvent>({
-//   id: 'connectionMachine',
-//   initial: 'inactive',
-//   context: {
-//     count: 0,
-//   },
-//   states: {
-//     inactive: {
-//       on: {
-//         INCREMENT: {
-//           target: 'active',
-//           actions: assign<MyContext>({
-//             count: (context, event) => context.count + 1,
-//           }),
-//         },
-//       },
-//     },
-//     active: {
-//       on: {
-//         DECREMENT: {
-//           target: 'inactive',
-//           actions: assign({
-//             count: (context, event) => context.count - 1,
-//           }),
-//         },
-//       },
-//     },
-//   },
-// });
-// type ConnectionMachine = typeof connectionMachine;
-
-// export type SessionMachineSchema = MachineSchema<SessionContext, SessionEvent>;
 export type ConnectionMachine = StateMachine<
   ConnectionContext,
   ConnectionStateSchema,
   ConnectionCommand
 >;
-// export type ConnectionState = StateFrom<ConnectionMachine>;
-// export type ConnectionInterpreter = InterpreterFrom<ConnectionMachine>;
-
-// export type SessionContext = {
-//   foo?: string;
-// };
 
 export type SessionTypeState = {
   value: 'Active';
@@ -635,14 +582,8 @@ export type UserTypeState = z.infer<typeof UserTypeStateSchema>;
 // export type UserEntity = z.infer<typeof UserEntitySchema>;
 
 // ------------ Room Entity ------------
-const RoomContextSchema = z.object({
-  foo: z.string(),
-});
+const RoomContextSchema = z.object({});
 export type RoomContext = z.infer<typeof RoomContextSchema>;
-
-// const SailorsGameStateContextSchema = z.object({
-//   playerIds
-// })
 
 const SailorsGameOptionSchema = z.object({
   playerIds: z.array(SnowflakeIdSchema),
@@ -659,10 +600,9 @@ const RoomEntityPropsSchema = z.object({
   schema: RoomSchemaTypeLiteral,
   ownerHostId: SnowflakeIdSchema,
   connectedPlayerIds: z.array(SnowflakeIdSchema),
-  url: z.string().url(),
-  selectedGame: GameIdSchema,
-  sailorsGameOptions: SailorsGameOptionSchema,
-  sailorsGameState: SailorsGameStateSchema,
+  slug: SlugSchema,
+  gameId: GameIdSchema.optional(),
+  configuration: GameConfigurationSchema.optional(),
 });
 
 const RoomCommandSchema = z.union([
@@ -673,38 +613,11 @@ const RoomCommandSchema = z.union([
     type: z.literal('LEAVE'),
   }),
   z.object({
-    type: z.literal('START_GAME'),
+    type: z.literal('START'),
   }),
 ]);
 
-const RoomTypeStateSchema = z.union([
-  z.object({ value: z.literal('Empty.True'), context: RoomContextSchema }),
-  z.object({ value: z.literal('Empty.False'), context: RoomContextSchema }),
-  z.object({ value: z.literal('Ready.True'), context: RoomContextSchema }),
-  z.object({ value: z.literal('Ready.False'), context: RoomContextSchema }),
-]);
-export type RoomTypeState = z.infer<typeof RoomTypeStateSchema>;
-
 export type RoomCommand = z.infer<typeof RoomCommandSchema>;
-
-// EntityBaseSchema()
-
-// const RoomEntitySchema = EntityBaseSchema.extend({
-//   schema: RoomSchemaTypeLiteral,
-// });
-
-// EntityBaseSchema
-
-// export const RoomEntitySchema = EntityBaseSchema(
-//   RoomEntityPropsSchema,
-//   RoomCommandSchema,
-//   RoomTypeStateSchema
-// );
-// export type RoomMachine = StateMachine<
-//   RoomContext,
-//   RoomCommand
-// >;
-// export type RoomEntity = z.infer<typeof RoomEntitySchema>;
 
 // // ------------ Session Entity ------------
 const SessionContextSchema = z.object({
@@ -756,27 +669,27 @@ export const SessionEntitySchema = EntityBaseSchema(
 // >;
 
 export type SessionEntity = z.infer<typeof SessionEntitySchema>;
-const GameListStateValueSchema = z.enum(['Initializing', 'Loaded']);
+// const RoomListStateValueSchema = z.enum(['Initializing', 'Loaded']);
 
-export type GameListStateValue = z.infer<typeof GameListStateValueSchema>;
+// export type GameListStateValue = z.infer<typeof RoomListStateValueSchema>;
 
-export type GameListStateSchema = StateSchemaFromStateValue<GameListStateValue>;
+// export type GameListStateSchema = StateSchemaFromStateValue<GameListStateValue>;
 
-const GameListContextSchema = z.object({
-  gameInstanceIds: z.array(SnowflakeIdSchema),
-});
-export type GameListContext = z.infer<typeof GameListContextSchema>;
+// const RoomListContextSchema = z.object({
+//   gameInstanceIds: z.array(SnowflakeIdSchema),
+// });
+// export type GameListContext = z.infer<typeof RoomListContextSchema>;
 
-const GameListCommandSchema = z.object({
-  type: z.literal('REFRESH'),
-});
-export type GameListCommand = z.infer<typeof GameListCommandSchema>;
+// const GameListCommandSchema = z.object({
+//   type: z.literal('REFRESH'),
+// });
+// export type GameListCommand = z.infer<typeof GameListCommandSchema>;
 
-export type GameListMachine = StateMachine<
-  GameListContext,
-  GameListStateSchema,
-  GameListCommand
->;
+// export type GameListMachine = StateMachine<
+//   GameListContext,
+//   GameListStateSchema,
+//   GameListCommand
+// >;
 
 const NewRoomStateValueSchema = z.enum([
   'SelectGame',
@@ -818,19 +731,23 @@ const NewRoomContextSchema = z.object({
 });
 export type NewRoomContext = z.infer<typeof NewRoomContextSchema>;
 
+const ConfigureCommandSchema = z.object({
+  type: z.literal('CONFIGURE_GAME'),
+  configuration: GameConfigurationSchema,
+});
+const SubmitNameCommandSchema = z.object({
+  type: z.literal('SUBMIT_NAME'),
+  name: z.string(),
+});
+const SelectGameCommandSchema = z.object({
+  type: z.literal('SELECT_GAME'),
+  gameId: GameIdSchema,
+});
+
 const NewRoomCommandSchema = z.union([
-  z.object({
-    type: z.literal('SELECT_GAME'),
-    gameId: GameIdSchema,
-  }),
-  z.object({
-    type: z.literal('SUBMIT_NAME'),
-    name: z.string(),
-  }),
-  z.object({
-    type: z.literal('CONFIGURE_GAME'),
-    configuration: GameConfigurationSchema,
-  }),
+  SelectGameCommandSchema,
+  SubmitNameCommandSchema,
+  ConfigureCommandSchema,
 ]);
 export type NewRoomCommand = z.infer<typeof NewRoomCommandSchema>;
 
@@ -878,12 +795,12 @@ const ConnectionEntityPropsSchema = z.object({
       value: NewRoomStateValueSchema,
     })
     .optional(),
-  gameListService: z
-    .object({
-      context: GameListContextSchema,
-      value: GameListStateValueSchema,
-    })
-    .optional(),
+  // roomListService: z
+  //   .object({
+  //     context: RoomListContextSchema,
+  //     value: RoomListStateValueSchema,
+  //   })
+  //   .optional(),
   instanceId: z.string().uuid().optional(),
 });
 export type ConnectionEntityProps = z.infer<typeof ConnectionEntityPropsSchema>;
@@ -961,24 +878,29 @@ const ConnectionEntitySchema = EntityBaseSchema(
   ConnectionEntityPropsSchema,
   ConnectionCommandSchema,
   ConnectionStateValueSchema
-  // ConnectionContextSchema
 );
 
-// export const ConnectionEntitySchema = EntityBaseSchema.extend({
-//   state: ConnectionStateValueSchema,
-//   // send
-//   // subscribe
-// });
-//   ConnectionEntityPropsSchema,
-//   ConnectionCommandSchema,
-//   ConnectionContextSchema,
-//   ConnectionStateValueSchema
-// );
 export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
+
+const RoomStateValueSchema = z.object({
+  Scene: z.enum(['Lobby', 'Loading', 'Game']),
+  Active: z.enum(['No', 'Yes']), // Yes if there is at least 1 player currently connected
+});
+
+type RoomStateValue = z.infer<typeof RoomStateValueSchema>;
+
+const RoomEntitySchema = EntityBaseSchema(
+  RoomEntityPropsSchema,
+  RoomCommandSchema,
+  RoomStateValueSchema
+);
+
+export type RoomEntity = z.infer<typeof RoomEntitySchema>;
 
 export const EntitySchema = z.union([
   ConnectionEntitySchema,
   SessionEntitySchema,
+  RoomEntitySchema,
 ]);
 export type Entity = z.infer<typeof EntitySchema>;
 export type EntityEvent = Parameters<Parameters<Entity['subscribe']>[0]>[0];
@@ -990,14 +912,10 @@ export const EntityCommandSchema = z.union([
 
 export const EntitySchemas = {
   // user: UserEntitySchema,
-  // room: RoomEntitySchema,
+  room: RoomEntitySchema,
   session: SessionEntitySchema,
   connection: ConnectionEntitySchema,
 };
-
-// export function isEntity(entity: unknown): entity is Entity {
-//   return EntitySchema.safeParse(entity).success;
-// }
 
 export const ClientEventSchema = z.object({
   id: SnowflakeIdSchema,
@@ -1007,78 +925,19 @@ export const ClientEventSchema = z.object({
 
 export type ClientEvent = z.infer<typeof ClientEventSchema>;
 
-// const ConnectionEntityDeltaSchema = EntityPropChangeDeltaSchema(
-//   ConnectionEntityPropsSchema
-// );
-// const RoomEntityDeltaSchema = EntityPropChangeDeltaSchema(
-//   RoomEntityPropsSchema
-// );
-// const SessionEntityDeltaSchema = EntityPropChangeDeltaSchema(
-//   SessionEntityPropsSchema
-// );
-// export const UserEntityDeltaSchema = EntityPropChangeDeltaSchema(
-//   UserEntityPropsSchema
-// );
-
-// export const EntityPropsSchema = z.union([
-//   RoomEntityPropsSchema,
-//   // UserEntityPropsSchema,
-//   // SessionEntityPropsSchema,
-//   ConnectionEntityPropsSchema,
-// ]);
-
-// RoomEntityPropsSchema;
-
-// type ConnectionEntityDelta = z.infer<typeof ConnectionEntityDeltaSchema>;
-// type UserEntityDelta = z.infer<typeof UserEntityDeltaSchema>;
-// type RoomEntityDelta = z.infer<typeof RoomEntityDeltaSchema>;
-// type SessionEntityDelta = z.infer<typeof SessionEntityDeltaSchema>;
-
-// export type EntityDelta =
-//   | ConnectionEntityDelta
-//   | UserEntityDelta
-//   | RoomEntityDelta
-//   | SessionEntityDelta;
-
-// export type EntityDelta =
-//   | {
-//       type: 'session';
-//       delta: SessionEntityDelta;
-//     }
-//   | {
-//       type: 'room';
-//       delta: RoomEntityDelta;
-//     }
-//   | {
-//       type: 'connection';
-//       delta: ConnectionEntityDelta;
-//     }
-//   | {
-//       type: 'user';
-//       delta: UserEntityDelta;
-//     };
-
-// export type EntityDeltaMap = IndexByType<EntityDelta>;
-
-// type EntityChangeDelta<TEntity extends Entity> = {
-//   property: keyof TEntity;
-//   value: TEntity[keyof TEntity];
-//   prevValue: TEntity[keyof TEntity];
-// };
-
 export type EntityMachine =
   | {
       type: 'connection';
       machine: ConnectionMachine;
     }
-  | {
-      type: 'user';
-      machine: UserMachine;
-    }
   // | {
-  //     type: 'room';
-  //     machine: RoomMachine;
+  //     type: 'user';
+  //     machine: UserMachine;
   //   }
+  | {
+      type: 'room';
+      machine: RoomMachine;
+    }
   | {
       type: 'session';
       machine: SessionMachine;

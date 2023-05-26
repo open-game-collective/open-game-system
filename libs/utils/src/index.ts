@@ -3,6 +3,15 @@ export * from './types';
 export * from './hooks';
 export * from './forms';
 
+export function assert<T>(
+  expression: T,
+  errorMessage: string
+): asserts expression {
+  if (!expression) {
+    throw new Error(errorMessage);
+  }
+}
+
 export function assertEventType<
   TE extends EventObject,
   TType extends TE['type']

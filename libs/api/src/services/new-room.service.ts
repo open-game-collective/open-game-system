@@ -1,5 +1,6 @@
-import { NewRoomCommand, NewRoomContext } from '@explorers-club/schema';
+import { NewRoomCommand, NewRoomContext, RoomEntity } from '@explorers-club/schema';
 import { assign, createMachine } from 'xstate';
+import { createEntity } from '../ecs';
 
 export const newRoomMachine = createMachine({
   id: 'NewRoomMachine',
