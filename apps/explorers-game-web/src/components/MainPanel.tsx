@@ -18,7 +18,7 @@ export const MainPanel = () => {
   const currentRoute = useStore(currentRouteStore);
 
   return (
-    <Box>
+    <Box css={{ p: '$3' }}>
       {currentRoute === 'Home' && <HomePanel />}
       {currentRoute === 'NewRoom' && <NewRoomPanel />}
       {currentRoute === 'Login' && <LoginPanel />}
@@ -67,6 +67,7 @@ const NewRoomPanel = () => {
 
 const RoomPanel = () => {
   const connectionEntity = useStore(myInitializedConnectionEntityStore);
+  // todo not fix not supposed to have conditionals when using hooks
   if (!connectionEntity) {
     return null;
   }
@@ -82,6 +83,9 @@ const RoomPanel = () => {
     [currentRoomSlug]
   );
   const roomEntity = useStore(roomEntityStore);
+  if (!roomEntity) {
+    return null;
+  }
 
   return (
     <RoomContext.Provider value={{ connectionEntity, roomEntity }}>

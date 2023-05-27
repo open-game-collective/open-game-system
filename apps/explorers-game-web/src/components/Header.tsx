@@ -29,7 +29,7 @@ export const Header = () => {
       <IconButton variant="raised" size="3" onClick={handlePressMenu}>
         <HamburgerMenuIcon />
       </IconButton>
-      <img style={{ height: '42px' }} src={logoRef} alt="Explorers Logo" />
+      {/* <img style={{ height: '42px' }} src={logoRef} alt="Explorers Logo" /> */}
       <IconButton variant="raised" size="3" css={{ visibility: 'hidden' }}>
         <PersonIcon />
       </IconButton>

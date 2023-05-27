@@ -3,7 +3,7 @@ import { createContext } from 'react';
 
 export const RoomContext = createContext(
   {} as {
-    connectionEntity: ConnectionEntity | null;
-    roomEntity: RoomEntity | null;
+    connectionEntity: ConnectionEntity;
+    roomEntity: RoomEntity;
   }
 );

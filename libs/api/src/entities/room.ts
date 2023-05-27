@@ -1,4 +1,4 @@
-import { Entity } from '@explorers-club/schema';
+import { Entity, RoomCommand, RoomContext } from '@explorers-club/schema';
 import { createMachine } from 'xstate';
 import { World } from 'miniplex';
 
@@ -10,9 +10,27 @@ export const createRoomMachine = ({
 }) => {
   return createMachine({
     id: 'RoomMachine',
-    initial: 'Idle',
+    type: 'parallel',
+    schema: {
+      context: {} as RoomContext,
+      events: {} as RoomCommand,
+    },
     states: {
-      Idle: {},
+      Scene: {
+        initial: 'Lobby',
+        states: {
+          Lobby: {},
+          Loading: {},
+          Game: {},
+        },
+      },
+      Active: {
+        initial: 'No',
+        states: {
+          No: {},
+          Yes: {},
+        },
+      },
     },
   });
 };

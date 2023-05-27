@@ -79,37 +79,4 @@ const MainUI = () => {
       <Chat />
     </Flex>
   );
-
-  // const isFocusMainScreen = useServiceSelector('appService', (state) =>
-  //   state.matches('Focus.MainScreen')
-  // );
-
-  // return (
-  //   <Flex
-  //     css={{
-  //       background: 'white',
-  //       width: '100%',
-  //       flexShrink: 3,
-  //       flexGrow: isMainPanelFocued ? 1 : 0,
-
-  //       '@bp2': {
-  //         ...(!isMainPanelFocued
-  //           ? {
-  //               position: 'absolute',
-  //               right: '$3',
-  //               bottom: '$3',
-  //               maxWidth: '30%',
-  //             }
-  //           : {
-  //               height: '100%',
-  //               flexBasis: '30%',
-  //               flexGrow: 1,
-  //             }),
-  //       },
-  //     }}
-  //   >
-  //     <MainPanel />
-  //     <Chat />
-  //   </Flex>
-  // );
 };

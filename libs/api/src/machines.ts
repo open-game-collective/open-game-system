@@ -4,7 +4,7 @@ import {
 } from '@explorers-club/schema';
 import { World } from 'miniplex';
 import { createConnectionMachine } from './entities/connection';
-// import { createRoomMachine } from './entities/room';
+import { createRoomMachine } from './entities/room';
 import { createSessionMachine } from './entities/session';
 // import { createUserMachine } from './entities/user';
 
@@ -19,5 +19,5 @@ export const machineMap = {
   connection: createConnectionMachine,
   session: createSessionMachine,
   // user: createUserMachine,
-  // room: createRoomMachine,
+  room: createRoomMachine,
 } as EntityMachineCreators;
