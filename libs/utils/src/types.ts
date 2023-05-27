@@ -2,6 +2,7 @@ import { ArchetypeBucket } from 'miniplex';
 import { Context } from 'react';
 import { Observable, Subject } from 'rxjs';
 import { AnyStateMachine, StateMachine } from 'xstate';
+import type { Atom } from 'nanostores';
 
 export type FunctionReturningProperties<T> = {
   [K in keyof T]: () => T[K];
@@ -10,6 +11,8 @@ export type FunctionReturningProperties<T> = {
 export type MakeRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
 export type AnyFunction = (...args: any[]) => any;
+
+export type AtomValue<T> = T extends Atom<infer U> ? U : T;
 
 export type Unarray<T> = T extends Array<infer U> ? U : T;
 

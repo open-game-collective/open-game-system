@@ -11,7 +11,10 @@ import { currentRouteStore } from '../state/navigation';
 import { ButtonLink } from '@atoms/Button';
 import { MouseEventHandler, useCallback } from 'react';
 import { RoomContext } from '@organisms/room/room.context';
-import { useEntitySelector } from '@hooks/useEntitySelector';
+import {
+  useEntitySelector,
+  useEntityStoreSelector,
+} from '@hooks/useEntitySelector';
 import type { RoomEntity } from '@explorers-club/schema';
 
 export const MainPanel = () => {
@@ -66,14 +69,8 @@ const NewRoomPanel = () => {
 };
 
 const RoomPanel = () => {
-  const connectionEntity = useStore(myInitializedConnectionEntityStore);
-  // todo not fix not supposed to have conditionals when using hooks
-  if (!connectionEntity) {
-    return null;
-  }
-
-  const currentRoomSlug = useEntitySelector(
-    connectionEntity,
+  const currentRoomSlug = useEntityStoreSelector(
+    myInitializedConnectionEntityStore,
     (entity) => entity.currentRoomSlug
   );
   const roomEntityStore = useCreateEntityStore<RoomEntity>(
@@ -82,10 +79,14 @@ const RoomPanel = () => {
     },
     [currentRoomSlug]
   );
+
   const roomEntity = useStore(roomEntityStore);
-  if (!roomEntity) {
-    return null;
+  const connectionEntity = useStore(myInitializedConnectionEntityStore);
+
+  if (!roomEntity || !connectionEntity) {
+    return <div>loading entities</div>;
   }
+  console.log({ roomEntity, currentRoomSlug, connectionEntity });
 
   return (
     <RoomContext.Provider value={{ connectionEntity, roomEntity }}>
