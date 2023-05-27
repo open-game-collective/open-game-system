@@ -24,7 +24,7 @@ world.onEntityRemoved.add((entity) => {
 export const entitiesByIdStore = atom(entitiesById);
 
 export const createEntityStore = <TEntity extends Entity>(
-  query: (entity: TEntity) => boolean
+  query: (entity: Entity) => boolean
 ) => {
   const store = atom<TEntity | null>(null);
   for (const entity of world.entities) {
@@ -56,29 +56,13 @@ export const createEntityStore = <TEntity extends Entity>(
   return store;
 };
 
-// export const createEntityComputedStore = <TEntity extends Entity, TValue>(
-//   query: (entity: TEntity) => boolean,
-//   fn: (value: TEntity) => TValue,
-//   defaultValue: TValue
-// ) => {
-//   const entityStore = createEntityStore<TEntity>(query);
-
-//   return computed(entityStore, (entity: TEntity | null) => {
-//     if (entity) {
-//       return fn(entity);
-//     }
-
-//     return defaultValue;
-//   });
-// };
-
-export const myConnectionEntityStore =
-  createEntityStore<ConnectionEntity>(
-    (entity) => entity.schema === 'connection'
-  );
+export const myConnectionEntityStore = createEntityStore<ConnectionEntity>(
+  (entity) => entity.schema === 'connection'
+);
 
 export const myInitializedConnectionEntityStore =
   createEntityStore<InitializedConnectionEntity>(
     (entity) =>
       entity.schema === 'connection' && entity.states.Initialized === 'True'
   );
+

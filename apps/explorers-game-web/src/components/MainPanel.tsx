@@ -6,9 +6,13 @@ import { useStore } from '@nanostores/react';
 import { NewRoomFlow } from '@organisms/new-room-flow';
 import { Room } from '@organisms/room';
 import { myInitializedConnectionEntityStore } from '@state/world';
+import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
 import { currentRouteStore } from '../state/navigation';
-import { Button, ButtonLink } from '@atoms/Button';
+import { ButtonLink } from '@atoms/Button';
 import { MouseEventHandler, useCallback } from 'react';
+import { RoomContext } from '@organisms/room/room.context';
+import { useEntitySelector } from '@hooks/useEntitySelector';
+import type { RoomEntity } from '@explorers-club/schema';
 
 export const MainPanel = () => {
   const currentRoute = useStore(currentRouteStore);
@@ -62,10 +66,26 @@ const NewRoomPanel = () => {
 };
 
 const RoomPanel = () => {
-  const entity = useStore(myInitializedConnectionEntityStore);
-  return entity ? (
-    <InitializedConnectionEntityContext.Provider value={entity}>
+  const connectionEntity = useStore(myInitializedConnectionEntityStore);
+  if (!connectionEntity) {
+    return null;
+  }
+
+  const currentRoomSlug = useEntitySelector(
+    connectionEntity,
+    (entity) => entity.currentRoomSlug
+  );
+  const roomEntityStore = useCreateEntityStore<RoomEntity>(
+    (entity) => {
+      return entity.schema === 'room' && entity.slug === currentRoomSlug;
+    },
+    [currentRoomSlug]
+  );
+  const roomEntity = useStore(roomEntityStore);
+
+  return (
+    <RoomContext.Provider value={{ connectionEntity, roomEntity }}>
       <Room />
-    </InitializedConnectionEntityContext.Provider>
-  ) : null;
+    </RoomContext.Provider>
+  );
 };
