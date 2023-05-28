@@ -8,13 +8,12 @@ enablePatches();
 
 export const Room = () => {
   const { roomEntity, connectionEntity } = useContext(RoomContext);
-  if (!connectionEntity || !roomEntity) {
-    return <div>loading</div>;
-  }
 
   return (
     <Flex gap="2" css={{ p: '$3' }}>
-      <Heading size="1">#{connectionEntity.currentRoomSlug}</Heading>
+      <Heading size="1">
+        {roomEntity.slug} {connectionEntity.currentRoomSlug}
+      </Heading>
     </Flex>
   );
 };

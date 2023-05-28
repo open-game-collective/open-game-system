@@ -75,7 +75,11 @@ const RoomPanel = () => {
   );
   const roomEntityStore = useCreateEntityStore<RoomEntity>(
     (entity) => {
-      return entity.schema === 'room' && entity.slug === currentRoomSlug;
+      return (
+        currentRoomSlug &&
+        entity.schema === 'room' &&
+        entity.slug === currentRoomSlug
+      );
     },
     [currentRoomSlug]
   );
@@ -86,7 +90,6 @@ const RoomPanel = () => {
   if (!roomEntity || !connectionEntity) {
     return <div>loading entities</div>;
   }
-  console.log({ roomEntity, currentRoomSlug, connectionEntity });
 
   return (
     <RoomContext.Provider value={{ connectionEntity, roomEntity }}>

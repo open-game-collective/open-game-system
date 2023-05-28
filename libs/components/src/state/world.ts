@@ -28,7 +28,9 @@ export const createEntityStore = <TEntity extends Entity>(
 ) => {
   const store = atom<TEntity | null>(null);
   for (const entity of world.entities) {
-    store.set(entity as TEntity);
+    if (query(entity)) {
+      store.set(entity as TEntity);
+    }
   }
 
   world.onEntityAdded.add((entity) => {
@@ -65,4 +67,3 @@ export const myInitializedConnectionEntityStore =
     (entity) =>
       entity.schema === 'connection' && entity.states.Initialized === 'True'
   );
-
