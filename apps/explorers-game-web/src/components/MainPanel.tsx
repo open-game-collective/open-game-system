@@ -79,7 +79,7 @@ const RoomPanel = () => {
         currentRoomSlug &&
         entity.schema === 'room' &&
         entity.slug === currentRoomSlug
-      );
+      ) as boolean;
     },
     [currentRoomSlug]
   );

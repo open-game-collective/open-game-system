@@ -44,6 +44,7 @@ if (
 }
 
 const [sessionsByUserId] = createSchemaIndex(world, 'session', 'userId');
+const [roomsBySlug] = createSchemaIndex(world, 'room', 'slug');
 
 const homeRoute = match('/');
 const newRoomRoute = match('/new');
@@ -61,7 +62,7 @@ export const createConnectionMachine = ({
   entity: Entity;
 }) => {
   const connectionEntity = entity as ConnectionEntity;
-  let sessionEntity: ReturnType<typeof sessionsByUserId.get> = undefined;
+  let sessionEntity: SessionEntity | undefined = undefined;
 
   const connectionMachine = createMachine<
     ConnectionContext,
@@ -168,6 +169,17 @@ export const createConnectionMachine = ({
               if (!connectionEntity.currentRoomSlug) {
                 throw new Error('expected currentRoomslug but none found');
               }
+
+              if (!roomsBySlug.get(connectionEntity.currentRoomSlug)) {
+                const roomEntity = createEntity<RoomEntity>({
+                  schema: 'room',
+                  slug: connectionEntity.currentRoomSlug,
+                  connectedPlayerIds: [],
+                  ownerHostId: connectionEntity.userId!,
+                });
+                world.add(roomEntity);
+              }
+
               // todo clean up ref
               // wasnt able to get assign on entry to be called so gave up
               spawn(
@@ -269,7 +281,9 @@ export const createConnectionMachine = ({
                 }
 
                 const userId = supabaseSession.user.id;
-                sessionEntity = sessionsByUserId.get(userId);
+                sessionEntity = sessionsByUserId.get(userId) as
+                  | SessionEntity
+                  | undefined;
                 if (sessionEntity) {
                   // add the session Id to the connectionEntity
                   world.addComponent(

@@ -179,6 +179,7 @@ export const LoginInputSchema = z.object({
 export const SchemaLiteralsSchema = z.union([
   ConnectionSchemaTypeLiteral,
   SessionSchemaTypeLiteral,
+  RoomSchemaTypeLiteral,
 ]);
 export type SchemaType = z.infer<typeof SchemaLiteralsSchema>;
 

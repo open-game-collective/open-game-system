@@ -1,19 +1,19 @@
 import { Flex } from '@atoms/Flex';
 import type { RouteProps } from '@explorers-club/schema';
+import { useCurrentRoomEntityStore } from '@hooks/useCurrentRoomEntityStore';
 import { useStore } from '@nanostores/react';
+import { Chat, ChatContext } from '@organisms/Chat';
+import { myInitializedConnectionEntityStore } from '@state/world';
 import type { FC } from 'react';
-import { useIsomorphicLayoutEffect } from 'usehooks-ts';
 import { Header } from '../components/Header';
 import {
   isMainPanelFocusedStore,
   isMainSceneFocusedStore,
 } from '../state/layout';
 import { currentRouteStore } from '../state/navigation';
+import { MainPanel } from './MainPanel';
 import { MainScene } from './MainScene';
 import { Menu } from './Menu';
-import { Modal } from './Modal';
-import { MainPanel } from './MainPanel';
-import { Chat } from './Chat';
 
 interface Props {
   initialRouteProps: RouteProps;
@@ -41,7 +41,7 @@ export const App: FC<Props> = ({ initialRouteProps }) => {
       <Menu />
       <MainScene />
       <MainUI />
-      <Modal />
+      {/* <Modal /> */}
     </Flex>
   );
 };
@@ -76,7 +76,28 @@ const MainUI = () => {
       }}
     >
       <MainPanel />
-      <Chat />
+      <ChatPanel />
     </Flex>
+  );
+};
+
+const ChatPanel = () => {
+  const mainPanelFocused = useStore(isMainPanelFocusedStore);
+  const connectionEntity = useStore(myInitializedConnectionEntityStore);
+  const roomEntityStore = useCurrentRoomEntityStore();
+  const roomEntity = useStore(roomEntityStore);
+
+  if (mainPanelFocused) {
+    return null;
+  }
+
+  if (!connectionEntity || !roomEntity) {
+    return <div>placeholder</div>;
+  }
+
+  return (
+    <ChatContext.Provider value={{ connectionEntity, roomEntity }}>
+      <Chat />
+    </ChatContext.Provider>
   );
 };

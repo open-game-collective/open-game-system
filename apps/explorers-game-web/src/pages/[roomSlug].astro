@@ -5,6 +5,6 @@ const { roomSlug } = Astro.params;
 ---
 
 <Layout
-  title="Create New Game Room"
+  title={`#${roomSlug} @ explorers.cafe`}
   routeProps={{ name: 'Room', roomSlug: roomSlug! }}
 />

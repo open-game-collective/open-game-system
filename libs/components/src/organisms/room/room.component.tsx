@@ -8,12 +8,12 @@ enablePatches();
 
 export const Room = () => {
   const { roomEntity, connectionEntity } = useContext(RoomContext);
+  console.log([roomEntity, connectionEntity]);
 
   return (
     <Flex gap="2" css={{ p: '$3' }}>
-      <Heading size="1">
-        {roomEntity.slug} {connectionEntity.currentRoomSlug}
-      </Heading>
+      <Heading size="2">#{roomEntity.slug}</Heading>
+      <Heading>{roomEntity.gameId}</Heading>
     </Flex>
   );
 };
