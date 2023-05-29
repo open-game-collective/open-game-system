@@ -152,7 +152,7 @@ export const createConnectionMachine = ({
                   const entity = createEntity<RoomEntity>({
                     schema: 'room',
                     slug: roomSlug,
-                    connectedPlayerIds: [],
+                    playerIds: [],
                     ownerHostId: sessionEntity.userId!,
                     gameId,
                   });
@@ -174,7 +174,7 @@ export const createConnectionMachine = ({
                 const roomEntity = createEntity<RoomEntity>({
                   schema: 'room',
                   slug: connectionEntity.currentRoomSlug,
-                  connectedPlayerIds: [],
+                  playerIds: [],
                   ownerHostId: connectionEntity.userId!,
                 });
                 world.add(roomEntity);

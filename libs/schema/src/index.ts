@@ -122,31 +122,42 @@ export const ClubNameSchema = z.string();
 
 export const PlayerNameSchema = z.string();
 
-const LitlteVigilanteGameId = z.literal('little_vigilante');
+const LittleVigilanteGameId = z.literal('little_vigilante');
 const CodebreakersGameId = z.literal('codebreakers');
-const TradersGameId = z.literal('traders');
+const BananaTradersGameId = z.literal('banana_traders');
+
+const CodebreakersGameConfigDataSchema = z.object({
+  numPlayers: z.number().min(4).max(4),
+});
+
+const LittleVigilanteGameConfigDataSchema = z.object({
+  numPlayers: z.number().min(4).max(4),
+});
+
+const BananTradersGameConfigDataSchema = z.object({
+  numPlayers: z.number().min(4).max(4),
+});
+
 const GameConfigurationSchema = z.discriminatedUnion('gameId', [
   z.object({
-    gameId: LitlteVigilanteGameId,
-    data: z.object({
-      numPlayers: z.number().min(4).max(4),
-    }),
+    gameId: LittleVigilanteGameId,
+    data: LittleVigilanteGameConfigDataSchema,
   }),
   z.object({
     gameId: CodebreakersGameId,
-    data: z.object({
-      numPlayers: z.number().min(4).max(4),
-    }),
+    data: CodebreakersGameConfigDataSchema,
   }),
   z.object({
-    gameId: TradersGameId,
-    data: z.object({
-      numPlayers: z.number().min(4).max(4),
-    }),
+    gameId: BananaTradersGameId,
+    data: BananTradersGameConfigDataSchema,
   }),
 ]);
 
-const GameIdSchema = z.enum(['little_vigilante', 'codebreakers', 'traders']);
+const GameIdSchema = z.enum([
+  'little_vigilante',
+  'codebreakers',
+  'banana_traders',
+]);
 export type GameId = z.infer<typeof GameIdSchema>;
 
 const StateValueSchema: z.ZodType<StateValue> = z.union([
@@ -159,6 +170,14 @@ const UserSchemaTypeLiteral = z.literal('user');
 const SessionSchemaTypeLiteral = z.literal('session');
 const ConnectionSchemaTypeLiteral = z.literal('connection');
 const RoomSchemaTypeLiteral = z.literal('room');
+const BananaTradersGameSchemaTypeLiteral = z.literal('banana_traders_game');
+const BananaTradersPlayerSchemaTypeLiteral = z.literal('banana_traders_player');
+const LittleVigilanteGameSchemaTypeLiteral = z.literal('little_vigilante_game');
+const LittleVigilantePlayerSchemaTypeLiteral = z.literal(
+  'little_vigilante_player'
+);
+const CodebreakersGameSchemaTypeLiteral = z.literal('codebreakers_game');
+const CodebreakersPlayerSchemaTypeLiteral = z.literal('codebreakers_player');
 
 export const LoginInputSchema = z.object({
   email: z.string().email(),
@@ -536,15 +555,6 @@ const RoomContextSchema = z.object({
 });
 export type RoomContext = z.infer<typeof RoomContextSchema>;
 
-const RoomEntityPropsSchema = z.object({
-  schema: RoomSchemaTypeLiteral,
-  ownerHostId: SnowflakeIdSchema,
-  connectedPlayerIds: z.array(SnowflakeIdSchema),
-  slug: SlugSchema,
-  gameId: GameIdSchema.optional(),
-  configuration: GameConfigurationSchema.optional(),
-});
-
 const StartCommandSchema = z.object({
   type: z.literal('START'),
 });
@@ -564,6 +574,15 @@ const RoomCommandSchema = z.union([
 ]);
 
 export type RoomCommand = z.infer<typeof RoomCommandSchema>;
+
+const RoomEntityPropsSchema = z.object({
+  schema: RoomSchemaTypeLiteral,
+  ownerHostId: SnowflakeIdSchema,
+  playerIds: z.array(SnowflakeIdSchema),
+  slug: SlugSchema,
+  gameId: GameIdSchema.optional(),
+  configuration: GameConfigurationSchema.optional(),
+});
 
 // // ------------ Session Entity ------------
 const SessionContextSchema = z.object({
@@ -843,11 +862,336 @@ const RoomEntitySchema = EntityBaseSchema(
 
 export type RoomEntity = z.infer<typeof RoomEntitySchema>;
 
+const CodebreakersGameMessageSchema = z.object({
+  id: SnowflakeIdSchema,
+  type: z.literal('PLAIN_MESSAGE'),
+  senderEntityId: SnowflakeIdSchema,
+  message: z.string(),
+});
+
+const CodebreakersGameEntityPropSchema = z.object({
+  schema: CodebreakersGameSchemaTypeLiteral,
+  gameId: CodebreakersGameId,
+  playerEntityIds: z.array(SnowflakeIdSchema),
+  roomEntityId: SnowflakeIdSchema,
+  recentMessages: z.array(CodebreakersGameMessageSchema),
+});
+
+const CodebreakersGameStateValueSchema = z.object({
+  Active: z.enum(['True', 'False']),
+});
+
+export type CodebreakersGameStateValue = z.infer<
+  typeof CodebreakersGameStateValueSchema
+>;
+
+const CodebreakersGameCommandSchema = z.union([
+  StartCommandSchema,
+  LeaveCommandSchema,
+]);
+
+export type CodebreakersGameCommand = z.infer<
+  typeof CodebreakersGameCommandSchema
+>;
+
+const CodebreakersGameEntitySchema = EntityBaseSchema(
+  CodebreakersGameEntityPropSchema,
+  CodebreakersGameCommandSchema,
+  CodebreakersGameStateValueSchema
+);
+
+export type CodebreakersGameStateSchema =
+  StateSchemaFromStateValue<CodebreakersGameStateValue>;
+
+const CodebreakersGameContextSchema = z.object({
+  foo: z.string(),
+});
+export type CodebreakersGameContext = z.infer<
+  typeof CodebreakersGameContextSchema
+>;
+
+export type CodebreakersGameMachine = StateMachine<
+  CodebreakersGameContext,
+  CodebreakersGameStateSchema,
+  CodebreakersGameCommand
+>;
+
+const CodebreakersPlayerMessageSchema = z.object({
+  type: z.literal('PLAIN_MESSAGE'),
+  id: SnowflakeIdSchema,
+  senderEntityId: SnowflakeIdSchema,
+  message: z.string(),
+});
+
+const CodebreakersPlayerEntityPropSchema = z.object({
+  schema: CodebreakersPlayerSchemaTypeLiteral,
+  gameEntityId: SnowflakeIdSchema,
+  userId: UserIdSchema,
+  recentMessages: z.array(CodebreakersPlayerMessageSchema),
+});
+
+const CodebreakersPlayerStateValueSchema = z.object({
+  Active: z.enum(['True', 'False']),
+});
+export type CodebreakersPlayerStateValue = z.infer<
+  typeof CodebreakersPlayerStateValueSchema
+>;
+
+const CodebreakersPlayerCommandSchema = z.union([
+  StartCommandSchema,
+  LeaveCommandSchema,
+]);
+
+type CodebreakersPlayerCommand = z.infer<
+  typeof CodebreakersPlayerCommandSchema
+>;
+
+const CodebreakersPlayerEntitySchema = EntityBaseSchema(
+  CodebreakersPlayerEntityPropSchema,
+  CodebreakersPlayerCommandSchema,
+  CodebreakersPlayerStateValueSchema
+);
+
+export type CodebreakersPlayerStateSchema =
+  StateSchemaFromStateValue<CodebreakersPlayerStateValue>;
+
+const CodebreakersPlayerContextSchema = z.object({
+  foo: z.string(),
+});
+export type CodebreakersPlayerContext = z.infer<
+  typeof CodebreakersPlayerContextSchema
+>;
+
+export type CodebreakersPlayerMachine = StateMachine<
+  CodebreakersPlayerContext,
+  CodebreakersPlayerStateSchema,
+  CodebreakersPlayerCommand
+>;
+
+const BananaTradersGameMessageSchema = z.object({
+  id: SnowflakeIdSchema,
+  type: z.literal('PLAIN_MESSAGE'),
+  senderEntityId: SnowflakeIdSchema,
+  message: z.string(),
+});
+
+const BananaTradersGameEntityPropSchema = z.object({
+  schema: BananaTradersGameSchemaTypeLiteral,
+  gameId: BananaTradersGameId,
+  playerEntityIds: z.array(SnowflakeIdSchema),
+  roomEntityId: SnowflakeIdSchema,
+  recentMessages: z.array(BananaTradersGameMessageSchema),
+});
+
+const BananaTradersGameStateValueSchema = z.object({
+  Active: z.enum(['True', 'False']),
+});
+
+export type BananaTradersGameStateValue = z.infer<
+  typeof BananaTradersGameStateValueSchema
+>;
+
+const BananaTradersGameCommandSchema = z.union([
+  StartCommandSchema,
+  LeaveCommandSchema,
+]);
+
+export type BananaTradersGameCommand = z.infer<
+  typeof BananaTradersGameCommandSchema
+>;
+
+const BananaTradersGameEntitySchema = EntityBaseSchema(
+  BananaTradersGameEntityPropSchema,
+  BananaTradersGameCommandSchema,
+  BananaTradersGameStateValueSchema
+);
+
+export type BananaTradersGameStateSchema =
+  StateSchemaFromStateValue<BananaTradersGameStateValue>;
+
+const BananaTradersGameContextSchema = z.object({
+  foo: z.string(),
+});
+export type BananaTradersGameContext = z.infer<
+  typeof BananaTradersGameContextSchema
+>;
+
+export type BananaTradersGameMachine = StateMachine<
+  BananaTradersGameContext,
+  BananaTradersGameStateSchema,
+  BananaTradersGameCommand
+>;
+
+const BananaTradersPlayerMessageSchema = z.object({
+  type: z.literal('PLAIN_MESSAGE'),
+  id: SnowflakeIdSchema,
+  senderEntityId: SnowflakeIdSchema,
+  message: z.string(),
+});
+
+const BananaTradersPlayerEntityPropSchema = z.object({
+  schema: BananaTradersPlayerSchemaTypeLiteral,
+  gameEntityId: SnowflakeIdSchema,
+  userId: UserIdSchema,
+  recentMessages: z.array(BananaTradersPlayerMessageSchema),
+});
+
+const BananaTradersPlayerStateValueSchema = z.object({
+  Active: z.enum(['True', 'False']),
+});
+export type BananaTradersPlayerStateValue = z.infer<
+  typeof BananaTradersPlayerStateValueSchema
+>;
+
+const BananaTradersPlayerCommandSchema = z.union([
+  StartCommandSchema,
+  LeaveCommandSchema,
+]);
+
+type BananaTradersPlayerCommand = z.infer<
+  typeof BananaTradersPlayerCommandSchema
+>;
+
+const BananaTradersPlayerEntitySchema = EntityBaseSchema(
+  BananaTradersPlayerEntityPropSchema,
+  BananaTradersPlayerCommandSchema,
+  BananaTradersPlayerStateValueSchema
+);
+
+export type BananaTradersPlayerStateSchema =
+  StateSchemaFromStateValue<BananaTradersPlayerStateValue>;
+
+const BananaTradersPlayerContextSchema = z.object({
+  foo: z.string(),
+});
+export type BananaTradersPlayerContext = z.infer<
+  typeof BananaTradersPlayerContextSchema
+>;
+
+export type BananaTradersPlayerMachine = StateMachine<
+  BananaTradersPlayerContext,
+  BananaTradersPlayerStateSchema,
+  BananaTradersPlayerCommand
+>;
+
+const LittleVigilanteGameMessageSchema = z.object({
+  id: SnowflakeIdSchema,
+  type: z.literal('PLAIN_MESSAGE'),
+  senderEntityId: SnowflakeIdSchema,
+  message: z.string(),
+});
+
+const LittleVigilanteGameEntityPropSchema = z.object({
+  schema: LittleVigilanteGameSchemaTypeLiteral,
+  gameId: LittleVigilanteGameId,
+  playerEntityIds: z.array(SnowflakeIdSchema),
+  roomEntityId: SnowflakeIdSchema,
+  recentMessages: z.array(LittleVigilanteGameMessageSchema),
+});
+
+const LittleVigilanteGameStateValueSchema = z.object({
+  Active: z.enum(['True', 'False']),
+});
+
+export type LittleVigilanteGameStateValue = z.infer<
+  typeof LittleVigilanteGameStateValueSchema
+>;
+
+const LittleVigilanteGameCommandSchema = z.union([
+  StartCommandSchema,
+  LeaveCommandSchema,
+]);
+
+export type LittleVigilanteGameCommand = z.infer<
+  typeof LittleVigilanteGameCommandSchema
+>;
+
+const LittleVigilanteGameEntitySchema = EntityBaseSchema(
+  LittleVigilanteGameEntityPropSchema,
+  LittleVigilanteGameCommandSchema,
+  LittleVigilanteGameStateValueSchema
+);
+
+export type LittleVigilanteGameStateSchema =
+  StateSchemaFromStateValue<LittleVigilanteGameStateValue>;
+
+const LittleVigilanteGameContextSchema = z.object({
+  foo: z.string(),
+});
+export type LittleVigilanteGameContext = z.infer<
+  typeof LittleVigilanteGameContextSchema
+>;
+
+export type LittleVigilanteGameMachine = StateMachine<
+  LittleVigilanteGameContext,
+  LittleVigilanteGameStateSchema,
+  LittleVigilanteGameCommand
+>;
+
+const LittleVigilantePlayerMessageSchema = z.object({
+  type: z.literal('PLAIN_MESSAGE'),
+  id: SnowflakeIdSchema,
+  senderEntityId: SnowflakeIdSchema,
+  message: z.string(),
+});
+
+const LittleVigilantePlayerEntityPropSchema = z.object({
+  schema: LittleVigilantePlayerSchemaTypeLiteral,
+  gameEntityId: SnowflakeIdSchema,
+  userId: UserIdSchema,
+  recentMessages: z.array(LittleVigilantePlayerMessageSchema),
+});
+
+const LittleVigilantePlayerStateValueSchema = z.object({
+  Active: z.enum(['True', 'False']),
+});
+export type LittleVigilantePlayerStateValue = z.infer<
+  typeof LittleVigilantePlayerStateValueSchema
+>;
+
+const LittleVigilantePlayerCommandSchema = z.union([
+  StartCommandSchema,
+  LeaveCommandSchema,
+]);
+
+type LittleVigilantePlayerCommand = z.infer<
+  typeof LittleVigilantePlayerCommandSchema
+>;
+
+const LittleVigilantePlayerEntitySchema = EntityBaseSchema(
+  LittleVigilantePlayerEntityPropSchema,
+  LittleVigilantePlayerCommandSchema,
+  LittleVigilantePlayerStateValueSchema
+);
+
+export type LittleVigilantePlayerStateSchema =
+  StateSchemaFromStateValue<LittleVigilantePlayerStateValue>;
+
+const LittleVigilantePlayerContextSchema = z.object({
+  foo: z.string(),
+});
+export type LittleVigilantePlayerContext = z.infer<
+  typeof LittleVigilantePlayerContextSchema
+>;
+
+export type LittleVigilantePlayerMachine = StateMachine<
+  LittleVigilantePlayerContext,
+  LittleVigilantePlayerStateSchema,
+  LittleVigilantePlayerCommand
+>;
+
 export const EntitySchema = z.union([
   ConnectionEntitySchema,
   SessionEntitySchema,
   RoomEntitySchema,
+  BananaTradersGameEntitySchema,
+  BananaTradersPlayerEntitySchema,
+  CodebreakersGameEntitySchema,
+  CodebreakersPlayerEntitySchema,
+  LittleVigilanteGameEntitySchema,
+  LittleVigilantePlayerEntitySchema,
 ]);
+
 export type Entity = z.infer<typeof EntitySchema>;
 export type EntityEvent = Parameters<Parameters<Entity['subscribe']>[0]>[0];
 
@@ -862,6 +1206,12 @@ export const EntitySchemas = {
   room: RoomEntitySchema,
   session: SessionEntitySchema,
   connection: ConnectionEntitySchema,
+  banana_traders_game: BananaTradersGameEntitySchema,
+  banana_traders_player: BananaTradersPlayerEntitySchema,
+  codebreakers_game: CodebreakersGameEntitySchema,
+  codebreakers_player: CodebreakersPlayerEntitySchema,
+  little_vigilante_game: LittleVigilanteGameEntitySchema,
+  little_vigilante_player: LittleVigilantePlayerEntitySchema,
 };
 
 export const ClientEventSchema = z.object({
@@ -884,6 +1234,30 @@ export type EntityMachine =
   | {
       type: 'room';
       machine: RoomMachine;
+    }
+  | {
+      type: 'codebreakers_game';
+      machine: CodebreakersGameMachine;
+    }
+  | {
+      type: 'codebreakers_player';
+      machine: CodebreakersPlayerMachine;
+    }
+  | {
+      type: 'banana_traders_game';
+      machine: BananaTradersGameMachine;
+    }
+  | {
+      type: 'banana_traders_player';
+      machine: BananaTradersPlayerMachine;
+    }
+  | {
+      type: 'little_vigilante_game';
+      machine: LittleVigilanteGameMachine;
+    }
+  | {
+      type: 'little_vigilante_player';
+      machine: LittleVigilantePlayerMachine;
     }
   | {
       type: 'session';
