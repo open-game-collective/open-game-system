@@ -31,17 +31,6 @@ type ChatEvent = PlainMessageEvent;
 
 export const Chat = () => {
   const { roomEntity, connectionEntity } = useContext(ChatContext);
-  console.log({ roomEntity, connectionEntity });
-  // const world = useStore(worldStore);
-  // const [archetype] = useState(
-  //   world.with<ConnectionEntity>('chatService')
-  // );
-  // const bucket = useEntities(archetype);
-
-  // const entity = bucket.entities.length && bucket.entities[0];
-  // if (!entity) {
-  //   return <div>Loading</div>;
-  // }
 
   return (
     <Flex direction="column" css={{ width: '100%', minHeight: '100%' }}>
@@ -58,6 +47,8 @@ export const Chat = () => {
 };
 
 const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
+  const { roomEntity } = useContext(ChatContext);
+
   const textRef = useRef<HTMLInputElement | null>(null);
   // const send = useLittleVigilanteSend();
   const handleSubmit: FormEventHandler = useCallback(
@@ -65,6 +56,13 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
       const text = textRef.current?.value || '';
       e.preventDefault();
       if (text !== '') {
+        roomEntity.send({
+          type: 'MESSAGE',
+          message: {
+            type: 'PLAIN_MESSAGE',
+            text,
+          },
+        });
         // send({ type: 'MESSAGE', message: { text } });
 
         // clear input
@@ -111,7 +109,6 @@ const ChatMessageList = () => {
       return;
     }
     const observer = new ResizeObserver((entries) => {
-      console.log('observer');
       scrollView.scrollTo(0, scrollView.scrollHeight);
     });
     observer.observe(scrollView);

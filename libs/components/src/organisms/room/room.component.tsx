@@ -9,7 +9,6 @@ enablePatches();
 
 export const Room = () => {
   const { roomEntity, connectionEntity } = useContext(RoomContext);
-  console.log([roomEntity, connectionEntity]);
 
   return (
     <Flex gap="2" css={{ p: '$2', gap: '$2' }} direction="column">
