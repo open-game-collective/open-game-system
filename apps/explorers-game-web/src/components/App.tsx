@@ -48,7 +48,7 @@ export const App: FC<Props> = ({ initialRouteProps }) => {
 
 const MainUI = () => {
   const isMainSceneFocused = useStore(isMainSceneFocusedStore);
-  const isMainPanelFocused = useStore(isMainPanelFocusedStore);
+  // const isMainPanelFocused = useStore(isMainPanelFocusedStore);
 
   return (
     <Flex

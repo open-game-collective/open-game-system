@@ -1,6 +1,6 @@
 import type { RoomEntity } from '@explorers-club/schema';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
-import { useEntityStoreSelector } from '@hooks/useEntitySelector';
+import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
 import { myInitializedConnectionEntityStore } from '@state/world';
 
 export const useCurrentRoomEntityStore = () => {

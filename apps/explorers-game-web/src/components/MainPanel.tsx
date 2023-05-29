@@ -11,10 +11,8 @@ import { currentRouteStore } from '../state/navigation';
 import { ButtonLink } from '@atoms/Button';
 import { MouseEventHandler, useCallback } from 'react';
 import { RoomContext } from '@organisms/room/room.context';
-import {
-  useEntitySelector,
-  useEntityStoreSelector,
-} from '@hooks/useEntitySelector';
+import { useEntitySelector } from '@hooks/useEntitySelector';
+import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
 import type { RoomEntity } from '@explorers-club/schema';
 
 export const MainPanel = () => {
@@ -75,11 +73,9 @@ const RoomPanel = () => {
   );
   const roomEntityStore = useCreateEntityStore<RoomEntity>(
     (entity) => {
-      return (
-        currentRoomSlug &&
+      return (currentRoomSlug &&
         entity.schema === 'room' &&
-        entity.slug === currentRoomSlug
-      ) as boolean;
+        entity.slug === currentRoomSlug) as boolean;
     },
     [currentRoomSlug]
   );
