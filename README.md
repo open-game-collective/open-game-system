@@ -4,34 +4,27 @@
 
 After cloning and running `npm install`, use these commands to get the code running.
 
-### Website
+### Game Website
 
-`npx nx run web:serve`
+`npx nx run explorers-game-web:dev`
 
-### Servers
-
-#### Real-time server
-
-`npx nx run room-server:serve`
-
-#### API server
+### Server
 
 `npx nx run api-server:serve`
 
-### Storybooks
+### Running Database
 
-#### Component Library Storybook
+Make sure you have Supabase CLI installed.
 
-`npx nx run components:storybook`
+Then run
 
-## Stack, Patterns, Attribution
+`npc nx run database:start`
 
-- [react-three-fiber](https://github.com/pmndrs/react-three-fiber) for 3D graphics
-- miniplex ECS
-- [stitches](https://stitches.dev/) for CSS-in-JS
-- [radix-ui](https://www.radix-ui.com/) for building design system
-- [xstate](https://xstate.js.org/) for state + logic
-- static site hosting on netlify
-- game server hosting on fly.io
-- [nx](https://nx.dev/) for managing the monorepo
-- github actions for CI
+Once DB is running grab the values and put them in `.env.local` in a format similar to:
+
+```
+SUPABASE_URL=http://localhost:54321
+SUPABASE_JWT_SECRET=Super-secret-jwt-token-with-at-least-32-characters-long
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+SUPABASE_SERVICE_KEY=EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+```
