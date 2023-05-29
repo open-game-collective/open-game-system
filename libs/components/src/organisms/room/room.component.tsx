@@ -19,11 +19,14 @@ export const Room = () => {
     (entity) => entity.playerIds
   );
 
+  const selectedGameId = useEntitySelector(roomEntity, (state) => state.gameId);
+
   return (
     <Flex gap="2" css={{ p: '$2', gap: '$2' }} direction="column">
       <Heading size="2">#{roomEntity.slug}</Heading>
       <Heading>{roomEntity.gameId}</Heading>
       <Text>{connectPlayerCount} connected</Text>
+      <Text>{selectedGameId ? selectedGameId : 'No game selected'}</Text>
     </Flex>
   );
 };

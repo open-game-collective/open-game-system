@@ -175,7 +175,7 @@ const Configure = () => {
       connectionEntity.send({
         type: 'CONFIGURE_GAME',
         configuration: {
-          gameId: 'traders',
+          gameId: 'banana_traders',
           data: {
             numPlayers: 4,
           },
