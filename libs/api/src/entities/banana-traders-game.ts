@@ -14,11 +14,20 @@ export const createBananaTradersGameMachine = ({
 }) => {
   return createMachine({
     id: 'BananaTradersGameMachine',
-    type: 'parallel',
+    initial: 'Initializing',
     schema: {
       context: {} as BananaTradersGameContext,
       events: {} as BananaTradersGameCommand,
     },
-    states: {},
+    states: {
+      Initializing: {},
+      Paused: {},
+      Running: {
+        states: {
+          Setup: {},
+        },
+      },
+      Complete: {},
+    },
   });
 };

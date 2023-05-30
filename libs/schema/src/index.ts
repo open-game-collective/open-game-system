@@ -991,7 +991,7 @@ const BananaTradersGameEntityPropSchema = z.object({
 });
 
 const BananaTradersGameStateValueSchema = z.object({
-  Active: z.enum(['True', 'False']),
+  Status: z.enum(['Unitialized', 'Paused', 'Running', 'Complete']),
 });
 
 export type BananaTradersGameStateValue = z.infer<
