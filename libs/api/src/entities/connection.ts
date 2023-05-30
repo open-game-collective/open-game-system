@@ -43,6 +43,7 @@ if (
   throw new Error('missing supabase configuration');
 }
 
+const [sessionsById] = createSchemaIndex(world, 'session', 'id');
 const [sessionsByUserId] = createSchemaIndex(world, 'session', 'userId');
 const [roomsBySlug] = createSchemaIndex(world, 'room', 'slug');
 
@@ -152,8 +153,8 @@ export const createConnectionMachine = ({
                   const entity = createEntity<RoomEntity>({
                     schema: 'room',
                     slug: roomSlug,
-                    playerIds: [],
-                    ownerHostId: sessionEntity.userId!,
+                    connectionEntityIds: [],
+                    ownerHostId: sessionEntity.userId,
                     gameId,
                   });
                   world.add(entity);
@@ -166,19 +167,31 @@ export const createConnectionMachine = ({
           },
           Room: {
             entry: () => {
+              assert(sessionEntity, 'expected sessionEntity but not found');
+
               if (!connectionEntity.currentRoomSlug) {
                 throw new Error('expected currentRoomslug but none found');
               }
 
-              if (!roomsBySlug.get(connectionEntity.currentRoomSlug)) {
-                const roomEntity = createEntity<RoomEntity>({
+              let roomEntity = roomsBySlug.get(
+                connectionEntity.currentRoomSlug
+              );
+
+              // Create the room if one doesnt already exist
+              if (!roomEntity) {
+                roomEntity = createEntity<RoomEntity>({
                   schema: 'room',
                   slug: connectionEntity.currentRoomSlug,
-                  playerIds: [],
-                  ownerHostId: connectionEntity.userId!,
+                  connectionEntityIds: [],
+                  ownerHostId: sessionEntity.userId,
                 });
                 world.add(roomEntity);
               }
+
+              roomEntity.send({
+                type: 'CONNECT',
+                connectionEntityId: connectionEntity.id,
+              });
 
               // todo clean up ref
               // wasnt able to get assign on entry to be called so gave up

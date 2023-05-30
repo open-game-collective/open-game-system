@@ -342,7 +342,7 @@ export type InitializedConnectionContext = MakeRequired<
 
 export type InitializedConnectionEntity = MakeRequired<
   ConnectionEntity,
-  'sessionId' | 'userId' | 'authTokens' | 'deviceId'
+  'sessionId' | 'authTokens' | 'deviceId'
 >;
 
 export type ConnectionTypeState =
@@ -559,8 +559,14 @@ const StartCommandSchema = z.object({
   type: z.literal('START'),
 });
 
+const ConnectCommandSchema = z.object({
+  type: z.literal('CONNECT'),
+  connectionEntityId: SnowflakeIdSchema,
+});
+
 const JoinCommandSchema = z.object({
   type: z.literal('JOIN'),
+  connectionEntityId: SnowflakeIdSchema,
 });
 
 const LeaveCommandSchema = z.object({
@@ -568,6 +574,7 @@ const LeaveCommandSchema = z.object({
 });
 
 const RoomCommandSchema = z.union([
+  ConnectCommandSchema,
   JoinCommandSchema,
   StartCommandSchema,
   LeaveCommandSchema,
@@ -578,7 +585,8 @@ export type RoomCommand = z.infer<typeof RoomCommandSchema>;
 const RoomEntityPropsSchema = z.object({
   schema: RoomSchemaTypeLiteral,
   ownerHostId: SnowflakeIdSchema,
-  playerIds: z.array(SnowflakeIdSchema),
+  connectionEntityIds: z.array(SnowflakeIdSchema),
+  // playerIds: z.array(SnowflakeIdSchema),
   slug: SlugSchema,
   gameId: GameIdSchema.optional(),
   configuration: GameConfigurationSchema.optional(),
@@ -742,7 +750,6 @@ export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
 const ConnectionEntityPropsSchema = z.object({
   schema: ConnectionSchemaTypeLiteral,
   sessionId: SnowflakeIdSchema.optional(),
-  userId: SnowflakeIdSchema.optional(),
   authTokens: AuthTokensSchema.optional(),
   deviceId: SnowflakeIdSchema.optional(),
   currentRoomSlug: SlugSchema.optional(),
@@ -942,7 +949,7 @@ const CodebreakersPlayerCommandSchema = z.union([
   LeaveCommandSchema,
 ]);
 
-type CodebreakersPlayerCommand = z.infer<
+export type CodebreakersPlayerCommand = z.infer<
   typeof CodebreakersPlayerCommandSchema
 >;
 
@@ -1048,7 +1055,7 @@ const BananaTradersPlayerCommandSchema = z.union([
   LeaveCommandSchema,
 ]);
 
-type BananaTradersPlayerCommand = z.infer<
+export type BananaTradersPlayerCommand = z.infer<
   typeof BananaTradersPlayerCommandSchema
 >;
 
@@ -1154,7 +1161,7 @@ const LittleVigilantePlayerCommandSchema = z.union([
   LeaveCommandSchema,
 ]);
 
-type LittleVigilantePlayerCommand = z.infer<
+export type LittleVigilantePlayerCommand = z.infer<
   typeof LittleVigilantePlayerCommandSchema
 >;
 

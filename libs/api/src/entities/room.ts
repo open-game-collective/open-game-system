@@ -15,6 +15,13 @@ export const createRoomMachine = ({
       context: {} as RoomContext,
       events: {} as RoomCommand,
     },
+    on: {
+      CONNECT: {
+        actions: (_, event) => {
+          console.log(event);
+        },
+      },
+    },
     states: {
       Scene: {
         initial: 'Lobby',

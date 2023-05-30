@@ -146,7 +146,10 @@ const SelectGame = () => {
               Little Vigilante
             </Text>
           </ListRadioCard>
-          <ListRadioCard value={'traders'} css={{ p: '$2', width: '100%' }}>
+          <ListRadioCard
+            value={'banana_traders'}
+            css={{ p: '$2', width: '100%' }}
+          >
             <Text css={{ fontWeight: 'bold' }} size="5">
               Traders
             </Text>

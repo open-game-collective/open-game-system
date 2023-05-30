@@ -1,3 +1,8 @@
+import {
+  ConnectionEntity,
+  Entity,
+  InitializedConnectionEntity,
+} from '@explorers-club/schema';
 import { EventObject } from 'xstate';
 export * from './types';
 export * from './hooks';

@@ -15,7 +15,10 @@ type IndexFunction = (entity: Entity) => string;
 
 type IndexKey = string | string[] | IndexFunction;
 
-export const createSchemaIndex = <TKey extends IndexKey>(
+export const createSchemaIndex = <
+  TKey extends IndexKey,
+  SchemaType extends Entity['schema']
+>(
   world: World<Entity>,
   schemaType: SchemaType,
   key: TKey
