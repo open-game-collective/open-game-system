@@ -1,25 +1,36 @@
 ---
 import { Box } from '@atoms/Box';
-import { CompanyLogo } from '@atoms/Logo';
-import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
+import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { Paragraph } from '@atoms/Paragraph';
-import { Flex } from '@atoms/Flex';
+import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Explorers, Inc.">
+<Layout title="Explorers, Inc. is a play company.">
   <main>
-    <Flex direction="column" gap="2">
-      <Heading>Explorers Co. is a <strong>play</strong> company.</Heading>
+    <Flex
+      css={{
+        background: 'white',
+        p: '$3',
+        position: 'absolute',
+        bottom: '$3',
+        right: '$3',
+        '@bp2': {
+          maxWidth: '40%',
+        },
+      }}
+      direction="column"
+      gap="2"
+    >
+      <Heading>Explorers, Inc. is a <strong>play</strong> company.</Heading>
       <Paragraph>
         Play is taking the windy path even when a straight one exists. We
         believe play is the best portal we have for exploring and expanding our
         unique innate abilities.
       </Paragraph>
       <Paragraph>
-        We aim to the inspire the world to play more by creating environments
-        that challenge us to cooperate and compete.
+        We aim to inspire more play by creating environments that challenges us
+        to create, stoke us to compete, and inspire us to cooperate.
       </Paragraph>
       <Heading size="1">Links</Heading>
       <Paragraph>
@@ -27,6 +38,38 @@ import { Flex } from '@atoms/Flex';
         <a href="https://github.com/explorers-game/main">Github</a>
       </Paragraph>
     </Flex>
+    <div
+      id="globeViz"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
+        zIndex: -1,
+        background: 'black',
+      }}
+    >
+    </div>
+    <script>
+      import Globe from 'globe.gl';
+
+      fetch('./ne_110m_admin_0_countries.geojson')
+        .then((res) => res.json())
+        .then((countries) => {
+          const world = Globe()
+            // .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+            .hexPolygonsData(countries.features)
+            .hexPolygonResolution(3)
+            .hexPolygonMargin(0.3)
+            .hexPolygonColor(
+              () =>
+                `#${Math.round(Math.random() * Math.pow(2, 24))
+                  .toString(16)
+                  .padStart(6, '0')}`
+            )(document.getElementById('globeViz')!);
+        });
+    </script>
   </main>
 </Layout>
 
