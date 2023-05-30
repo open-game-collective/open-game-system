@@ -13,6 +13,7 @@ import { createLittleVigilantePlayerMachine } from './entities/little-vigilante-
 import { createUserMachine } from './entities/user';
 import { createCodebreakersGameMachine } from './entities/codebreakers-game';
 import { createCodebreakersPlayerMachine } from './entities/codebreakers-player';
+import { createLittleVigilanteGameMachine } from './entities/little-vigilante-game';
 
 type EntityMachineCreators = {
   [TSchemaType in keyof EntityMachineMap]: (props: {
@@ -30,7 +31,7 @@ export const machineMap: EntityMachineCreators = {
   codebreakers_player: createCodebreakersPlayerMachine,
   banana_traders_game: createBananaTradersGameMachine,
   banana_traders_player: createBananaTradersPlayerMachine,
-  little_vigilante_game: createBananaTradersGameMachine,
+  little_vigilante_game: createLittleVigilanteGameMachine,
   little_vigilante_player: createLittleVigilantePlayerMachine,
 };
 
