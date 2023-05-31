@@ -1,8 +1,8 @@
 ---
-import { Box } from '@atoms/Box';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { Paragraph } from '@atoms/Paragraph';
+import badge from '../../public/e_inc_badge.png';
 import Layout from '../layouts/Layout.astro';
 ---
 
@@ -22,6 +22,11 @@ import Layout from '../layouts/Layout.astro';
       direction="column"
       gap="2"
     >
+      <img
+        style={{ maxWidth: '10vw' }}
+        src={badge}
+        alt="Explorers, Inc. badge"
+      />
       <Heading>Explorers, Inc. is a <strong>play</strong> company.</Heading>
       <Paragraph>
         Play is taking the windy path even when a straight one exists.
@@ -31,8 +36,8 @@ import Layout from '../layouts/Layout.astro';
         our unique innate abilities.
       </Paragraph>
       <Paragraph>
-        We aim to foster play through creating environments that stoke us to compete,
-        challenge us to create, and inspire us to collaborate.
+        We aim to create playful environments that encourage competition,
+        inspire collaboration, and instigate growth.
       </Paragraph>
       <Heading size="1">Links</Heading>
       <Paragraph>
