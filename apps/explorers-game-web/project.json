@@ -5,9 +5,7 @@
   "sourceRoot": "apps/explorers-game-web/src",
   "targets": {
     "build": {
-      "outputs": [
-        "{workspaceRoot}/dist/apps/explorers-game-web"
-      ],
+      "outputs": ["{workspaceRoot}/dist/apps/explorers-game-web"],
       "executor": "@nxtensions/astro:build",
       "options": {}
     },
@@ -29,6 +27,43 @@
     },
     "sync": {
       "executor": "@nxtensions/astro:sync"
+    },
+    "storybook": {
+      "executor": "@nx/storybook:storybook",
+      "options": {
+        "port": 4400,
+        "configDir": "apps/explorers-game-web/.storybook"
+      },
+      "configurations": {
+        "ci": {
+          "quiet": true
+        }
+      }
+    },
+    "build-storybook": {
+      "executor": "@nx/storybook:build",
+      "outputs": ["{options.outputDir}"],
+      "options": {
+        "outputDir": "dist/storybook/explorers-game-web",
+        "configDir": "apps/explorers-game-web/.storybook"
+      },
+      "configurations": {
+        "ci": {
+          "quiet": true
+        }
+      }
+    },
+    "static-storybook": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "explorers-game-web:build-storybook",
+        "staticFilePath": "dist/storybook/explorers-game-web"
+      },
+      "configurations": {
+        "ci": {
+          "buildTarget": "explorers-game-web:build-storybook:ci"
+        }
+      }
     }
   },
   "tags": []

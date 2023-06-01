@@ -151,6 +151,7 @@
     "@storybook/core-server": "7.0.17",
     "@storybook/jest": "^0.1.0",
     "@storybook/react": "7.0.17",
+    "@storybook/react-vite": "7.0.17",
     "@storybook/react-webpack5": "^7.0.17",
     "@storybook/testing-library": "^0.1.0",
     "@svgr/webpack": "^5.4.0",

@@ -12,6 +12,10 @@ After cloning and running `npm install`, use these commands to get the code runn
 
 `npx nx run api-server:serve`
 
+### Storybook
+
+`npx nx run explorers-game-web:storybook`
+
 ### Running Database
 
 Make sure you have Supabase CLI installed.
