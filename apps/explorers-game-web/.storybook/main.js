@@ -1,3 +1,7 @@
+import { rootMain } from '../../../.storybook/main';
+import { mergeConfig } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+
 const config = {
   stories: ['../src/**/*.stories.@(js|jsx|ts|tsx|mdx)'],
   addons: ['@storybook/addon-essentials'],
@@ -5,6 +9,15 @@ const config = {
   framework: {
     name: '@storybook/react-vite',
     options: {},
+  },
+  async viteFinal(config) {
+    return mergeConfig(config, {
+      plugins: [
+        tsconfigPaths({
+          projects: ['../../tsconfig.base.json'],
+        }),
+      ],
+    });
   },
 };
 
