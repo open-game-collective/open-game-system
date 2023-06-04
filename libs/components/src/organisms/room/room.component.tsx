@@ -9,14 +9,10 @@ import { useEntitySelector } from '@hooks/useEntitySelector';
 enablePatches();
 
 export const Room = () => {
-  const { roomEntity, connectionEntity } = useContext(RoomContext);
+  const { roomEntity } = useContext(RoomContext);
   const connectPlayerCount = useEntitySelector(
     roomEntity,
-    (entity) => entity.connectionEntityIds.length
-  );
-  const totalPlayerCount = useEntitySelector(
-    roomEntity,
-    (entity) => entity.connectionEntityIds
+    (entity) => entity.connectedEntityIds.length
   );
 
   const selectedGameId = useEntitySelector(roomEntity, (state) => state.gameId);

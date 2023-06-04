@@ -47,13 +47,13 @@ const [sessionsById] = createSchemaIndex(world, 'session', 'id');
 const [sessionsByUserId] = createSchemaIndex(world, 'session', 'userId');
 const [roomsBySlug] = createSchemaIndex(world, 'room', 'slug');
 
-const homeRoute = match('/');
-const newRoomRoute = match('/new');
-const loginRoute = match('/login');
-const roomRoute = match('/:id');
+// const homeRoute = match('/');
+// const newRoomRoute = match('/new');
+// const loginRoute = match('/login');
+// const roomRoute = match('/:id');
 
-const matchesRoute = (location: string, route: MatchFunction<object>) =>
-  !!route(new URL(location).pathname);
+// const matchesRoute = (location: string, route: MatchFunction<object>) =>
+//   !!route(new URL(location).pathname);
 
 export const createConnectionMachine = ({
   world,
@@ -106,29 +106,26 @@ export const createConnectionMachine = ({
               INITIALIZE: [
                 {
                   target: 'Home',
-                  cond: (_, event) =>
-                    matchesRoute(event.initialLocation, homeRoute),
+                  cond: (_, event) => event.initialRouteProps.name === 'Home',
                 },
                 {
                   target: 'Login',
-                  cond: (_, event) =>
-                    matchesRoute(event.initialLocation, loginRoute),
+                  cond: (_, event) => event.initialRouteProps.name === 'Login',
                 },
                 {
                   target: 'NewRoom',
                   cond: (_, event) =>
-                    matchesRoute(event.initialLocation, newRoomRoute),
+                    event.initialRouteProps.name === 'NewRoom',
                 },
                 {
                   target: 'Room',
+                  cond: (_, event) => event.initialRouteProps.name === 'Room',
                   actions: (_, event) => {
-                    const roomSlug = new URL(
-                      event.initialLocation
-                    ).pathname.split('/')[1];
-                    connectionEntity.currentRoomSlug = roomSlug;
+                    if (event.initialRouteProps.name == 'Room') {
+                      connectionEntity.currentRoomSlug =
+                        event.initialRouteProps.roomSlug;
+                    }
                   },
-                  cond: (_, event) =>
-                    matchesRoute(event.initialLocation, roomRoute),
                 },
               ],
             },
@@ -153,8 +150,8 @@ export const createConnectionMachine = ({
                   const entity = createEntity<RoomEntity>({
                     schema: 'room',
                     slug: roomSlug,
-                    connectionEntityIds: [],
-                    ownerHostId: sessionEntity.userId,
+                    hostConnectionEntityId: connectionEntity.id,
+                    connectedEntityIds: [],
                     gameId,
                   });
                   world.add(entity);
@@ -167,7 +164,7 @@ export const createConnectionMachine = ({
           },
           Room: {
             entry: () => {
-              assert(sessionEntity, 'expected sessionEntity but not found');
+              // assert(sessionEntity, 'expected sessionEntity but not found');
 
               if (!connectionEntity.currentRoomSlug) {
                 throw new Error('expected currentRoomslug but none found');
@@ -182,25 +179,27 @@ export const createConnectionMachine = ({
                 roomEntity = createEntity<RoomEntity>({
                   schema: 'room',
                   slug: connectionEntity.currentRoomSlug,
-                  connectionEntityIds: [],
-                  ownerHostId: sessionEntity.userId,
+                  hostConnectionEntityId: connectionEntity.id,
+                  connectedEntityIds: [connectionEntity.id],
                 });
                 world.add(roomEntity);
+              } else {
+                // Otherwise connect ao existing one
+                roomEntity.send({
+                  type: 'CONNECT',
+                  connectionEntityId: connectionEntity.id,
+                });
               }
-
-              roomEntity.send({
-                type: 'CONNECT',
-                connectionEntityId: connectionEntity.id,
-              });
 
               // todo clean up ref
               // wasnt able to get assign on entry to be called so gave up
-              spawn(
-                chatMachine.withContext({
-                  roomSlug: connectionEntity.currentRoomSlug,
-                }),
-                'chatService'
-              );
+              // spawn(
+
+              //   chatMachine.withContext({
+              //     roomSlug: connectionEntity.currentRoomSlug,
+              //   }),
+              //   'chatService'
+              // );
             },
           },
         },

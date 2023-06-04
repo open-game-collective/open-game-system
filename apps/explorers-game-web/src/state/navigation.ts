@@ -1,5 +1,6 @@
 import type {
   ConnectionEntity,
+  Entity,
   InitializedConnectionEntity,
   RouteName,
 } from '@explorers-club/schema';
@@ -29,18 +30,25 @@ const updateUrl = (path: string) => {
   }
 };
 
+const maybeUpdateRoute = (entity: ConnectionEntity) => {
+  if (
+    entity.states.Initialized === 'True' &&
+    entity.states.Route !== 'Uninitialized'
+  ) {
+    currentRouteStore.set(entity.states.Route);
+    const path = getCurrentRouteFromState(entity);
+    updateUrl(path);
+  }
+};
+
 myConnectionEntityStore.subscribe((entity) => {
   if (!entity) {
     return;
   }
 
-  currentRouteStore.set(entity.states.Route);
-  const path = getCurrentRouteFromState(entity);
-  updateUrl(path);
+  maybeUpdateRoute(entity);
   entity.subscribe(() => {
-    currentRouteStore.set(entity.states.Route);
-    const path = getCurrentRouteFromState(entity);
-    updateUrl(path);
+    maybeUpdateRoute(entity);
   });
 });
 

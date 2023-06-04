@@ -1,4 +1,3 @@
-import { rootMain } from '../../../.storybook/main';
 import { mergeConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 

@@ -355,18 +355,13 @@ export type ConnectionTypeState =
       context: ConnectionContext;
     };
 
-export const ConnectionInitializeInputSchema = z.object({
-  deviceId: SnowflakeIdSchema.optional(),
-  initialLocation: z.string(),
-  authTokens: AuthTokensSchema.optional(),
-});
-
 export const RouteNameSchema = z.enum([
   'Home',
   'NewRoom',
   'Room',
   'Login',
   'NotFound',
+  'Uninitialized',
 ]);
 
 export type RouteName = z.infer<typeof RouteNameSchema>;
@@ -407,17 +402,6 @@ export type RoomMachine = StateMachine<
   RoomContext,
   RoomStateSchema,
   RoomCommand
->;
-
-const ConnectionInitializeCommandSchema =
-  ConnectionInitializeInputSchema.extend({
-    type: z.literal('INITIALIZE'),
-  });
-
-export type ConnectionMachine = StateMachine<
-  ConnectionContext,
-  ConnectionStateSchema,
-  ConnectionCommand
 >;
 
 export type SessionTypeState = {
@@ -584,9 +568,8 @@ export type RoomCommand = z.infer<typeof RoomCommandSchema>;
 
 const RoomEntityPropsSchema = z.object({
   schema: RoomSchemaTypeLiteral,
-  ownerHostId: SnowflakeIdSchema,
-  connectionEntityIds: z.array(SnowflakeIdSchema),
-  // playerIds: z.array(SnowflakeIdSchema),
+  hostConnectionEntityId: SnowflakeIdSchema,
+  connectedEntityIds: z.array(SnowflakeIdSchema),
   slug: SlugSchema,
   gameId: GameIdSchema.optional(),
   configuration: GameConfigurationSchema.optional(),
@@ -821,10 +804,27 @@ export const RoutePropsSchema = z.union([
 ]);
 export type RouteProps = z.infer<typeof RoutePropsSchema>;
 
+export const ConnectionInitializeInputSchema = z.object({
+  deviceId: SnowflakeIdSchema.optional().nullable(),
+  initialRouteProps: RoutePropsSchema,
+  authTokens: AuthTokensSchema.optional().nullable(),
+});
+
 const ConnectionNavigateCommandSchema = z.object({
   type: z.literal('NAVIGATE'),
   route: RoutePropsSchema,
 });
+
+const ConnectionInitializeCommandSchema =
+  ConnectionInitializeInputSchema.extend({
+    type: z.literal('INITIALIZE'),
+  });
+
+export type ConnectionMachine = StateMachine<
+  ConnectionContext,
+  ConnectionStateSchema,
+  ConnectionCommand
+>;
 
 const BaseConnectionCommandSchema = z.union([
   ConnectionInitializeCommandSchema,
@@ -1272,3 +1272,9 @@ export type EntityMachine =
     };
 
 export type EntityMachineMap = IndexByType<EntityMachine>;
+
+export type PersistentProps = {
+  refreshToken?: string;
+  accessToken?: string;
+  deviceId?: string;
+};

@@ -12,6 +12,7 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createWSClient, loggerLink, wsLink } from '@trpc/client';
 import { enablePatches } from 'immer';
+import { WritableAtom, atom } from 'nanostores';
 import {
   FC,
   ReactNode,
@@ -21,13 +22,16 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { PersistentProps } from '@explorers-club/schema';
 import { WorldProvider } from './WorldProvider';
 enablePatches();
 
 export const ApplicationProvider: FC<{
   children: ReactNode;
   trpcUrl: string;
-}> = ({ children, trpcUrl }) => {
+  initialRouteProps: RouteProps;
+  initialPersistentProps: PersistentProps;
+}> = ({ children, trpcUrl, initialRouteProps, initialPersistentProps }) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -70,7 +74,12 @@ export const ApplicationProvider: FC<{
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <WorldProvider>
-          <ConnectionProvider>{children}</ConnectionProvider>
+          <ConnectionProvider
+            initialRouteProps={initialRouteProps}
+            initialPersistentProps={initialPersistentProps}
+          >
+            {children}
+          </ConnectionProvider>
         </WorldProvider>
       </QueryClientProvider>
     </trpc.Provider>
@@ -81,7 +90,9 @@ const ConnectionContext = createContext({} as { myConnectionId?: SnowflakeId });
 
 const ConnectionProvider: FC<{
   children: ReactNode;
-}> = memo(({ children }) => {
+  initialRouteProps: RouteProps;
+  initialPersistentProps: PersistentProps;
+}> = memo(({ children, initialRouteProps, initialPersistentProps }) => {
   const initializedRef = useRef<boolean>(false);
 
   const { client } = trpc.useContext();
@@ -100,25 +111,30 @@ const ConnectionProvider: FC<{
     initializedRef.current = true;
 
     let timer: NodeJS.Timeout;
-    // todo use encrypted storage
-    const refreshToken = localStorage.getItem('refreshToken') || undefined;
-    const accessToken = localStorage.getItem('accessToken') || undefined;
-    const deviceId = localStorage.getItem('deviceId') || undefined;
+    const { accessToken, refreshToken, deviceId } = initialPersistentProps;
 
     const authTokens =
-      refreshToken && accessToken ? { refreshToken, accessToken } : undefined;
+      accessToken && refreshToken
+        ? {
+            refreshToken,
+            accessToken,
+          }
+        : undefined;
 
     client.connection.initialize
-      .mutate({ deviceId, authTokens, initialLocation: window.location.href })
+      .mutate({ deviceId, authTokens, initialRouteProps })
       .then(async (connectionId) => {
         const entity = (await waitForCondition<ConnectionEntity>(
           connectionId,
           (entity) => entity.states.Initialized === 'True'
         )) as InitializedConnectionEntity;
 
-        localStorage.setItem('refreshToken', entity.authTokens.refreshToken);
-        localStorage.setItem('accessToken', entity.authTokens.accessToken);
-        localStorage.setItem('deviceId', entity.deviceId);
+        // todo listen for my connection entity and persist it`
+        // persistentStore.set({
+        //   refreshToken: entity.authTokens.refreshToken,
+        //   accessToken: entity.authTokens.accessToken,
+        //   deviceId: entity.deviceId,
+        // });
 
         setMyConnectionId(connectionId);
       });

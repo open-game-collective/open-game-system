@@ -4,11 +4,18 @@ export interface Props {
   routeProps: RouteProps;
 }
 import { ApplicationProvider } from '@context/ApplicationProvider';
+import { GlobalStyles } from '@context/GlobalStyles';
 import type { RouteProps } from '@explorers-club/schema';
 import { App } from '../components/App';
-import { GlobalStyles } from '@context/GlobalStyles';
+import { atom } from 'nanostores';
 
 const { title, routeProps } = Astro.props;
+
+let deviceId = Astro.cookies.get('deviceId').value;
+let accessToken = Astro.cookies.get('accessToken').value;
+let refreshToken = Astro.cookies.get('refreshToken').value;
+
+const initialPersistentProps = { deviceId, accessToken, refreshToken };
 ---
 
 <!DOCTYPE html>
@@ -16,41 +23,45 @@ const { title, routeProps } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <GlobalStyles />
   </head>
 
   <body>
-    <ApplicationProvider client:only trpcUrl={import.meta.env.PUBLIC_API_SERVER_URL}>
-      <App client:load initialRouteProps={routeProps}>
-    </ApplicationProvider>
-  </body>
+      <ApplicationProvider
+        client:only
+        trpcUrl={import.meta.env.PUBLIC_API_SERVER_URL}
+        initialPersistentProps={initialPersistentProps}
+      >
+        <App client:load initialRouteProps={routeProps} />
+      </ApplicationProvider>
+    <style is:global>
+      {getCssText()}
+
+      :root {
+        --accent: 124, 58, 237;
+        --accent-gradient: linear-gradient(
+          45deg,
+          rgb(var(--accent)),
+          #da62c4 30%,
+          white 60%
+        );
+      }
+
+      html {
+        font-family: system-ui, sans-serif;
+        background-color: #f6f6f6;
+      }
+
+      code {
+        font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
+          DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+      }
+    </style>
+  </body><!-- <style is:global>{getCssText()}</style> -->
 </html>
-
-<style is:global>{getCssText()}</style>
-<style is:global>
-  :root {
-    --accent: 124, 58, 237;
-    --accent-gradient: linear-gradient(
-      45deg,
-      rgb(var(--accent)),
-      #da62c4 30%,
-      white 60%
-    );
-  }
-
-  html {
-    font-family: system-ui, sans-serif;
-    background-color: #f6f6f6;
-  }
-
-  code {
-    font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-      DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-  }
-</style>

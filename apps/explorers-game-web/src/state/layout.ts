@@ -20,6 +20,9 @@ export const isMainPanelFocusedStore = atom<boolean>(false);
 
 currentRouteStore.subscribe((route) => {
   const defaults = defaultLayoutPropsByRoute[route];
-  isMainSceneFocusedStore.set(defaults.focusArea === 'MainScene');
-  isMainPanelFocusedStore.set(defaults.focusArea === 'MainPanel');
+  // 'Unitialized' isnt a defined route`
+  if (defaults) {
+    isMainSceneFocusedStore.set(defaults.focusArea === 'MainScene');
+    isMainPanelFocusedStore.set(defaults.focusArea === 'MainPanel');
+  }
 });

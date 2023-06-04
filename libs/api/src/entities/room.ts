@@ -1,13 +1,21 @@
-import { Entity, RoomCommand, RoomContext } from '@explorers-club/schema';
+import {
+  Entity,
+  RoomCommand,
+  RoomContext,
+  RoomEntity,
+} from '@explorers-club/schema';
 import { createMachine } from 'xstate';
 import { World } from 'miniplex';
 
 export const createRoomMachine = ({
   world,
+  entity,
 }: {
   world: World;
   entity: Entity;
 }) => {
+  const roomEntity = entity as RoomEntity;
+
   return createMachine({
     id: 'RoomMachine',
     type: 'parallel',
@@ -18,7 +26,9 @@ export const createRoomMachine = ({
     on: {
       CONNECT: {
         actions: (_, event) => {
-          console.log(event);
+          if (!roomEntity.connectedEntityIds.length) {
+            roomEntity.connectedEntityIds.push(event.connectionEntityId);
+          }
         },
       },
     },

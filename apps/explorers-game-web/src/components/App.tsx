@@ -14,35 +14,33 @@ import { currentRouteStore } from '../state/navigation';
 import { MainPanel } from './MainPanel';
 import { MainScene } from './MainScene';
 import { Menu } from './Menu';
+import { styled } from '@explorers-club/styles';
 
 interface Props {
   initialRouteProps: RouteProps;
 }
 
+const AppContainer = styled('div', {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  border: '4px dashed green',
+  flexDirection: 'column',
+});
+
 export const App: FC<Props> = ({ initialRouteProps }) => {
   currentRouteStore.set(initialRouteProps.name);
 
   return (
-    <Flex
-      css={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        flexDirection: 'column',
-
-        '@bp2': {
-          flexDirection: 'row',
-        },
-      }}
-    >
+    <AppContainer>
       <Header />
       <Menu />
-      <MainScene />
+      {/* <MainScene /> */}
       <MainUI />
       {/* <Modal /> */}
-    </Flex>
+    </AppContainer>
   );
 };
 
@@ -54,25 +52,28 @@ const MainUI = () => {
     <Flex
       direction="column"
       css={{
-        background: 'white',
+        // background: 'white',
         width: '100%',
-        flexShrink: 3,
-        flexGrow: isMainSceneFocused ? 1 : 0,
+        // flexShrink: 3,
+        border: '4px dashed blue',
+        position: 'absolute',
+        bottom: 0,
+        // flexGrow: isMainSceneFocused ? 1 : 0,
 
-        '@bp2': {
-          ...(!isMainSceneFocused
-            ? {
-                position: 'absolute',
-                right: '$3',
-                bottom: '$3',
-                maxWidth: '30%',
-              }
-            : {
-                height: '100%',
-                flexBasis: '30%',
-                flexGrow: 1,
-              }),
-        },
+        // '@bp2': {
+        //   ...(!isMainSceneFocused
+        //     ? {
+        //         position: 'absolute',
+        //         right: '$3',
+        //         bottom: '$3',
+        //         maxWidth: '30%',
+        //       }
+        //     : {
+        //         height: '100%',
+        //         flexBasis: '30%',
+        //         flexGrow: 1,
+        //       }),
+        // },
       }}
     >
       <MainPanel />
