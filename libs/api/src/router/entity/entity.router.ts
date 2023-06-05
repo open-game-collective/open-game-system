@@ -11,7 +11,7 @@ import { TRPCError } from '@trpc/server';
 import { Observer, observable } from '@trpc/server/observable';
 import { AnyFunction } from 'xstate';
 import { protectedProcedure, publicProcedure, router } from '../../trpc';
-import { world, entitiesById } from '../../world';
+import { world, entitiesById } from '../../state';
 import { z } from 'zod';
 
 const SendMutationSchema = z.object({

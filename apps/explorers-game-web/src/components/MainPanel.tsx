@@ -5,33 +5,36 @@ import { InitializedConnectionEntityContext } from '@context/Entity';
 import { useStore } from '@nanostores/react';
 import { NewRoomFlow } from '@organisms/new-room-flow';
 import { Room } from '@organisms/room';
-import { myInitializedConnectionEntityStore } from '@state/world';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
-import { currentRouteStore } from '../state/navigation';
 import { ButtonLink } from '@atoms/Button';
-import { MouseEventHandler, useCallback } from 'react';
+import { MouseEventHandler, useCallback, useContext } from 'react';
 import { RoomContext } from '@organisms/room/room.context';
 import { useEntitySelector } from '@hooks/useEntitySelector';
 import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
 import type { RoomEntity } from '@explorers-club/schema';
+import { ApplicationContext } from '@context/ApplicationContext';
+import { WorldContext } from '@context/WorldProvider';
 
 export const MainPanel = () => {
-  const currentRoute = useStore(currentRouteStore);
+  const { routeStore } = useContext(ApplicationContext);
+  const currentRoute = useStore(routeStore);
 
   return (
     <Box css={{ p: '$3' }}>
-      {currentRoute === 'Home' && <HomePanel />}
-      {currentRoute === 'NewRoom' && <NewRoomPanel />}
-      {currentRoute === 'Login' && <LoginPanel />}
-      {currentRoute === 'Room' && <RoomPanel />}
+      {currentRoute.name === 'Home' && <HomePanel />}
+      {currentRoute.name === 'NewRoom' && <NewRoomPanel />}
+      {currentRoute.name === 'Login' && <LoginPanel />}
+      {currentRoute.name === 'Room' && <RoomPanel />}
     </Box>
   );
 };
 
 const HomePanel = () => {
+  const { entityStoreRegistry } = useContext(WorldContext);
+
   const handleCreateRoom: MouseEventHandler<HTMLAnchorElement> = useCallback(
     (event) => {
-      const entity = myInitializedConnectionEntityStore.get();
+      const entity = entityStoreRegistry.myInitializedConnectionEntity.get();
       if (entity) {
         event.preventDefault();
         entity.send({
@@ -58,7 +61,8 @@ const LoginPanel = () => {
 };
 
 const NewRoomPanel = () => {
-  const entity = useStore(myInitializedConnectionEntityStore);
+  const { entityStoreRegistry } = useContext(WorldContext);
+  const entity = useStore(entityStoreRegistry.myInitializedConnectionEntity);
   return entity ? (
     <InitializedConnectionEntityContext.Provider value={entity}>
       <NewRoomFlow />
@@ -67,8 +71,9 @@ const NewRoomPanel = () => {
 };
 
 const RoomPanel = () => {
+  const { entityStoreRegistry } = useContext(WorldContext);
   const currentRoomSlug = useEntityStoreSelector(
-    myInitializedConnectionEntityStore,
+    entityStoreRegistry.myInitializedConnectionEntity,
     (entity) => entity.currentRoomSlug
   );
   const roomEntityStore = useCreateEntityStore<RoomEntity>(
@@ -81,7 +86,7 @@ const RoomPanel = () => {
   );
 
   const roomEntity = useStore(roomEntityStore);
-  const connectionEntity = useStore(myInitializedConnectionEntityStore);
+  const connectionEntity = useStore(entityStoreRegistry.myInitializedConnectionEntity);
 
   if (!roomEntity || !connectionEntity) {
     return <div>loading entities</div>;

@@ -6,8 +6,8 @@ import { createClient } from '@supabase/supabase-js';
 import { type inferAsyncReturnType } from '@trpc/server';
 import { IncomingMessage } from 'http';
 import { v4 as uuidv4 } from 'uuid';
-import { createEntity, generateSnowflakeId } from './ecs';
-import { world } from './world';
+import { createEntity } from './ecs';
+import { world } from './state';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];

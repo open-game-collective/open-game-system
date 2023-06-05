@@ -26,8 +26,13 @@ export const createRoomMachine = ({
     on: {
       CONNECT: {
         actions: (_, event) => {
-          if (!roomEntity.connectedEntityIds.length) {
-            roomEntity.connectedEntityIds.push(event.connectionEntityId);
+          if (
+            !roomEntity.connectedEntityIds.includes(event.connectionEntityId)
+          ) {
+            roomEntity.connectedEntityIds = [
+              ...roomEntity.connectedEntityIds,
+              event.connectionEntityId,
+            ];
           }
         },
       },

@@ -1,11 +1,12 @@
 import { Flex } from '@atoms/Flex';
 import { IconButton } from '@atoms/IconButton';
+import { LayoutContext } from '@context/LayoutContext';
 import { HamburgerMenuIcon, PersonIcon } from '@radix-ui/react-icons';
-import { useCallback } from 'react';
+import { useCallback, useContext } from 'react';
 import logoRef from '../../../../static/base_logo_black_horizontal.png';
-import { isMenuOpenStore } from '../state/layout';
 
 export const Header = () => {
+  const { isMenuOpenStore } = useContext(LayoutContext);
   const handlePressMenu = useCallback(() => {
     if (isMenuOpenStore.get()) {
       isMenuOpenStore.set(false);

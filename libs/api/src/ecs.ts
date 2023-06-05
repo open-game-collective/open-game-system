@@ -2,18 +2,16 @@ import {
   Entity,
   EntityMachineMap,
   EntityServiceKeys,
-  EntityServices,
   InitialEntityProps,
-  ServiceId,
   SnowflakeId,
 } from '@explorers-club/schema';
 import { compare } from 'fast-json-patch';
 import { enablePatches, produce, setAutoFreeze } from 'immer';
-import { AnyActorRef, InterpreterFrom, createMachine, interpret } from 'xstate';
+import { AnyActorRef, InterpreterFrom, interpret } from 'xstate';
+import { world } from './state';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
-import { newRoomMachine } from './services';
-import { world } from './world';
+
 enablePatches();
 setAutoFreeze(false);
 

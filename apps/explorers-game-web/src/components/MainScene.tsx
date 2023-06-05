@@ -1,5 +1,5 @@
 import { Flex } from '@atoms/Flex';
-import { isMainSceneFocusedStore } from '../state/layout';
+import { isMainSceneFocusedStore } from '../global/layout';
 import { computed } from 'nanostores';
 import { useStore } from '@nanostores/react';
 import { Box } from '@atoms/Box';

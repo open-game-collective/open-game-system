@@ -1,7 +1,15 @@
-import { entitiesById, trpc } from '@explorers-club/api-client';
-import { Entity, SnowflakeId, SyncedEntityProps } from '@explorers-club/schema';
+import { trpc } from '@explorers-club/api-client';
+import {
+  ConnectionEntity,
+  Entity,
+  InitializedConnectionEntity,
+  SnowflakeId,
+  SyncedEntityProps,
+} from '@explorers-club/schema';
 import { useStore } from '@nanostores/react';
 import { applyPatch } from 'fast-json-patch';
+import { Atom, WritableAtom, atom } from 'nanostores';
+import { createIndex } from 'libs/api/src/world';
 import { World } from 'miniplex';
 import {
   FC,
@@ -13,10 +21,24 @@ import {
 } from 'react';
 import { Selector } from 'reselect';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import { worldStore } from '../state/world';
+
+type EntityRegistry = {
+  myConnectionEntity: ConnectionEntity;
+  myInitializedConnectionEntity: InitializedConnectionEntity;
+};
+
+type EntityStoreRegistry = {
+  [K in keyof EntityRegistry]: Atom<EntityRegistry[K] | null>;
+};
 
 // Update the WorldContextType to include the entity type T.
 type WorldContextType = {
+  world: World<Entity>;
+  entitiesById: Map<SnowflakeId, Entity>;
+  entityStoreRegistry: EntityStoreRegistry;
+  createEntityStore: <TEntity extends Entity>(
+    query: (entity: Entity) => boolean
+  ) => WritableAtom<TEntity | null>;
   useEntitySelector: <T extends Entity, R>(
     id: SnowflakeId,
     selector: Selector<T, R>
@@ -31,11 +53,14 @@ declare global {
   }
 }
 
-export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
+export const WorldProvider: FC<{
+  children: ReactNode;
+  world: World<Entity>;
+}> = ({ children, world }) => {
   const { client } = trpc.useContext();
   type Callback = Parameters<Entity['subscribe']>[0];
-  const world = useStore(worldStore);
-  window.$WORLD = world;
+  const entitiesById = createIndex(world);
+  // window.$WORLD = world;
   // const [subscribersById] = useState(new Map<SnowflakeId, Set<() => void>>());
   const [nextFnById] = useState(new Map<SnowflakeId, Callback>());
 
@@ -188,11 +213,60 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
     );
   };
 
+  const createEntityStore = <TEntity extends Entity>(
+    query: (entity: Entity) => boolean
+  ) => {
+    const store = atom<TEntity | null>(null);
+    for (const entity of world.entities) {
+      if (query(entity)) {
+        store.set(entity as TEntity);
+      }
+    }
+
+    world.onEntityAdded.add((entity) => {
+      if (query(entity as TEntity)) {
+        store.set(entity as TEntity);
+      }
+
+      entity.subscribe(() => {
+        if (!store.get() && query(entity as TEntity)) {
+          store.set(entity as TEntity);
+        }
+
+        if (store.get() && !query(entity as TEntity)) {
+          store.set(null);
+        }
+      });
+    });
+
+    world.onEntityRemoved.add((entity) => {
+      if (store.get() === entity) {
+        store.set(null);
+      }
+    });
+
+    return store;
+  };
+  const entityStoreRegistry = {
+    myConnectionEntity: createEntityStore<ConnectionEntity>(
+      (entity) => entity.schema === 'connection'
+    ),
+    myInitializedConnectionEntity:
+      createEntityStore<InitializedConnectionEntity>(
+        (entity) =>
+          entity.schema === 'connection' && entity.states.Initialized === 'True'
+      ),
+  } satisfies EntityStoreRegistry;
+
   return (
     <WorldContext.Provider
       value={{
-        // useSend,
+        world,
+        entitiesById,
+        createEntityStore,
+        entityStoreRegistry,
         useEntitySelector,
+        // useSend,
       }}
     >
       {children}

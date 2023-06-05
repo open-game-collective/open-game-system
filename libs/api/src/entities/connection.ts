@@ -14,19 +14,20 @@ import {
   RoomRoutePropsSchema,
   SessionEntity,
 } from '@explorers-club/schema';
-import { assertEventType, generateRandomString } from '@explorers-club/utils';
+import {
+  assert,
+  assertEventType,
+  generateRandomString,
+} from '@explorers-club/utils';
 import { Session, createClient } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
-import { assert } from '@explorers-club/utils';
 import { assign as assignImmer } from '@xstate/immer';
 import { World } from 'miniplex';
-import { MatchFunction, match } from 'path-to-regexp';
-import { DoneInvokeEvent, createMachine, spawn } from 'xstate';
+import { DoneInvokeEvent, createMachine } from 'xstate';
+import { world } from '../state';
 import { createEntity, generateSnowflakeId } from '../ecs';
 import { createSchemaIndex } from '../indices';
 import { newRoomMachine } from '../services';
-import { chatMachine } from '../services/chat.service';
-import { world } from '../world';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];

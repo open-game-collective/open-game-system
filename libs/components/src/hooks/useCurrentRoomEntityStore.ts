@@ -1,13 +1,16 @@
+import { WorldContext } from '@context/WorldProvider';
 import type { RoomEntity } from '@explorers-club/schema';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
 import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
-import { myInitializedConnectionEntityStore } from '@state/world';
+import { useContext } from 'react';
 
 export const useCurrentRoomEntityStore = () => {
+  const { entityStoreRegistry } = useContext(WorldContext);
   const currentRoomSlug = useEntityStoreSelector(
-    myInitializedConnectionEntityStore,
+    entityStoreRegistry.myInitializedConnectionEntity,
     (entity) => entity.currentRoomSlug
   );
+
   return useCreateEntityStore<RoomEntity>(
     (entity) => {
       return (currentRoomSlug &&

@@ -1,20 +1,21 @@
 import { Flex } from '@atoms/Flex';
 import type { RouteProps } from '@explorers-club/schema';
+import { styled } from '@explorers-club/styles';
 import { useCurrentRoomEntityStore } from '@hooks/useCurrentRoomEntityStore';
 import { useStore } from '@nanostores/react';
 import { Chat, ChatContext } from '@organisms/Chat';
-import { myInitializedConnectionEntityStore } from '@state/world';
-import type { FC } from 'react';
+import { FC, useContext } from 'react';
 import { Header } from '../components/Header';
-import {
-  isMainPanelFocusedStore,
-  isMainSceneFocusedStore,
-} from '../state/layout';
-import { currentRouteStore } from '../state/navigation';
+// import {
+//   isMainPanelFocusedStore,
+//   isMainSceneFocusedStore,
+// } from '../global/layout';
+// import { currentRouteStore } from '../global/navigation';
 import { MainPanel } from './MainPanel';
-import { MainScene } from './MainScene';
 import { Menu } from './Menu';
-import { styled } from '@explorers-club/styles';
+import { ApplicationContext } from '@context/ApplicationContext';
+import { LayoutContext } from '@context/LayoutContext';
+import { WorldContext } from '@context/WorldProvider';
 
 interface Props {
   initialRouteProps: RouteProps;
@@ -31,7 +32,8 @@ const AppContainer = styled('div', {
 });
 
 export const App: FC<Props> = ({ initialRouteProps }) => {
-  currentRouteStore.set(initialRouteProps.name);
+  const { routeStore } = useContext(ApplicationContext);
+  // routeStore.set(initialRouteProps);
 
   return (
     <AppContainer>
@@ -45,8 +47,8 @@ export const App: FC<Props> = ({ initialRouteProps }) => {
 };
 
 const MainUI = () => {
-  const isMainSceneFocused = useStore(isMainSceneFocusedStore);
-  // const isMainPanelFocused = useStore(isMainPanelFocusedStore);
+  const { isMainPanelFocusedStore } = useContext(LayoutContext);
+  const isMainPanelFocused = useStore(isMainPanelFocusedStore);
 
   return (
     <Flex
@@ -83,8 +85,10 @@ const MainUI = () => {
 };
 
 const ChatPanel = () => {
+  const { isMainPanelFocusedStore } = useContext(LayoutContext);
   const mainPanelFocused = useStore(isMainPanelFocusedStore);
-  const connectionEntity = useStore(myInitializedConnectionEntityStore);
+  const { entityStoreRegistry} = useContext(WorldContext)
+  const connectionEntity = useStore(entityStoreRegistry.myInitializedConnectionEntity);
   const roomEntityStore = useCurrentRoomEntityStore();
   const roomEntity = useStore(roomEntityStore);
 

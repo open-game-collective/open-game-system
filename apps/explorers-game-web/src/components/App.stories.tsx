@@ -2,20 +2,19 @@ import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Grid } from '@atoms/Grid';
 import { Heading } from '@atoms/Heading';
-import { ApplicationProvider } from '@context/ApplicationProvider';
+import { ApplicationProvider } from './ApplicationProvider';
 import type { RouteProps } from '@explorers-club/schema';
 import { generateRandomString } from '@explorers-club/utils';
 import type { Meta, Story } from '@storybook/react';
 import { FC, useEffect, useState } from 'react';
-import { App } from './App';
 // import { App } from "../components/App";
 
 const meta = {
-  component: App,
+  title: 'App',
   parameters: {
     layout: 'fullscreen',
   },
-} satisfies Meta<typeof App>;
+};
 
 export default meta;
 
@@ -44,15 +43,13 @@ const RoomWrapper: FC<{ slug: string; myUserId: string }> = (props) => {
   return (
     <ApplicationProvider
       trpcUrl={'ws://localhost:3001'}
-      initialRouteProps={routeProps} 
+      initialRouteProps={routeProps}
       initialPersistentProps={{
         refreshToken: undefined,
         accessToken: undefined,
         deviceId: undefined,
       }}
-    >
-      <App initialRouteProps={routeProps} />
-    </ApplicationProvider>
+    />
   );
 
   {

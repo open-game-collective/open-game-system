@@ -3,11 +3,9 @@ export interface Props {
   title: string;
   routeProps: RouteProps;
 }
-import { ApplicationProvider } from '@context/ApplicationProvider';
 import { GlobalStyles } from '@context/GlobalStyles';
 import type { RouteProps } from '@explorers-club/schema';
-import { App } from '../components/App';
-import { atom } from 'nanostores';
+import { ApplicationProvider } from '../components/AppProvider';
 
 const { title, routeProps } = Astro.props;
 
@@ -33,13 +31,12 @@ const initialPersistentProps = { deviceId, accessToken, refreshToken };
   </head>
 
   <body>
-      <ApplicationProvider
-        client:only
-        trpcUrl={import.meta.env.PUBLIC_API_SERVER_URL}
-        initialPersistentProps={initialPersistentProps}
-      >
-        <App client:load initialRouteProps={routeProps} />
-      </ApplicationProvider>
+    <ApplicationProvider
+      client:only
+      trpcUrl={import.meta.env.PUBLIC_API_SERVER_URL}
+      initialPersistentProps={initialPersistentProps}
+      initialRouteProps={routeProps}
+    />
     <style is:global>
       {getCssText()}
 
@@ -63,5 +60,5 @@ const initialPersistentProps = { deviceId, accessToken, refreshToken };
           DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
       }
     </style>
-  </body><!-- <style is:global>{getCssText()}</style> -->
+  </body>
 </html>

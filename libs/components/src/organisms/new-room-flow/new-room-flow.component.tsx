@@ -24,7 +24,6 @@ import { Text } from '../../atoms/Text';
 import { TextField } from '../../atoms/TextField';
 import { InitializedConnectionEntityContext } from '../../context/Entity';
 import { ListRadioCard, RadioCardGroup } from '../../molecules/RadioCard';
-import { createEntityStore, worldStore } from '../../state/world';
 import { useEntitySelector } from '../../hooks/useEntitySelector';
 
 type NewRoomServiceEntity = With<ConnectionEntity, 'newRoomService'>;
@@ -46,10 +45,10 @@ export const NewRoomFlow = () => {
   return <NewRoomFlowComponent entityId={entity.id} />;
 };
 
-export const newRoomServiceEntityStore =
-  createEntityStore<NewRoomServiceEntity>(
-    (entity) => entity.schema === 'connection' && !!entity.newRoomService
-  );
+// export const newRoomServiceEntityStore =
+//   createEntityStore<NewRoomServiceEntity>(
+//     (entity) => entity.schema === 'connection' && !!entity.newRoomService
+//   );
 
 const NewRoomFlowComponent: FC<{ entityId: SnowflakeId }> = ({ entityId }) => {
   const entity = useContext(InitializedConnectionEntityContext);

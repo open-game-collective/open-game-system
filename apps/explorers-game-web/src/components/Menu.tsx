@@ -16,12 +16,13 @@ import {
   ScrollAreaViewport,
 } from '@radix-ui/react-scroll-area';
 import * as Tabs from '@radix-ui/react-tabs';
-import { useCallback } from 'react';
-import { isMenuOpenStore } from '../state/layout';
+import { useCallback, useContext } from 'react';
 import { useStore } from '@nanostores/react';
+import { LayoutContext } from '@context/LayoutContext';
 // import { selectNavIsOpen } from './app.selectors';
 
 export const Menu = () => {
+  const { isMenuOpenStore } = useContext(LayoutContext);
   const isOpen = useStore(isMenuOpenStore);
 
   const handleOpenChange = useCallback(
