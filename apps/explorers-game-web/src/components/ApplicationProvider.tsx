@@ -15,7 +15,6 @@ import { App } from './App';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createWSClient, loggerLink, wsLink } from '@trpc/client';
 import { enablePatches } from 'immer';
-import { entitiesById } from 'libs/api/src/state';
 import { World } from 'miniplex';
 import { atom } from 'nanostores';
 import {
@@ -95,6 +94,7 @@ export const ApplicationProvider: FC<{
               <ConnectionProvider
                 initialRouteProps={initialRouteProps}
                 initialPersistentProps={initialPersistentProps}
+                world={world}
               >
                 <App initialRouteProps={initialRouteProps} />
               </ConnectionProvider>
@@ -113,7 +113,7 @@ const ConnectionProvider: FC<{
   initialRouteProps: RouteProps;
   initialPersistentProps: PersistentProps;
 }> = memo(({ children, initialRouteProps, initialPersistentProps }) => {
-  const { world } = useContext(WorldContext);
+  const { entitiesById, world } = useContext(WorldContext);
   const initializedRef = useRef<boolean>(false);
 
   const { client } = trpc.useContext();

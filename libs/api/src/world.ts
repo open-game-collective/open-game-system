@@ -6,6 +6,10 @@ import { World } from 'miniplex';
 
 export const createIndex = (world: World) => {
   const entitiesById = new Map<SnowflakeId, Entity>();
+  for (const entity of world.entities) {
+    entitiesById.set(entity.id, entity);
+  }
+
   world.onEntityAdded.add((entity) => {
     entitiesById.set(entity.id, entity);
   });

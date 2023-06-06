@@ -223,6 +223,7 @@ export const WorldProvider: FC<{
       }
     }
 
+    // todo fix mem leak
     world.onEntityAdded.add((entity) => {
       if (query(entity as TEntity)) {
         store.set(entity as TEntity);

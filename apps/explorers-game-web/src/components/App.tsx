@@ -87,8 +87,10 @@ const MainUI = () => {
 const ChatPanel = () => {
   const { isMainPanelFocusedStore } = useContext(LayoutContext);
   const mainPanelFocused = useStore(isMainPanelFocusedStore);
-  const { entityStoreRegistry} = useContext(WorldContext)
-  const connectionEntity = useStore(entityStoreRegistry.myInitializedConnectionEntity);
+  const { entityStoreRegistry } = useContext(WorldContext);
+  const connectionEntity = useStore(
+    entityStoreRegistry.myInitializedConnectionEntity
+  );
   const roomEntityStore = useCurrentRoomEntityStore();
   const roomEntity = useStore(roomEntityStore);
 
