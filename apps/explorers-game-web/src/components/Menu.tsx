@@ -16,12 +16,14 @@ import {
   ScrollAreaViewport,
 } from '@radix-ui/react-scroll-area';
 import * as Tabs from '@radix-ui/react-tabs';
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { LayoutContext } from '@context/LayoutContext';
+import { Box } from '@atoms/Box';
 // import { selectNavIsOpen } from './app.selectors';
 
 export const Menu = () => {
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const { isMenuOpenStore } = useContext(LayoutContext);
   const isOpen = useStore(isMenuOpenStore);
 
@@ -36,16 +38,17 @@ export const Menu = () => {
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
-      <Dialog.Portal>
+      <Dialog.Portal container={container}>
         <MenuDrawerOverlay />
         <MenuDrawerContent />
       </Dialog.Portal>
+      <Box ref={setContainer} />
     </Dialog.Root>
   );
 };
 
 const StyledDialogContent = styled(Dialog.Content, {
-  position: 'fixed',
+  position: 'absolute',
   left: 0,
   top: 0,
   bottom: 0,
