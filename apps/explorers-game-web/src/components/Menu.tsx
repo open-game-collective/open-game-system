@@ -42,28 +42,27 @@ export const Menu = () => {
         <MenuDrawerOverlay />
         <MenuDrawerContent />
       </Dialog.Portal>
-      <Box ref={setContainer} />
+      <ModalContainer ref={setContainer} />
     </Dialog.Root>
   );
 };
+
+const ModalContainer = styled(Box, {
+  position: 'absolute',
+  left: 0,
+  top: 0,
+  bottom: 0,
+  right: 0,
+  zIndex: 100,
+});
 
 const StyledDialogContent = styled(Dialog.Content, {
   position: 'absolute',
   left: 0,
   top: 0,
   bottom: 0,
-  width: '100%',
-  zIndex: 300,
-  backgroundColor: '$primary3',
-  '@bp2': {
-    maxWidth: '50%',
-  },
-  '@bp3': {
-    maxWidth: '30%',
-  },
-  '@bp4': {
-    maxWidth: '20%',
-  },
+  right: 0,
+  background: '$primary3',
 });
 
 const TabButton = styled(Button, {

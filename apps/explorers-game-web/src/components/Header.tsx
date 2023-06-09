@@ -4,6 +4,7 @@ import { LayoutContext } from '@context/LayoutContext';
 import { HamburgerMenuIcon, PersonIcon } from '@radix-ui/react-icons';
 import { useCallback, useContext } from 'react';
 import logoRef from '../../../../static/base_logo_black_horizontal.png';
+import { useStore } from '@nanostores/react';
 
 export const Header = () => {
   const { isMenuOpenStore } = useContext(LayoutContext);
@@ -14,6 +15,8 @@ export const Header = () => {
       isMenuOpenStore.set(true);
     }
   }, [isMenuOpenStore]);
+
+  const isMenuOpen = useStore(isMenuOpenStore);
 
   return (
     <Flex
@@ -27,9 +30,11 @@ export const Header = () => {
         zIndex: 200,
       }}
     >
-      <IconButton variant="raised" size="3" onClick={handlePressMenu}>
-        <HamburgerMenuIcon />
-      </IconButton>
+      {!isMenuOpen && (
+        <IconButton variant="raised" size="3" onClick={handlePressMenu}>
+          <HamburgerMenuIcon />
+        </IconButton>
+      )}
       {/* <img style={{ height: '42px' }} src={logoRef} alt="Explorers Logo" /> */}
       <IconButton variant="raised" size="3" css={{ visibility: 'hidden' }}>
         <PersonIcon />

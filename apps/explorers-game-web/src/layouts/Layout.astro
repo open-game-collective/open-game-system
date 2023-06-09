@@ -17,7 +17,7 @@ const initialPersistentProps = { deviceId, accessToken, refreshToken };
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style={{ height: '100%' }}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -30,7 +30,7 @@ const initialPersistentProps = { deviceId, accessToken, refreshToken };
     <GlobalStyles />
   </head>
 
-  <body>
+  <body style={{ height: '100%', boxSizing: 'border-box' }}>
     <ApplicationProvider
       client:only
       trpcUrl={import.meta.env.PUBLIC_API_SERVER_URL}
@@ -52,7 +52,10 @@ const initialPersistentProps = { deviceId, accessToken, refreshToken };
 
       html {
         font-family: system-ui, sans-serif;
-        background-color: #f6f6f6;
+      }
+
+      body {
+        box-sizing: 'border-box';
       }
 
       code {
