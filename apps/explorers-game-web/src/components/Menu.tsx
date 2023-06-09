@@ -16,7 +16,13 @@ import {
   ScrollAreaViewport,
 } from '@radix-ui/react-scroll-area';
 import * as Tabs from '@radix-ui/react-tabs';
-import { useCallback, useContext, useState } from 'react';
+import {
+  ForwardedRef,
+  forwardRef,
+  useCallback,
+  useContext,
+  useState,
+} from 'react';
 import { useStore } from '@nanostores/react';
 import { LayoutContext } from '@context/LayoutContext';
 import { Box } from '@atoms/Box';
@@ -47,13 +53,23 @@ export const Menu = () => {
   );
 };
 
-const ModalContainer = styled(Box, {
-  position: 'absolute',
-  left: 0,
-  top: 0,
-  bottom: 0,
-  right: 0,
-  zIndex: 100,
+const ModalContainer = forwardRef((_, ref: ForwardedRef<HTMLDivElement>) => {
+  const { isMenuOpenStore } = useContext(LayoutContext);
+  const isOpen = useStore(isMenuOpenStore);
+
+  return (
+    <Box
+      ref={ref}
+      css={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        right: 0,
+        zIndex: isOpen ? 100 : -9999,
+      }}
+    />
+  );
 });
 
 const StyledDialogContent = styled(Dialog.Content, {
