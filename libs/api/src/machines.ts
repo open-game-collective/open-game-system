@@ -15,7 +15,7 @@ import { createLittleVigilantePlayerMachine } from './entities/little-vigilante-
 import { createRoomMachine } from './entities/room';
 import { createSessionMachine } from './entities/session';
 import { createUserMachine } from './entities/user';
-import { createUserChannelMachine } from './entities/user-channel';
+import { createMessageChannelMachine } from './entities/messsage-channel';
 
 type EntityMachineCreators = {
   [TSchemaType in keyof EntityMachineMap]: (props: {
@@ -29,7 +29,7 @@ export const machineMap: EntityMachineCreators = {
   session: createSessionMachine,
   room: createRoomMachine,
   user: createUserMachine,
-  user_channel: createUserChannelMachine,
+  message_channel: createMessageChannelMachine,
   codebreakers_game: createCodebreakersGameMachine,
   codebreakers_player: createCodebreakersPlayerMachine,
   banana_traders_game: createBananaTradersGameMachine,

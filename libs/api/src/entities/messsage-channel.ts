@@ -1,23 +1,23 @@
 import {
   Entity,
-  UserChannelCommand,
-  UserChannelContext,
+  MessageChannelCommand,
+  MessageChannelContext,
 } from '@explorers-club/schema';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
 
-export const createUserChannelMachine = ({
+export const createMessageChannelMachine = ({
   world,
 }: {
   world: World;
   entity: Entity;
 }) => {
   return createMachine({
-    id: 'UserChannelMachine',
+    id: 'MessageChannelMachine',
     type: 'parallel',
     schema: {
-      context: {} as UserChannelContext,
-      events: {} as UserChannelCommand,
+      context: {} as MessageChannelContext,
+      events: {} as MessageChannelCommand,
     },
     states: {},
   });

@@ -5,7 +5,7 @@ import {
   ConnectionEntity,
   Entity,
   Message,
-  UserChannelEntity,
+  MessageChannelEntity,
 } from '@explorers-club/schema';
 import { Observable, Subject } from 'rxjs';
 import { assign, createMachine } from 'xstate';
@@ -31,8 +31,8 @@ export const createChatMachine = <TMessage extends Message>({
           JOIN_CHANNEL: {
             actions: assign({
               channelEntityIds: (context, event) => {
-                const entity = createEntity<UserChannelEntity>({
-                  schema: 'user_channel',
+                const entity = createEntity<MessageChannelEntity>({
+                  schema: 'message_channel',
                   messages: [],
                   connectionId: connectionEntity.id,
                 });

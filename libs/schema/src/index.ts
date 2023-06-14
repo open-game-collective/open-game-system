@@ -175,7 +175,7 @@ const UserSchemaTypeLiteral = z.literal('user');
 const SessionSchemaTypeLiteral = z.literal('session');
 const ConnectionSchemaTypeLiteral = z.literal('connection');
 const RoomSchemaTypeLiteral = z.literal('room');
-const UserChannelSchemaTypeLiteral = z.literal('user_channel');
+const MessageChannelSchemaTypeLiteral = z.literal('message_channel');
 const BananaTradersGameSchemaTypeLiteral = z.literal('banana_traders_game');
 const BananaTradersPlayerSchemaTypeLiteral = z.literal('banana_traders_player');
 const LittleVigilanteGameSchemaTypeLiteral = z.literal('little_vigilante_game');
@@ -246,7 +246,7 @@ export const SchemaLiteralsSchema = z.union([
   ConnectionSchemaTypeLiteral,
   SessionSchemaTypeLiteral,
   RoomSchemaTypeLiteral,
-  UserChannelSchemaTypeLiteral,
+  MessageChannelSchemaTypeLiteral,
 ]);
 export type SchemaType = z.infer<typeof SchemaLiteralsSchema>;
 
@@ -450,20 +450,20 @@ type StateSchemaFromStateValue<T> = StateSchema & {
 export type ConnectionStateSchema =
   StateSchemaFromStateValue<ConnectionStateValue>;
 
-export type UserChannelStateSchema =
-  StateSchemaFromStateValue<UserChannelStateValue>;
+export type MessageChannelStateSchema =
+  StateSchemaFromStateValue<MessageChannelStateValue>;
 
 export type RoomStateSchema = StateSchemaFromStateValue<RoomStateValue>;
 
-const UserChannelContextSchema = z.object({
+const MessageChannelContextSchema = z.object({
   foo: z.string(),
 });
-export type UserChannelContext = z.infer<typeof UserChannelContextSchema>;
+export type MessageChannelContext = z.infer<typeof MessageChannelContextSchema>;
 
-export type UserChannelMachine = StateMachine<
-  UserChannelContext,
-  UserChannelStateSchema,
-  UserChannelCommand
+export type MessageChannelMachine = StateMachine<
+  MessageChannelContext,
+  MessageChannelStateSchema,
+  MessageChannelCommand
 >;
 
 export type RoomMachine = StateMachine<
@@ -1024,8 +1024,8 @@ const RoomEntitySchema = EntityBaseSchema(
 
 export type RoomEntity = z.infer<typeof RoomEntitySchema>;
 
-const UserChannelEntityPropsSchema = z.object({
-  schema: UserChannelSchemaTypeLiteral,
+const MessageChannelEntityPropsSchema = z.object({
+  schema: MessageChannelSchemaTypeLiteral,
   messages: z.array(MessageSchema),
   connectionId: SnowflakeIdSchema,
   tsOffset: z.number().optional(),
@@ -1035,22 +1035,22 @@ const TypingCommandSchema = z.object({
   type: z.literal('TYPE'),
 });
 
-const UserChannelCommandSchema = TypingCommandSchema;
-export type UserChannelCommand = z.infer<typeof UserChannelCommandSchema>;
+const MessageChannelCommandSchema = TypingCommandSchema;
+export type MessageChannelCommand = z.infer<typeof MessageChannelCommandSchema>;
 
-const UserChannelStateValueSchema = z.object({
+const MessageChannelStateValueSchema = z.object({
   Initialized: z.enum(['Running', 'Error']), // todo
 });
 
-type UserChannelStateValue = z.infer<typeof UserChannelStateValueSchema>;
+type MessageChannelStateValue = z.infer<typeof MessageChannelStateValueSchema>;
 
-const UserChannelEntitySchema = EntityBaseSchema(
-  UserChannelEntityPropsSchema,
-  UserChannelCommandSchema,
-  UserChannelStateValueSchema
+const MessageChannelEntitySchema = EntityBaseSchema(
+  MessageChannelEntityPropsSchema,
+  MessageChannelCommandSchema,
+  MessageChannelStateValueSchema
 );
 
-export type UserChannelEntity = z.infer<typeof UserChannelEntitySchema>;
+export type MessageChannelEntity = z.infer<typeof MessageChannelEntitySchema>;
 
 const CodebreakersGameEntityPropSchema = z.object({
   schema: CodebreakersGameSchemaTypeLiteral,
@@ -1358,7 +1358,7 @@ export const EntitySchema = z.union([
   ConnectionEntitySchema,
   SessionEntitySchema,
   RoomEntitySchema,
-  UserChannelEntitySchema,
+  MessageChannelEntitySchema,
   BananaTradersGameEntitySchema,
   BananaTradersPlayerEntitySchema,
   CodebreakersGameEntitySchema,
@@ -1381,7 +1381,7 @@ export const EntitySchemas = {
   room: RoomEntitySchema,
   session: SessionEntitySchema,
   connection: ConnectionEntitySchema,
-  user_channel: UserChannelEntitySchema,
+  message_channel: MessageChannelEntitySchema,
   banana_traders_game: BananaTradersGameEntitySchema,
   banana_traders_player: BananaTradersPlayerEntitySchema,
   codebreakers_game: CodebreakersGameEntitySchema,
@@ -1432,8 +1432,8 @@ export type EntityMachine =
       machine: RoomMachine;
     }
   | {
-      type: 'user_channel';
-      machine: UserChannelMachine;
+      type: 'message_channel';
+      machine: MessageChannelMachine;
     }
   | {
       type: 'codebreakers_game';
