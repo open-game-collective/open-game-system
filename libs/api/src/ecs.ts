@@ -1,16 +1,21 @@
 import {
+  CallbackFromEntity,
   Entity,
   EntityMachineMap,
+  // EntityMessageMap,
   EntityServiceKeys,
+  EventFromEntity,
   InitialEntityProps,
   SnowflakeId,
 } from '@explorers-club/schema';
 import { compare } from 'fast-json-patch';
 import { enablePatches, produce, setAutoFreeze } from 'immer';
 import { AnyActorRef, InterpreterFrom, interpret } from 'xstate';
-import { world } from './state';
+import { world } from './server/state';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
+import { Observable, Subject } from 'rxjs';
+import { FromObservable, ObservableProps } from '@explorers-club/utils';
 
 enablePatches();
 setAutoFreeze(false);
@@ -52,8 +57,6 @@ export function generateSnowflakeId(): string {
   return id.toString();
 }
 
-export const entitiesById = new Map<SnowflakeId, Entity>();
-
 /**
  * Isomorphic function for creating an entity.
  * We need to dynamically register the machines on the client.
@@ -67,6 +70,7 @@ export const createEntity = <TEntity extends Entity>(
   type ServiceId = EntityServiceKeys<TEntity>;
   type TCallback = Parameters<TEntity['subscribe']>[0];
   type TEvent = Parameters<TCallback>[0];
+  // type TMessage = EntityMessageMap[typeof entityProps.schema]['message'];
   type TMachine = EntityMachineMap[typeof entityProps.schema]['machine'];
   type TInterpreter = InterpreterFrom<TMachine>;
   type TStateValue = TEntity['states'];
@@ -145,7 +149,9 @@ export const createEntity = <TEntity extends Entity>(
   });
   // todo fix types
   const service = interpret(machine as any) as unknown as TInterpreter;
+
   service.start();
+
   proxy.states = service.getSnapshot().value as TStateValue;
 
   const attachedServices: Partial<Record<ServiceId, AnyActorRef>> = {};
@@ -166,6 +172,8 @@ export const createEntity = <TEntity extends Entity>(
     proxy[serviceId] = undefined as any; // better way ?;
   };
 
+  // Listens for new children on the xstate actor
+  // and attach/detach it as a service
   service.onTransition((state) => {
     for (const child in state.children) {
       const serviceId = child as ServiceId; // Is this safe to assume?
@@ -185,6 +193,5 @@ export const createEntity = <TEntity extends Entity>(
     proxy.states = state.value as TStateValue;
   });
 
-  entitiesById.set(entity.id, proxy);
   return proxy;
 };

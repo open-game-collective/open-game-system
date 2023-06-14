@@ -23,11 +23,13 @@ import { Session, createClient } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { assign as assignImmer } from '@xstate/immer';
 import { World } from 'miniplex';
-import { DoneInvokeEvent, createMachine } from 'xstate';
-import { world } from '../state';
+import { DoneInvokeEvent, createMachine, spawn } from 'xstate';
 import { createEntity, generateSnowflakeId } from '../ecs';
 import { createSchemaIndex } from '../indices';
+import { world } from '../server/state';
 import { newRoomMachine } from '../services';
+import { createChatMachine } from '../services/chat.service';
+import { Subject } from 'rxjs';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -103,6 +105,9 @@ export const createConnectionMachine = ({
         },
         states: {
           Uninitialized: {
+            exit: () => {
+              spawn(createChatMachine({ connectionEntity }), 'chatService');
+            },
             on: {
               INITIALIZE: [
                 {
@@ -195,12 +200,12 @@ export const createConnectionMachine = ({
               // todo clean up ref
               // wasnt able to get assign on entry to be called so gave up
               // spawn(
-
               //   chatMachine.withContext({
               //     roomSlug: connectionEntity.currentRoomSlug,
               //   }),
               //   'chatService'
               // );
+              // chatService.join()
             },
           },
         },
