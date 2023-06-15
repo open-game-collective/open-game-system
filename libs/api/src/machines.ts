@@ -18,9 +18,9 @@ import { createUserMachine } from './entities/user';
 import { createMessageChannelMachine } from './entities/messsage-channel';
 
 type EntityMachineCreators = {
-  [TSchemaType in keyof EntityMachineMap]: (props: {
+  [TSchemaType in keyof EntityMachineMap]: <TEntity extends Entity>(props: {
     world: World<Entity>;
-    entity: Entity;
+    entity: TEntity;
   }) => Extract<EntityMachine, { type: TSchemaType }>['machine'];
 };
 

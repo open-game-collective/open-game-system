@@ -1,3 +1,11 @@
+/*
+ * Think of channels as the place where events and changes from an entity
+ * get streamed "to". It has access to an individual's user id it is able
+ * to determine which events it should filter out for the user and which to
+ * include.
+ * 
+ * Channels only run on the server where the client doesn't have access.
+*/ 
 import {
   Entity,
   MessageChannelCommand,

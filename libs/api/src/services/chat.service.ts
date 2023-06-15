@@ -1,3 +1,4 @@
+import { assert } from '@explorers-club/utils';
 import {
   ChatCommand,
   ChatContext,
@@ -21,6 +22,9 @@ export const createChatMachine = <TMessage extends Message>({
   const chatMachine = createMachine({
     id: 'ChatMachine',
     initial: 'Running',
+    context: {
+      channelEntityIds: {}
+    },
     schema: {
       events: {} as ChatCommand,
       context: {} as ChatContext,
@@ -31,23 +35,36 @@ export const createChatMachine = <TMessage extends Message>({
           JOIN_CHANNEL: {
             actions: assign({
               channelEntityIds: (context, event) => {
-                const entity = createEntity<MessageChannelEntity>({
-                  schema: 'message_channel',
-                  messages: [],
-                  connectionId: connectionEntity.id,
-                });
-                world.add(entity);
+                // Create a message channel eentity if we don't already have one
+                if (!context.channelEntityIds[event.channelId]) {
+                  const entity = createEntity<MessageChannelEntity>({
+                    schema: 'message_channel',
+                    messages: [],
+                    connectionId: connectionEntity.id,
+                  });
+                  world.add(entity);
+                  console.log(entity.id);
 
-                return {
-                  ...context.channelEntityIds,
-                  [event.channelId]: connectionEntity.id,
-                };
+                  return {
+                    ...context.channelEntityIds,
+                    [event.channelId]: connectionEntity.id,
+                  };
+                }
+
+                return context.channelEntityIds;
               },
             }),
           },
           LEAVE_CHANNEL: {
             actions: immerAssign((context, event) => {
+              const entity = entitiesById.get(event.channelId);
+              assert(
+                entity,
+                "couldn't find entity that was attempted to be removed"
+              );
+              world.remove(entity);
               // TODO delete channel entities if no longer in use
+              // remove from world
               delete context.channelEntityIds[event.channelId];
             }),
           },

@@ -384,9 +384,11 @@ export type ChatMachine = StateMachine<
   ChatCommand
 >;
 
+export type ChatInterpreter = InterpreterFrom<ChatMachine>;
+
 export type ConnectionContext = {
   supabaseClient?: SupabaseClient<Database>;
-  chatServiceRef?: ActorRefFrom<ChatMachine>;
+  chatServiceRef?: ChatInterpreter;
 };
 
 export type InitializedConnectionContext = MakeRequired<
