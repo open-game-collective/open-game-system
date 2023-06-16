@@ -3,6 +3,7 @@ import {
   trpc,
   waitForCondition,
 } from '@explorers-club/api-client';
+import * as objectify from 'geoposition-to-object';
 import type { PersistentProps } from '@explorers-club/schema';
 import type {
   ConnectionEntity,
@@ -151,6 +152,17 @@ const ConnectionProvider: FC<{
           connectionId,
           (entity) => entity.states.Initialized === 'True'
         )) as InitializedConnectionEntity;
+
+        navigator.geolocation.watchPosition((p) => {
+          const position = objectify(p);
+
+          entity.send({
+            type: 'UPDATE_GEOLOCATION_POSITION',
+            position,
+          });
+        });
+
+        // entity.send()
 
         // todo listen for my connection entity and persist it`
         // persistentStore.set({

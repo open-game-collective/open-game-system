@@ -1,7 +1,5 @@
 import { Database } from '@explorers-club/database';
 import {
-  ChatContext,
-  ChatInterpreter,
   ConnectionCommand,
   ConnectionContext,
   ConnectionEntity,
@@ -211,6 +209,14 @@ export const createConnectionMachine = ({
                     channelId: roomEntity.id,
                   });
 
+                  // Join the game room if there is one
+                  if (roomEntity.gameId) {
+                    context.chatServiceRef.send({
+                      type: 'JOIN_CHANNEL',
+                      channelId: roomEntity.gameId,
+                    });
+                  }
+
                   // todo clean up ref
                   // wasnt able to get assign on entry to be called so gave up
                   // spawn(
@@ -356,6 +362,44 @@ export const createConnectionMachine = ({
               },
             },
             True: {},
+          },
+        },
+        Geolocation: {
+          initial: 'Uninitialized',
+          states: {
+            Uninitialized: {
+              on: {
+                UPDATE_GEOLOCATION_POSITION: {
+                  target: 'Initialized',
+                  cond: (_, event) => !!event.position,
+                },
+              },
+            },
+            Initialized: {
+              entry: (context, event) => {
+                console.log('ININTIALIZED!', event);
+                if (event.type === 'UPDATE_GEOLOCATION_POSITION') {
+                  connectionEntity.currentGeolocation = event.position;
+                } else {
+                  console.warn(
+                    'Expected to enter Initialized state via UPDATE_GEOLOCATION_POSITIOn event but didnt'
+                  );
+                }
+              },
+              on: {
+                UPDATE_GEOLOCATION_POSITION: {
+                  actions: (_, event) => {
+                    connectionEntity.currentGeolocation = event.position;
+                  },
+                },
+              },
+              // on: {
+              //   UPDATE_GEOLOCATION_POSITION
+              // }
+            },
+            // TimedOut: {},
+            Error: {},
+            Denied: {},
           },
         },
       },

@@ -68,6 +68,7 @@ export const createContext = async (opts: {
     instanceId,
     connectedRoomSlugs: [],
     activeRoomSlugs: [],
+    currentGeolocation: undefined,
   });
   world.add(connectionEntity);
 
