@@ -23,7 +23,7 @@ export const createChatMachine = <TMessage extends Message>({
     id: 'ChatMachine',
     initial: 'Running',
     context: {
-      channelEntityIds: {}
+      channelEntityIds: {},
     },
     schema: {
       events: {} as ChatCommand,
@@ -39,11 +39,11 @@ export const createChatMachine = <TMessage extends Message>({
                 if (!context.channelEntityIds[event.channelId]) {
                   const entity = createEntity<MessageChannelEntity>({
                     schema: 'message_channel',
-                    messages: [],
+                    messages: [], // todo prefill previous messages if they exist
+                    parentId: event.channelId,
                     connectionId: connectionEntity.id,
                   });
                   world.add(entity);
-                  console.log(entity.id);
 
                   return {
                     ...context.channelEntityIds,

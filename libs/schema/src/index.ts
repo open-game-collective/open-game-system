@@ -1030,6 +1030,7 @@ const MessageChannelEntityPropsSchema = z.object({
   schema: MessageChannelSchemaTypeLiteral,
   messages: z.array(MessageSchema),
   connectionId: SnowflakeIdSchema,
+  parentId: SnowflakeIdSchema,
   tsOffset: z.number().optional(),
 });
 
