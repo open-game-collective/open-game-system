@@ -11,11 +11,12 @@ import { Header } from '../components/Header';
 //   isMainSceneFocusedStore,
 // } from '../global/layout';
 // import { currentRouteStore } from '../global/navigation';
-import { MainPanel } from './MainPanel';
-import { Menu } from './Menu';
 import { ApplicationContext } from '@context/ApplicationContext';
 import { LayoutContext } from '@context/LayoutContext';
 import { WorldContext } from '@context/WorldProvider';
+import { MainPanel } from './MainPanel';
+import { MainScene } from './MainScene';
+import { Menu } from './Menu';
 
 interface Props {
   initialRouteProps: RouteProps;
@@ -28,6 +29,7 @@ const AppContainer = styled('div', {
   right: 0,
   bottom: 0,
   border: '4px dashed green',
+  display: "flex",
   flexDirection: 'column',
 });
 
@@ -37,10 +39,10 @@ export const App: FC<Props> = ({ initialRouteProps }) => {
 
   return (
     <AppContainer>
-      <Header />
-      <Menu />
-      {/* <MainScene /> */}
-      <MainUI />
+      {/* <Header /> */}
+      {/* <Menu /> */}
+      <MainScene />
+      {/* <MainUI /> */}
       {/* <Modal /> */}
     </AppContainer>
   );

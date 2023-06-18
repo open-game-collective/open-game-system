@@ -20,7 +20,7 @@ export const MainPanel = () => {
   const currentRoute = useStore(routeStore);
 
   return (
-    <Box css={{ p: '$3' }}>
+    <Box css={{ p: '$3', background: 'black' }}>
       {currentRoute.name === 'Home' && <HomePanel />}
       {currentRoute.name === 'NewRoom' && <NewRoomPanel />}
       {currentRoute.name === 'Login' && <LoginPanel />}
@@ -86,7 +86,9 @@ const RoomPanel = () => {
   );
 
   const roomEntity = useStore(roomEntityStore);
-  const connectionEntity = useStore(entityStoreRegistry.myInitializedConnectionEntity);
+  const connectionEntity = useStore(
+    entityStoreRegistry.myInitializedConnectionEntity
+  );
 
   if (!roomEntity || !connectionEntity) {
     return <div>loading entities</div>;

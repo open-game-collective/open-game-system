@@ -31,6 +31,7 @@ import {
 import { LayoutProvider } from '@context/LayoutProvider';
 import { WorldContext, WorldProvider } from '@context/WorldProvider';
 import { ApplicationContext } from '@context/ApplicationContext';
+import { ThreeJSOverlayView } from "@googlemaps/three";
 
 enablePatches();
 
@@ -160,6 +161,7 @@ const ConnectionProvider: FC<{
             type: 'UPDATE_GEOLOCATION_POSITION',
             position,
           });
+          console.log(position);
         });
 
         // entity.send()

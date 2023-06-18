@@ -19,10 +19,14 @@ export const Room = () => {
 
   return (
     <Flex gap="2" css={{ p: '$2', gap: '$2' }} direction="column">
-      <Heading size="2">#{roomEntity.slug}</Heading>
-      <Heading>{roomEntity.gameId}</Heading>
-      <Text>{connectPlayerCount} connected</Text>
-      <Text>{selectedGameId ? selectedGameId : 'No game selected'}</Text>
+      <Heading css={{ color: 'white' }} size="2">
+        #{roomEntity.slug}
+      </Heading>
+      <Heading css={{ color: 'white' }}>{roomEntity.gameId}</Heading>
+      <Text css={{ color: 'white' }}>{connectPlayerCount} connected</Text>
+      <Text css={{ color: 'white' }}>
+        {selectedGameId ? selectedGameId : 'No game selected'}
+      </Text>
     </Flex>
   );
 };
