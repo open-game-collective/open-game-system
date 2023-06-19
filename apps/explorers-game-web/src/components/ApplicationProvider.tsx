@@ -31,7 +31,7 @@ import {
 import { LayoutProvider } from '@context/LayoutProvider';
 import { WorldContext, WorldProvider } from '@context/WorldProvider';
 import { ApplicationContext } from '@context/ApplicationContext';
-import { ThreeJSOverlayView } from "@googlemaps/three";
+import { ThreeJSOverlayView } from '@googlemaps/three';
 
 enablePatches();
 
@@ -96,7 +96,6 @@ export const ApplicationProvider: FC<{
               <ConnectionProvider
                 initialRouteProps={initialRouteProps}
                 initialPersistentProps={initialPersistentProps}
-                world={world}
               >
                 <App initialRouteProps={initialRouteProps} />
               </ConnectionProvider>
@@ -108,7 +107,9 @@ export const ApplicationProvider: FC<{
   );
 };
 
-const ConnectionContext = createContext({} as { myConnectionId?: SnowflakeId });
+export const ConnectionContext = createContext(
+  {} as { myConnectionId?: SnowflakeId }
+);
 
 const ConnectionProvider: FC<{
   children: ReactNode;
@@ -179,6 +180,7 @@ const ConnectionProvider: FC<{
       clearInterval(timer);
     };
   }, [client]);
+  console.log({ myConnectionId });
 
   return (
     <ConnectionContext.Provider value={{ myConnectionId }}>

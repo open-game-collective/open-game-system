@@ -35,14 +35,15 @@ const AppContainer = styled('div', {
 
 export const App: FC<Props> = ({ initialRouteProps }) => {
   const { routeStore } = useContext(ApplicationContext);
+
   // routeStore.set(initialRouteProps);
 
   return (
     <AppContainer>
-      {/* <Header /> */}
-      {/* <Menu /> */}
+      <Header />
+      <Menu />
       <MainScene />
-      {/* <MainUI /> */}
+      <MainUI />
       {/* <Modal /> */}
     </AppContainer>
   );

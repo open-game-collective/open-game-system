@@ -1,15 +1,14 @@
-import { Flex } from '@atoms/Flex';
 // import { isMainSceneFocusedStore } from '../global/layout';
-import { computed } from 'nanostores';
-import { useStore } from '@nanostores/react';
 import { Box } from '@atoms/Box';
-import { GoogleMaps } from "./GoogleMaps";
+import { OrbitControls, useContextBridge } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { CafeModel } from './Cafe';
-import { Environment, OrbitControls } from '@react-three/drei';
+import { GoogleMaps } from './GoogleMaps';
+import { WorldContext } from '@context/WorldProvider';
+import { ConnectionContext } from './ApplicationProvider';
 
 export const MainScene = () => {
   // const isMainSceneFocused = useStore(isMainSceneFocusedStore);
+  const ContextBridge = useContextBridge(WorldContext, ConnectionContext);
 
   return (
     <Box
@@ -31,14 +30,15 @@ export const MainScene = () => {
         },
       }}
     >
-      <div id="map" />
-      <Canvas>
-        <GoogleMaps />
-        <OrbitControls />
-        {/* <CafeModel /> */}
-        {/* <OrbitControls />
+      <div id="map" style={{ height: '100%' }} />
+      <Canvas camera={{ far: 2000000000 }}>
+        <ContextBridge>
+          <GoogleMaps />
+          {/* <CafeModel /> */}
+          {/* <OrbitControls />
         <CafeModel /> */}
-        {/* <Environment preset="sunset" /> */}
+          {/* <Environment preset="sunset" /> */}
+        </ContextBridge>
       </Canvas>
     </Box>
   );
