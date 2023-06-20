@@ -948,11 +948,17 @@ export const RoomRoutePropsSchema = z.object({
   roomSlug: z.string(),
 });
 
+export const PlaceRoutePropsSchema = z.object({
+  name: z.literal('Place'),
+  placeSlug: z.string(),
+});
+
 export const RoutePropsSchema = z.union([
   HomeRoutePropsSchema,
   NewRoomRoutePropsSchema,
   RoomRoutePropsSchema,
   LoginRoutePropsSchema,
+  PlaceRoutePropsSchema,
 ]);
 export type RouteProps = z.infer<typeof RoutePropsSchema>;
 

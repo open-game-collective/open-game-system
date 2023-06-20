@@ -1,0 +1,10 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const { placeSlug } = Astro.params;
+---
+
+<Layout
+  title={`#${placeSlug} | explorers.game`}
+  routeProps={{ name: 'Place', placeSlug: placeSlug! }}
+/>

@@ -5,6 +5,8 @@ import { Canvas } from '@react-three/fiber';
 import { GoogleMaps } from './GoogleMaps';
 import { WorldContext } from '@context/WorldProvider';
 import { ConnectionContext } from './ApplicationProvider';
+import { TopNav } from './TopNav';
+import { BottomNav } from './BottomNav';
 
 export const MainScene = () => {
   // const isMainSceneFocused = useStore(isMainSceneFocusedStore);
@@ -30,6 +32,8 @@ export const MainScene = () => {
         },
       }}
     >
+      <TopNav />
+      <BottomNav />
       <div id="map" style={{ height: '100%' }} />
       <Canvas camera={{ far: 2000000000 }}>
         <ContextBridge>

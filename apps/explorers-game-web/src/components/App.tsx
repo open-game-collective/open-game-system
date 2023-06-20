@@ -5,7 +5,7 @@ import { useCurrentRoomEntityStore } from '@hooks/useCurrentRoomEntityStore';
 import { useStore } from '@nanostores/react';
 import { Chat, ChatContext } from '@organisms/Chat';
 import { FC, useContext } from 'react';
-import { Header } from '../components/Header';
+import { TopNav } from './TopNav';
 // import {
 //   isMainPanelFocusedStore,
 //   isMainSceneFocusedStore,
@@ -29,20 +29,18 @@ const AppContainer = styled('div', {
   right: 0,
   bottom: 0,
   border: '4px dashed green',
-  display: "flex",
+  display: 'flex',
   flexDirection: 'column',
 });
 
 export const App: FC<Props> = ({ initialRouteProps }) => {
   const { routeStore } = useContext(ApplicationContext);
-
-  // routeStore.set(initialRouteProps);
+  routeStore.set(initialRouteProps);
 
   return (
     <AppContainer>
-      <Header />
-      <Menu />
       <MainScene />
+      <Menu />
       <MainUI />
       {/* <Modal /> */}
     </AppContainer>
@@ -57,12 +55,11 @@ const MainUI = () => {
     <Flex
       direction="column"
       css={{
-        // background: 'white',
         width: '100%',
-        // flexShrink: 3,
         border: '4px dashed blue',
-        position: 'absolute',
-        bottom: 0,
+        height: '100%',
+        flexBasis: '50%',
+        flewGrow: 1,
         // flexGrow: isMainSceneFocused ? 1 : 0,
 
         // '@bp2': {

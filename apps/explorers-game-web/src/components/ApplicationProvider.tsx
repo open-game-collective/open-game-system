@@ -180,7 +180,6 @@ const ConnectionProvider: FC<{
       clearInterval(timer);
     };
   }, [client]);
-  console.log({ myConnectionId });
 
   return (
     <ConnectionContext.Provider value={{ myConnectionId }}>
@@ -189,23 +188,23 @@ const ConnectionProvider: FC<{
   );
 });
 
-const getCurrentRouteFromState = (entity: ConnectionEntity) => {
-  switch (entity.states.Route) {
-    case 'Home':
-      return '/';
-    case 'Login':
-      return '/login';
-    case 'NewRoom':
-      return '/new';
-    case 'Room':
-      return `/${entity.currentRoomSlug}`;
-    default:
-      return '/not-found';
-  }
-};
+// const getCurrentRouteFromState = (entity: ConnectionEntity) => {
+//   switch (entity.states.Route) {
+//     case 'Home':
+//       return '/';
+//     case 'Login':
+//       return '/login';
+//     case 'NewRoom':
+//       return '/new';
+//     case 'Room':
+//       return `/${entity.currentRoomSlug}`;
+//     default:
+//       return '/not-found';
+//   }
+// };
 
-const updateUrl = (path: string) => {
-  if (typeof window !== 'undefined' && path !== window.location.pathname) {
-    history.replaceState({}, '', path);
-  }
-};
+// const updateUrl = (path: string) => {
+//   if (typeof window !== 'undefined' && path !== window.location.pathname) {
+//     history.replaceState({}, '', path);
+//   }
+// };

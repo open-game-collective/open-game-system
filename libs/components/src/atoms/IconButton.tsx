@@ -68,6 +68,12 @@ export const IconButton = styled('button', {
       },
     },
     variant: {
+      stroke: {
+        backgroundColor: 'transparent',
+        borderWidth: '2px',
+        borderStyle: 'solid',
+        // borderColor: 'white',
+      },
       ghost: {
         backgroundColor: 'transparent',
         borderWidth: '0',
