@@ -48,4 +48,7 @@ const defaultLayoutPropsByRoute: Record<RouteName, LayoutProps> = {
   },
   Room: {},
   NotFound: {},
+  Place: {
+    focusArea: 'MainPanel',
+  },
 };

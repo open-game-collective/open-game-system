@@ -162,7 +162,7 @@ const ConnectionProvider: FC<{
             type: 'UPDATE_GEOLOCATION_POSITION',
             position,
           });
-          console.log(position);
+          // console.log(position);
         });
 
         // entity.send()

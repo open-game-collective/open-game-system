@@ -29,7 +29,7 @@ import { createSchemaIndex } from '../indices';
 import { world } from '../server/state';
 import { newRoomMachine } from '../services';
 import { createChatMachine } from '../services/chat.service';
-import { Subject } from 'rxjs';
+import { ReplaySubject, Subject } from 'rxjs';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -160,6 +160,7 @@ export const createConnectionMachine = ({
                       hostConnectionEntityId: connectionEntity.id,
                       connectedEntityIds: [],
                       gameId,
+                      channel: new ReplaySubject(),
                     });
                     world.add(entity);
 
@@ -193,6 +194,7 @@ export const createConnectionMachine = ({
                       slug: connectionEntity.currentRoomSlug,
                       hostConnectionEntityId: connectionEntity.id,
                       connectedEntityIds: [connectionEntity.id],
+                      channel: new ReplaySubject(),
                     });
                     world.add(roomEntity);
                   } else {

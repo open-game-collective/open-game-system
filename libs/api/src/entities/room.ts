@@ -33,6 +33,11 @@ export const createRoomMachine = ({
               ...roomEntity.connectedEntityIds,
               event.connectionEntityId,
             ];
+
+            roomEntity.channel.next({
+              type: 'PLAIN',
+              content: `${event.connectionEntityId} has connected.`,
+            });
           }
         },
       },

@@ -13,7 +13,7 @@ import { entitiesById } from 'libs/api/src/server/state';
 export const GoogleMaps: FC<{ children?: ReactNode }> = ({ children }) => {
   //   const [scene1, setScene] = useState<THREE.Scene | null>(null);
   const { scene } = useThree();
-  const gltf = useLoader(GLTFLoader, 'coin.glb');
+  const gltf = useLoader(GLTFLoader, '/coin.glb');
   const { entityStoreRegistry } = useContext(WorldContext);
   // const cc = useContext(ConnectionContext);
   // const { myConnectionId } = useContext(ConnectionContext);
@@ -37,7 +37,7 @@ export const GoogleMaps: FC<{ children?: ReactNode }> = ({ children }) => {
       const mapOptions = {
         tilt: 0,
         heading: 0,
-        zoom: 18,
+        zoom: 10,
         center: { lat: 34.0094435, lng: -118.4970725 },
         mapId: '71e089bbf1526a73',
         disableDefaultUI: true,
@@ -109,7 +109,7 @@ export const GoogleMaps: FC<{ children?: ReactNode }> = ({ children }) => {
 
         let tilt = 0;
         let heading = 0;
-        let zoom = 18;
+        let zoom = 19;
 
         const loop = async () => {
           if (tilt < 67.5) {

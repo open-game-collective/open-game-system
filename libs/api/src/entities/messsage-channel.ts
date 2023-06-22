@@ -41,8 +41,13 @@ export const createMessageChannelMachine = ({
   const parentEntity = entitiesById.get(messageChannelEntity.parentId);
   assert(parentEntity, "expected parentEntity but wasn't found");
 
+  // parentEntity.subscribe((event) => {
+  //   event.type
+  // })
+
   switch (parentEntity.schema) {
     case 'room':
+      // What does this channel do?
       return createMachine({}) as MessageChannelMachine;
     case 'little_vigilante_game':
       return createMachine({}) as MessageChannelMachine;

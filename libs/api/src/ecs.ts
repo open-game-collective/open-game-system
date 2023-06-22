@@ -131,6 +131,13 @@ export const createEntity = <TEntity extends Entity>(
     } as TEvent);
   };
 
+  // const broadcast = (message: TMessage) => {
+  //   next({
+  //     type: 'MESSAGE',
+  //     message,
+  //   } as TEvent);
+  // }
+
   const entityBase = {
     id,
     send,
@@ -146,6 +153,7 @@ export const createEntity = <TEntity extends Entity>(
   const machine = machineMap[entityProps.schema]({
     world,
     entity: proxy,
+    // broadcast
   });
   // todo fix types
   const service = interpret(machine as any) as unknown as TInterpreter;

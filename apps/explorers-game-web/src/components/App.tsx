@@ -57,9 +57,8 @@ const MainUI = () => {
       css={{
         width: '100%',
         border: '4px dashed blue',
-        height: '100%',
+        height: isMainPanelFocused ? '50%' : '80%',
         flexBasis: '50%',
-        flewGrow: 1,
         // flexGrow: isMainSceneFocused ? 1 : 0,
 
         // '@bp2': {
