@@ -53,7 +53,7 @@ export const entityRouter = router({
       return (event: EntityEvent) => {
         if (event.type === 'CHANGE') {
           const previousHasAccess = myEntities.has(entity.id);
-          const nowHasAccess = hasRadAccess(entity, ctx.connectionEntity);
+          const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
 
           // I didnt have access but now I do
           if (!previousHasAccess && nowHasAccess) {
@@ -91,7 +91,7 @@ export const entityRouter = router({
       // Emit all existing entities I have access to
       // and set up a subscription to each one to sync updates
       for (const entity of world.entities) {
-        if (hasRadAccess(entity, ctx.connectionEntity)) {
+        if (hasAccess(entity, ctx.connectionEntity)) {
           myEntities.set(entity.id, entity);
         }
 
@@ -105,7 +105,7 @@ export const entityRouter = router({
 
       // Listen for new entities being added to the world and set up subscriptions to listen for changes
       const unsubscribeOnAdd = world.onEntityAdded.add((entity) => {
-        const nowHasAccess = hasRadAccess(entity, ctx.connectionEntity);
+        const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
         if (nowHasAccess) {
           myEntities.set(entity.id, entity);
           emit.next({
@@ -302,7 +302,7 @@ function removeFunctions<T>(obj: T): OmitFunctions<T> {
   return result;
 }
 
-const hasRadAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
+const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
   // Don't share connection entities with anyone other than yourself
   if (entity.schema === 'connection' && entity.id !== connectionEntity.id) {
     return false;

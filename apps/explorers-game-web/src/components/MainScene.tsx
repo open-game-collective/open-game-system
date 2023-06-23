@@ -41,7 +41,10 @@ export const MainScene = () => {
       <TopNav />
       <BottomNav />
       <div id="map" style={{ height: '100%' }} />
-      <Canvas camera={{ far: 2000000000 }}>
+      <Canvas
+        style={{ position: 'absolute', left: 0, top: 0 }}
+        camera={{ far: 2000000000 }}
+      >
         <ContextBridge>
           <GoogleMaps />
           {/* <CafeModel /> */}

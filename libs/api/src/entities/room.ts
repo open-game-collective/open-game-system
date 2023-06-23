@@ -1,20 +1,27 @@
 import {
   Entity,
+  MessageData,
   RoomCommand,
   RoomContext,
   RoomEntity,
+  RoomMessageData,
 } from '@explorers-club/schema';
 import { createMachine } from 'xstate';
 import { World } from 'miniplex';
+import { ReplaySubject } from 'rxjs';
+import { channel } from 'diagnostics_channel';
 
 export const createRoomMachine = ({
   world,
   entity,
+  channel,
 }: {
   world: World;
   entity: Entity;
+  channel: ReplaySubject<any>;
 }) => {
   const roomEntity = entity as RoomEntity;
+  const roomChannel = channel as ReplaySubject<RoomMessageData>;
 
   return createMachine({
     id: 'RoomMachine',
@@ -33,11 +40,21 @@ export const createRoomMachine = ({
               ...roomEntity.connectedEntityIds,
               event.connectionEntityId,
             ];
+            console.log('connect', event.connectionEntityId);
 
-            roomEntity.channel.next({
+            roomChannel.next({
               type: 'PLAIN',
               content: `${event.connectionEntityId} has connected.`,
+              sender: roomEntity.id,
             });
+
+            // Get the welcome config
+            // If the user hasn't been here before, run the welcome sequence
+
+            // roomEntity.channel.next({
+            //   type: 'PLAIN',
+            //   content: `${event.connectionEntityId} has connected.`,
+            // });
           }
         },
       },

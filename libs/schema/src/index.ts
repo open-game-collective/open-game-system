@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import type { ReplaySubject } from 'rxjs';
+import type { Observable } from 'rxjs';
 import { Database } from '@explorers-club/database';
 import { IndexByType, MakeRequired } from '@explorers-club/utils';
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -196,7 +196,9 @@ const LittleVigilanteMessageDataSchema = z.object({
   content: z.string(),
 });
 
-type LittleVigilanteMessageData = z.infer<typeof LittleVigilanteMessageDataSchema>;
+type LittleVigilanteMessageData = z.infer<
+  typeof LittleVigilanteMessageDataSchema
+>;
 
 const LittleVigilanteMessageSchema = z.object({
   type: LittleVigilanteGameSchemaTypeLiteral,
@@ -242,10 +244,26 @@ type BananaTradersMessage = z.infer<typeof BananaTradersMessageSchema>;
 //   // SessionSchemaTypeLiteral,
 //   // DeviceSchemaTypeLiteral,
 // ]);
+
+export type EntityTypeMap = {
+  connection: ConnectionEntity;
+  session: SessionEntity;
+  room: RoomEntity;
+  user: UserEntity;
+  message_channel: MessageChannelEntity;
+  codebreakers_game: CodebreakersGameEntity;
+  codebreakers_player: CodebreakersPlayerEntity;
+  banana_traders_game: BananaTradersGameEntity;
+  banana_traders_player: BananaTradersPlayerEntity;
+  little_vigilante_game: LittleVigilanteGameEntity;
+  little_vigilante_player: LittleVigilantePlayerEntity;
+};
+
 export const SchemaLiteralsSchema = z.union([
   ConnectionSchemaTypeLiteral,
   SessionSchemaTypeLiteral,
   RoomSchemaTypeLiteral,
+  UserSchemaTypeLiteral,
   MessageChannelSchemaTypeLiteral,
 ]);
 
@@ -343,7 +361,14 @@ const CallbackFunctionSchema = <TCommand extends AnyEventObject>(
 
 export type InitialEntityProps<TEntity extends Entity> = Omit<
   TEntity,
-  'id' | 'subscribe' | 'send' | 'states' | 'command' | 'context' | 'children'
+  | 'id'
+  | 'subscribe'
+  | 'send'
+  | 'states'
+  | 'command'
+  | 'context'
+  | 'children'
+  | 'channel'
 >;
 
 // export type EntityDataKey = Omit<keyof InitialEntityProps<Entity>, 'schema'>;
@@ -369,13 +394,6 @@ const EntityBaseSchema = <
       send: SendFunctionSchema(commandSchema),
       states: stateSchema,
       command: commandSchema,
-      // event$: z.custom<Observable<z.infer<typeof MessageSchema>>(),
-      // event$: z.custom<Observable<z.infer<typeof EntityEventSchema(commandSchema)>>(),
-      // observable$:
-      // messages: z.object({
-      //   index:
-      //   events: z.array(eventSchema),
-      // }),
       subscribe: z
         .function()
         .args(CallbackFunctionSchema(commandSchema))
@@ -594,14 +612,8 @@ const UserEntityPropsSchema = z.object({
   profileId: SnowflakeIdSchema.optional(),
   name: PlayerNameSchema.optional(),
   discriminator: z.number().default(0),
-  sessionId: SnowflakeIdSchema,
-  connections: z.array(
-    z.object({
-      id: SnowflakeIdSchema,
-      createdAt: z.date(),
-      connected: z.boolean(),
-    })
-  ),
+  serialNumber: z.number(),
+  // sessionId: SnowflakeIdSchema,
 });
 
 export type UserContext = {
@@ -704,7 +716,7 @@ const RoomEntityPropsSchema = z.object({
   slug: SlugSchema,
   gameId: GameIdSchema.optional(),
   configuration: GameConfigurationSchema.optional(),
-  channel: z.custom<ReplaySubject<RoomMessageData>>(),
+  channel: z.custom<Observable<RoomMessageData>>(),
 });
 
 // // ------------ Session Entity ------------
@@ -910,12 +922,6 @@ const ConnectionEntityPropsSchema = z.object({
       value: NewRoomStateValueSchema,
     })
     .optional(),
-  // roomListService: z
-  //   .object({
-  //     context: RoomListContextSchema,
-  //     value: RoomListStateValueSchema,
-  //   })
-  //   .optional(),
   instanceId: z.string().uuid().optional(),
 });
 export type ConnectionEntitPro = z.infer<typeof ConnectionEntityPropsSchema>;
@@ -1058,6 +1064,13 @@ const RoomStateValueSchema = z.object({
 
 type RoomStateValue = z.infer<typeof RoomStateValueSchema>;
 
+const RoomMessageDataSchema = z.object({
+  sender: SnowflakeIdSchema,
+  type: z.literal('PLAIN'),
+  content: z.string(),
+});
+export type RoomMessageData = z.infer<typeof RoomMessageDataSchema>;
+
 const RoomEntitySchema = EntityBaseSchema(
   RoomEntityPropsSchema,
   RoomCommandSchema,
@@ -1086,17 +1099,10 @@ const GroupMessageSchema = z.object({
   data: GroupMessageDataSchema,
 });
 
-const RoomMessageDataSchema = z.object({
-  type: z.literal('PLAIN'),
-  content: z.string(),
-});
-type RoomMessageData = z.infer<typeof RoomMessageDataSchema>;
-
 const RoomMessageSchema = z.object({
   type: RoomMessageTypeLiteral,
   data: RoomMessageDataSchema,
 });
-
 
 const MessageDataSchema = z.union([
   GroupMessageDataSchema,
@@ -1154,7 +1160,7 @@ const CodebreakersGameEntityPropSchema = z.object({
   gameId: CodebreakersGameId,
   playerEntityIds: z.array(SnowflakeIdSchema),
   roomEntityId: SnowflakeIdSchema,
-  channel: z.custom<ReplaySubject<CodebreakersMessageData>>(),
+  channel: z.custom<Observable<CodebreakersMessageData>>(),
 });
 
 const CodebreakersGameStateValueSchema = z.object({
@@ -1179,6 +1185,8 @@ const CodebreakersGameEntitySchema = EntityBaseSchema(
   CodebreakersGameCommandSchema,
   CodebreakersGameStateValueSchema
 );
+
+type CodebreakersGameEntity = z.infer<typeof CodebreakersGameEntitySchema>;
 
 export type CodebreakersGameStateSchema =
   StateSchemaFromStateValue<CodebreakersGameStateValue>;
@@ -1211,7 +1219,7 @@ const CodebreakersPlayerEntityPropSchema = z.object({
   schema: CodebreakersPlayerSchemaTypeLiteral,
   gameEntityId: SnowflakeIdSchema,
   userId: UserIdSchema,
-  channel: z.custom<ReplaySubject<CodebreakersMessageData>>(),
+  channel: z.custom<Observable<CodebreakersMessageData>>(),
 });
 
 const CodebreakersPlayerStateValueSchema = z.object({
@@ -1235,6 +1243,7 @@ const CodebreakersPlayerEntitySchema = EntityBaseSchema(
   CodebreakersPlayerCommandSchema,
   CodebreakersPlayerStateValueSchema
 );
+type CodebreakersPlayerEntity = z.infer<typeof CodebreakersPlayerEntitySchema>;
 
 export type CodebreakersPlayerStateSchema =
   StateSchemaFromStateValue<CodebreakersPlayerStateValue>;
@@ -1257,7 +1266,7 @@ const BananaTradersGameEntityPropSchema = z.object({
   gameId: BananaTradersGameId,
   playerEntityIds: z.array(SnowflakeIdSchema),
   roomEntityId: SnowflakeIdSchema,
-  channel: z.custom<ReplaySubject<BananaTradersMessageData>>(),
+  channel: z.custom<Observable<BananaTradersMessageData>>(),
 });
 
 const BananaTradersGameStateValueSchema = z.object({
@@ -1282,6 +1291,8 @@ const BananaTradersGameEntitySchema = EntityBaseSchema(
   BananaTradersGameCommandSchema,
   BananaTradersGameStateValueSchema
 );
+
+type BananaTradersGameEntity = z.infer<typeof BananaTradersGameEntitySchema>;
 
 export type BananaTradersGameStateSchema =
   StateSchemaFromStateValue<BananaTradersGameStateValue>;
@@ -1311,7 +1322,7 @@ const BananaTradersPlayerEntityPropSchema = z.object({
   schema: BananaTradersPlayerSchemaTypeLiteral,
   gameEntityId: SnowflakeIdSchema,
   userId: UserIdSchema,
-  channel: z.custom<ReplaySubject<BananaTradersMessageData>>()
+  channel: z.custom<Observable<BananaTradersMessageData>>(),
 });
 
 const BananaTradersPlayerStateValueSchema = z.object({
@@ -1345,6 +1356,9 @@ const BananaTradersPlayerContextSchema = z.object({
 export type BananaTradersPlayerContext = z.infer<
   typeof BananaTradersPlayerContextSchema
 >;
+type BananaTradersPlayerEntity = z.infer<
+  typeof BananaTradersPlayerEntitySchema
+>;
 
 export type BananaTradersPlayerMachine = StateMachine<
   BananaTradersPlayerContext,
@@ -1366,7 +1380,7 @@ const LittleVigilanteGameEntityPropSchema = z.object({
   gameId: LittleVigilanteGameId,
   playerEntityIds: z.array(SnowflakeIdSchema),
   roomEntityId: SnowflakeIdSchema,
-  channel: z.custom<ReplaySubject<LittleVigilanteMessageData>>(),
+  channel: z.custom<Observable<LittleVigilanteMessageData>>(),
 });
 
 const LittleVigilanteGameStateValueSchema = z.object({
@@ -1391,6 +1405,9 @@ const LittleVigilanteGameEntitySchema = EntityBaseSchema(
   LittleVigilanteGameCommandSchema,
   LittleVigilanteGameStateValueSchema
 );
+type LittleVigilanteGameEntity = z.infer<
+  typeof LittleVigilanteGameEntitySchema
+>;
 
 export type LittleVigilanteGameStateSchema =
   StateSchemaFromStateValue<LittleVigilanteGameStateValue>;
@@ -1439,6 +1456,9 @@ const LittleVigilantePlayerEntitySchema = EntityBaseSchema(
   LittleVigilantePlayerCommandSchema,
   LittleVigilantePlayerStateValueSchema
 );
+type LittleVigilantePlayerEntity = z.infer<
+  typeof LittleVigilantePlayerEntitySchema
+>;
 
 export type LittleVigilantePlayerStateSchema =
   StateSchemaFromStateValue<LittleVigilantePlayerStateValue>;
@@ -1460,6 +1480,7 @@ export const EntitySchema = z.union([
   ConnectionEntitySchema,
   SessionEntitySchema,
   RoomEntitySchema,
+  UserEntitySchema,
   MessageChannelEntitySchema,
   BananaTradersGameEntitySchema,
   BananaTradersPlayerEntitySchema,

@@ -14,7 +14,7 @@ import { AnyActorRef, InterpreterFrom, interpret } from 'xstate';
 import { world } from './server/state';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
-import { Observable, Subject } from 'rxjs';
+import { Observable, ReplaySubject, Subject } from 'rxjs';
 import { FromObservable, ObservableProps } from '@explorers-club/utils';
 
 enablePatches();
@@ -111,6 +111,11 @@ export const createEntity = <TEntity extends Entity>(
 
       return true; // Indicate that the assignment was successful
     },
+    ownKeys(target) {
+      // 'channel' prop doesn't serialize, it's a ReplaySubject
+      // it is implemenented differently on client.
+      return Object.keys(target).filter((key) => key !== 'channel');
+    },
   };
 
   /**
@@ -144,16 +149,19 @@ export const createEntity = <TEntity extends Entity>(
     subscribe,
   };
 
+  const channel = new ReplaySubject(5 /* msg buffer size */); // not always used but passed in anyways
+
   const entity: TEntity = {
     ...entityBase,
     ...entityProps,
+    channel,
   } as unknown as TEntity; // todo fix hack, pretty sure this works though
 
   const proxy = new Proxy(entity, handler);
   const machine = machineMap[entityProps.schema]({
     world,
     entity: proxy,
-    // broadcast
+    channel,
   });
   // todo fix types
   const service = interpret(machine as any) as unknown as TInterpreter;

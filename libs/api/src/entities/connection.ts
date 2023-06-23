@@ -13,6 +13,7 @@ import {
   RoomEntity,
   RoomRoutePropsSchema,
   SessionEntity,
+  UserEntity,
 } from '@explorers-club/schema';
 import {
   assert,
@@ -30,6 +31,7 @@ import { world } from '../server/state';
 import { newRoomMachine } from '../services';
 import { createChatMachine } from '../services/chat.service';
 import { ReplaySubject, Subject } from 'rxjs';
+import { roomsBySlug, sessionsByUserId, usersById } from '../server/indexes';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -46,9 +48,9 @@ if (
   throw new Error('missing supabase configuration');
 }
 
-const [sessionsById] = createSchemaIndex(world, 'session', 'id');
-const [sessionsByUserId] = createSchemaIndex(world, 'session', 'userId');
-const [roomsBySlug] = createSchemaIndex(world, 'room', 'slug');
+// const [sessionsById] = createSchemaIndex(world, 'session', 'id');
+// const [sessionsByUserId] = createSchemaIndex(world, 'session', 'userId');
+// const [roomsBySlug] = createSchemaIndex(world, 'room', 'slug');
 
 // const homeRoute = match('/');
 // const newRoomRoute = match('/new');
@@ -160,7 +162,6 @@ export const createConnectionMachine = ({
                       hostConnectionEntityId: connectionEntity.id,
                       connectedEntityIds: [],
                       gameId,
-                      channel: new ReplaySubject(),
                     });
                     world.add(entity);
 
@@ -194,7 +195,6 @@ export const createConnectionMachine = ({
                       slug: connectionEntity.currentRoomSlug,
                       hostConnectionEntityId: connectionEntity.id,
                       connectedEntityIds: [connectionEntity.id],
-                      channel: new ReplaySubject(),
                     });
                     world.add(roomEntity);
                   } else {
@@ -259,6 +259,7 @@ export const createConnectionMachine = ({
                   }),
                 },
                 src: async (context, event) => {
+                  const { createEntity } = await import('../ecs');
                   assertEventType(event, 'INITIALIZE');
 
                   const { authTokens } = event;
@@ -274,6 +275,7 @@ export const createConnectionMachine = ({
                   );
 
                   let supabaseSession: Session;
+                  // If returning user, get session
                   if (authTokens) {
                     const { data, error } =
                       await supabaseClient.auth.setSession({
@@ -297,6 +299,7 @@ export const createConnectionMachine = ({
                     }
                     supabaseSession = data.session;
                   } else {
+                    // Create the user if not exists
                     const { data, error } = await supabaseClient.auth.signUp({
                       email: `anon-${generateRandomString()}@explorers.club`,
                       password: `${generateRandomString()}33330`,
@@ -320,21 +323,35 @@ export const createConnectionMachine = ({
                       access_token: data.session.access_token,
                       refresh_token: data.session.refresh_token,
                     });
+
+                    // Create user entity if doesn't already exist
+                    const userEntity = usersById.get(supabaseSession.user.id);
+                    if (!userEntity) {
+                      const START_NUMBER = 1000; // fake for now, use real db number later
+                      const serialNumber = START_NUMBER + usersById.size + 1;
+                      const userEntity = createEntity<UserEntity>({
+                        serialNumber,
+                        schema: 'user',
+                        discriminator: serialNumber,
+                        name: 'Miner',
+                      });
+                      world.add(userEntity);
+                    }
                   }
 
                   const userId = supabaseSession.user.id;
                   sessionEntity = sessionsByUserId.get(userId) as
                     | SessionEntity
                     | undefined;
+                  // If session exists set it on the connection
                   if (sessionEntity) {
-                    // add the session Id to the connectionEntity
                     world.addComponent(
                       connectionEntity,
                       'sessionId',
                       sessionEntity.id
                     );
                   } else {
-                    const { createEntity } = await import('../ecs');
+                    // Otherwise make a new session
                     sessionEntity = createEntity<SessionEntity>({
                       schema: 'session',
                       userId,
@@ -379,7 +396,6 @@ export const createConnectionMachine = ({
             },
             Initialized: {
               entry: (context, event) => {
-                console.log('ININTIALIZED!', event);
                 if (event.type === 'UPDATE_GEOLOCATION_POSITION') {
                   connectionEntity.currentGeolocation = event.position;
                 } else {

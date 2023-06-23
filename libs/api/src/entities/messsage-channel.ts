@@ -12,12 +12,16 @@
 import { assert } from '@explorers-club/utils';
 import {
   Entity,
+  MessageChannelCommand,
+  MessageChannelContext,
   MessageChannelEntity,
   MessageChannelMachine,
+  MessageData,
 } from '@explorers-club/schema';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
 import { entitiesById } from '../server/state';
+import { Observable, lastValueFrom, map } from 'rxjs';
 
 // return createMachine({
 //   id: 'MessageChannelMachine',
@@ -40,25 +44,82 @@ export const createMessageChannelMachine = ({
   const messageChannelEntity = entity as MessageChannelEntity;
   const parentEntity = entitiesById.get(messageChannelEntity.parentId);
   assert(parentEntity, "expected parentEntity but wasn't found");
+  assert('channel' in parentEntity, 'expected channel in parentEntity');
+  const channel = parentEntity.channel as Observable<MessageData>;
+
+  // channel.subscribe((e) => {
+  //   console.log('listening from msg channel', e);
+  // });
+  return createMachine({
+    id: 'MessageChannelMachine',
+    initial: 'Initialized',
+    context: {
+      foo: '',
+    },
+    schema: {
+      events: {} as MessageChannelCommand,
+      context: {} as MessageChannelContext,
+    },
+    states: {
+      Initialized: {
+        initial: 'Running',
+        states: {
+          Running: {
+            invoke: {
+              src: async () => {
+                channel.subscribe((event) => {
+                  messageChannelEntity.messages = [
+                    ...messageChannelEntity.messages,
+                    event,
+                  ];
+                });
+
+                await parentEntity.channel.toPromise();
+              },
+            },
+          },
+          Error: {},
+        },
+      },
+    },
+  }) satisfies MessageChannelMachine;
+
+  // parentEntity.channel.pipe(map((f) => f)).subscribe((e) => {
+
+  // })
+  // parentEntity.channel.subscribe((e) => {
+
+  // })
+
+  // parentEntity.channel.subscribe((e) => {
+  //   console.log(e);
+  // })
+
+  // parentEntity.channel.subscribe((messageData) => {
+
+  // })
 
   // parentEntity.subscribe((event) => {
   //   event.type
   // })
 
-  switch (parentEntity.schema) {
-    case 'room':
-      // What does this channel do?
-      return createMachine({}) as MessageChannelMachine;
-    case 'little_vigilante_game':
-      return createMachine({}) as MessageChannelMachine;
-    case 'codebreakers_game':
-      return createMachine({}) as MessageChannelMachine;
-    case 'banana_traders_game':
-      return createMachine({}) as MessageChannelMachine;
-    default:
-      throw new Error(
-        'message channel machine not implemented for entity schema: ' +
-          parentEntity.schema
-      );
-  }
+  // switch (parentEntity.schema) {
+  //   case 'room':
+  //     // parentEntity.channel.subscribe((e) => {
+  //     //   console.log(e);
+  //     // });
+  //     // What does this channel do?
+  //     return createMachine({}) as MessageChannelMachine;
+  //   case 'little_vigilante_game':
+  //     return createMachine({}) as MessageChannelMachine;
+  //   case 'codebreakers_game':
+  //     return createMachine({}) as MessageChannelMachine;
+  //   case 'banana_traders_game':
+  //     return createMachine({}) as MessageChannelMachine;
+  //   default:
+  //     throw new Error(
+  //       'message channel machine not implemented for entity schema: ' +
+  //         parentEntity.schema
+  //     );
+  // }
 };

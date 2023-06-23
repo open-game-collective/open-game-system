@@ -2,9 +2,10 @@ import {
   Entity,
   EntityMachine,
   EntityMachineMap,
+  EntityTypeMap,
 } from '@explorers-club/schema';
 import { World } from 'miniplex';
-import { Subject } from 'rxjs';
+import { ReplaySubject, Subject } from 'rxjs';
 import { createBananaTradersGameMachine } from './entities/banana-traders-game';
 import { createBananaTradersPlayerMachine } from './entities/banana-traders-player';
 import { createCodebreakersGameMachine } from './entities/codebreakers-game';
@@ -16,11 +17,36 @@ import { createRoomMachine } from './entities/room';
 import { createSessionMachine } from './entities/session';
 import { createUserMachine } from './entities/user';
 import { createMessageChannelMachine } from './entities/messsage-channel';
+import { ObservableProps } from '@explorers-club/utils';
+
+// type EntityMachineCreators = {
+//   [TSchemaType in keyof EntityMachineMap]: <
+//     TEntity extends Entity & EntityTypeMap[TSchemaType]
+//   >(props: {
+//     world: World<Entity>;
+//     entity: TEntity;
+//     channel: ReplaySubject<TEntity['channel']>;
+//   }) => Extract<EntityMachine, { type: TSchemaType }>['machine'];
+// };
+
+// type EntityMachineCreators = {
+//   [TSchemaType in keyof EntityMachineMap]: <
+//     TEntity extends Entity & EntityTypeMap[TSchemaType]
+//   >(props: {
+//     world: World<Entity>;
+//     entity: TEntity;
+//     channel: ReplaySubject<TEntity['channel']>;
+//   }) => Extract<EntityMachine, { type: TSchemaType }>['machine'];
+// };
 
 type EntityMachineCreators = {
-  [TSchemaType in keyof EntityMachineMap]: <TEntity extends Entity>(props: {
+  [TSchemaType in keyof EntityMachineMap]: <
+    TEntity extends Entity,
+    TChannel = TEntity extends { channel: infer C } ? C : never
+  >(props: {
     world: World<Entity>;
     entity: TEntity;
+    channel: ReplaySubject<ObservableProps<TChannel>>;
   }) => Extract<EntityMachine, { type: TSchemaType }>['machine'];
 };
 
