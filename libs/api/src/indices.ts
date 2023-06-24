@@ -15,16 +15,13 @@ type IndexFunction = (entity: Entity) => string;
 
 type IndexKey = string | string[] | IndexFunction;
 
-export const createSchemaIndex = <
-  TKey extends IndexKey,
-  SchemaType extends Entity['schema']
->(
+export const createSchemaIndex = <TEntity extends Entity>(
   world: World<Entity>,
-  schemaType: SchemaType,
-  key: TKey
+  schemaType: keyof typeof EntitySchemas,
+  key: IndexKey
 ) => {
-  const schema = EntitySchemas[schemaType];
-  type TEntity = z.infer<typeof schema>;
+  // const schema = EntitySchemas[schemaType];
+  // type TEntity = z.infer<typeof schema>;
 
   const index = new Map<string, TEntity>();
   const subject = new Subject<EntityIndexEvent<TEntity>>();
@@ -48,16 +45,16 @@ export const createSchemaIndex = <
       return;
     }
 
-    const key = getIndexKey(entity) as string;
+    const key = getIndexKey(entity as TEntity) as string;
     if (index.has(key)) {
       console.warn('index received duplicate key igorning', key);
       return;
     }
 
-    index.set(key, entity);
+    index.set(key, entity as TEntity);
     subject.next({
       type: 'ADD',
-      data: entity,
+      data: entity as TEntity,
     });
 
     const entitySubscription = entity.subscribe((event) => {
@@ -79,7 +76,7 @@ export const createSchemaIndex = <
       return;
     }
 
-    const key = getIndexKey(entity) as string;
+    const key = getIndexKey(entity as TEntity) as string;
     index.delete(key);
 
     const entitySubscription = entitySubscriptionsMap.get(entity.id);
@@ -94,7 +91,7 @@ export const createSchemaIndex = <
 
     subject.next({
       type: 'REMOVE',
-      data: entity,
+      data: entity as TEntity,
     });
   });
 

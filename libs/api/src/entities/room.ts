@@ -1,5 +1,4 @@
 import {
-  ChannelWorkflowContext,
   ConnectionEntity,
   Entity,
   InitializedConnectionEntity,
@@ -7,23 +6,17 @@ import {
   RoomContext,
   RoomEntity,
   RoomMessageData,
-  SendMessageParams,
-  SnowflakeId,
-  // TriggerData,
+  TriggerData,
   TriggerEntity,
 } from '@explorers-club/schema';
-import { assert, generateUUID, getValueFromPath } from '@explorers-club/utils';
+import { assert } from '@explorers-club/utils';
+import { createEntity } from '../ecs';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
-import { createMachine, interpret } from 'xstate';
-import {
-  channelEntitiesById,
-  sessionsById,
-  usersById,
-} from '../server/indexes';
+import { createMachine } from 'xstate';
+import { sessionsById } from '../server/indexes';
 import { entitiesById } from '../server/state';
 import { waitForCondition } from '../world';
-import { createEntity } from '../ecs';
 
 export const createRoomMachine = ({
   world,
@@ -77,14 +70,14 @@ export const createRoomMachine = ({
                 room: roomEntity.id,
                 session: sessionEntity.id,
               },
-            };
+            } satisfies TriggerData;
             // } satisfies TriggerData;
 
-            // createEntity<TriggerEntity>({
-            //   schema: 'trigger',
-            //   workflowIds: [],
-            //   // data,
-            // });
+            createEntity<TriggerEntity>({
+              schema: 'trigger',
+              workflowIds: [],
+              data,
+            });
 
             // const sendMessageParams = {
             //   template: `Hello <PlayerAvatar onEnterName={onEnterName} userName={userName} roomSlug={roomSlug} />. <Group><Button id="YES" requireConfirmation={true} /><Button id="NO" /> /> <Form id="NAME_FORM"><TextInput id="NAME" /></Form></Group>`,

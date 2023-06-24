@@ -177,7 +177,6 @@ export type AnyStateValue = z.infer<typeof StateValueSchema>;
 const UserSchemaTypeLiteral = z.literal('user');
 const SessionSchemaTypeLiteral = z.literal('session');
 const WorkflowSchemaTypeLiteral = z.literal('workflow');
-const TriggerSchemaTypeLiteral = z.literal('trigger');
 const ConnectionSchemaTypeLiteral = z.literal('connection');
 const RoomSchemaTypeLiteral = z.literal('room');
 const MessageChannelSchemaTypeLiteral = z.literal('message_channel');
@@ -189,6 +188,7 @@ const LittleVigilantePlayerSchemaTypeLiteral = z.literal(
 );
 const CodebreakersGameSchemaTypeLiteral = z.literal('codebreakers_game');
 const CodebreakersPlayerSchemaTypeLiteral = z.literal('codebreakers_player');
+const TriggerSchemaTypeLiteral = z.literal('trigger');
 
 export const LoginInputSchema = z.object({
   email: z.string().email(),
@@ -257,26 +257,28 @@ export type EntityTypeMap = {
   user: UserEntity;
   message_channel: MessageChannelEntity;
   workflow: WorkflowEntity;
-  trigger: TriggerEntity;
   codebreakers_game: CodebreakersGameEntity;
   codebreakers_player: CodebreakersPlayerEntity;
   banana_traders_game: BananaTradersGameEntity;
   banana_traders_player: BananaTradersPlayerEntity;
   little_vigilante_game: LittleVigilanteGameEntity;
   little_vigilante_player: LittleVigilantePlayerEntity;
+  trigger: TriggerEntity;
 };
 
-export const EntitySchemaLiteralsSchema = z.union([
+const EntitySchemaLiteralsSchema = z.union([
   ConnectionSchemaTypeLiteral,
   SessionSchemaTypeLiteral,
   RoomSchemaTypeLiteral,
   UserSchemaTypeLiteral,
   MessageChannelSchemaTypeLiteral,
   WorkflowSchemaTypeLiteral,
-  // TriggerSchemaTypeLiteral,
+  TriggerSchemaTypeLiteral,
 ]);
 
-export type EntitySchemaType = z.infer<typeof EntitySchemaLiteralsSchema>;
+export type EntitySchemaType = keyof typeof EntitySchemas;
+
+// export type EntitySchemaType = z.infer<typeof EntitySchemaLiteralsSchema>;
 
 const PlainMessageTypeLiteral = z.literal('PLAIN');
 const JoinMessageTypeLiteral = z.literal('JOIN');
@@ -584,12 +586,21 @@ export type SessionTypeState = {
   value: 'Active';
   context: MakeRequired<SessionContext, 'foo'>;
 };
+
 export type SessionStateSchema = StateSchemaFromStateValue<SessionStateValue>;
 
 export type SessionMachine = StateMachine<
   SessionContext,
   SessionStateSchema,
   SessionCommand
+>;
+
+export type TriggerStateSchema = StateSchemaFromStateValue<TriggerStateValue>;
+
+export type TriggerMachine = StateMachine<
+  TriggerContext,
+  TriggerStateSchema,
+  TriggerCommand
 >;
 
 const EntitySendTriggerEventSchema = <TEvent extends AnyEventObject>(
@@ -654,22 +665,24 @@ const EntityEventSchema = <TEvent extends AnyEventObject>(
 //     })
 //   );
 
-// const TriggerDataSchema = z.discriminatedUnion('triggerType', [
-//   z.object({
-//     triggerType: z.literal('room_trigger'),
-//     entityIds: z.object({
-//       room: SnowflakeIdSchema,
-//       session: SnowflakeIdSchema,
-//     }),
-//   }),
-//   z.object({
-//     triggerType: z.literal('command_trigger'),
-//   }),
-//   z.object({
-//     triggerType: z.literal('webhook_trigger'),
-//     metadata: z.any(),
-//   }),
-// ]);
+const TriggerDataSchema = z.discriminatedUnion('triggerType', [
+  z.object({
+    triggerType: z.literal('room_trigger'),
+    entityIds: z.object({
+      room: SnowflakeIdSchema,
+      session: SnowflakeIdSchema,
+    }),
+  }),
+  z.object({
+    triggerType: z.literal('command_trigger'),
+  }),
+  z.object({
+    triggerType: z.literal('webhook_trigger'),
+    metadata: z.any(),
+  }),
+]);
+
+export type TriggerData = z.infer<typeof TriggerDataSchema>;
 
 // const RoomTriggerDataSchema = TriggerBaseSchema(
 //   z.object({
@@ -743,6 +756,41 @@ const EntityEventSchema = <TEvent extends AnyEventObject>(
 //   TriggerCommandSchema,
 //   TriggerStateValueSchema
 // );
+// export type TriggerEntity = z.infer<typeof TriggerEntitySchema>;
+
+// ------------ Trigger Entity ------------
+// const TriggerContextSchema = z.object({
+//   foo: z.string(),
+// });
+// export type TriggerContext = z.infer<typeof TriggerContextSchema>;
+
+// const TriggerEntityPropsSchema = z.object({
+//   schema: TriggerSchemaTypeLiteral,
+//   userId: UserIdSchema,
+//   name: z.string(),
+// });
+
+// const TriggerCommandSchema = z.union([
+//   z.object({
+//     type: z.literal('RECONNECT'),
+//   }),
+//   z.object({
+//     type: z.literal('DISCONNECT'),
+//   }),
+// ]);
+// export type TriggerCommand = z.infer<typeof TriggerCommandSchema>;
+
+// const TriggerStateValueSchema = z.object({
+//   Active: z.enum(['True', 'False']),
+// });
+// export type TriggerStateValue = z.infer<typeof TriggerStateValueSchema>;
+
+// export const TriggerEntitySchema = EntityBaseSchema(
+//   TriggerEntityPropsSchema,
+//   TriggerCommandSchema,
+//   TriggerStateValueSchema
+// );
+
 // export type TriggerEntity = z.infer<typeof TriggerEntitySchema>;
 
 // ------------ Workflow Entity Definition ------------
@@ -1337,6 +1385,12 @@ const MessageChannelEntitySchema = EntityBaseSchema(
 
 export type MessageChannelEntity = z.infer<typeof MessageChannelEntitySchema>;
 
+// export type CodebreakersGameMachine = StateMachine<
+//   CodebreakersGameContext,
+//   CodebreakersGameStateSchema,
+//   CodebreakersGameCommand
+// >;
+
 const CodebreakersGameEntityPropSchema = z.object({
   schema: CodebreakersGameSchemaTypeLiteral,
   gameId: CodebreakersGameId,
@@ -1443,6 +1497,38 @@ export type CodebreakersPlayerMachine = StateMachine<
   CodebreakersPlayerCommand
 >;
 
+const TriggerEntityPropSchema = z.object({
+  schema: TriggerSchemaTypeLiteral,
+  workflowIds: z.array(SnowflakeIdSchema),
+  data: TriggerDataSchema,
+});
+
+const TriggerStateValueSchema = z.object({
+  Status: z.enum(['Unitialized', 'Paused', 'Running', 'Complete']),
+});
+
+export type TriggerStateValue = z.infer<typeof TriggerStateValueSchema>;
+
+const TriggerCommandSchema = z.union([StartCommandSchema, LeaveCommandSchema]);
+
+export type TriggerCommand = z.infer<typeof TriggerCommandSchema>;
+
+const TriggerEntitySchema = EntityBaseSchema(
+  TriggerEntityPropSchema,
+  TriggerCommandSchema,
+  TriggerStateValueSchema
+);
+
+export type TriggerEntity = z.infer<typeof TriggerEntitySchema>;
+
+// export type TriggerStateSchema =
+//   StateSchemaFromStateValue<TriggerStateValue>;
+
+const TriggerContextSchema = z.object({
+  foo: z.string(),
+});
+export type TriggerContext = z.infer<typeof TriggerContextSchema>;
+
 const BananaTradersGameEntityPropSchema = z.object({
   schema: BananaTradersGameSchemaTypeLiteral,
   gameId: BananaTradersGameId,
@@ -1491,14 +1577,6 @@ export type BananaTradersGameMachine = StateMachine<
   BananaTradersGameStateSchema,
   BananaTradersGameCommand
 >;
-
-// const BananaTradersPlayerMessageSchema = z.object({
-//   type: z.literal('PLAIN_MESSAGE'),
-//   id: SnowflakeIdSchema,
-//   senderEntityId: SnowflakeIdSchema,
-//   message: z.string(),
-// });
-// type BananaTradersPlayerMessage = z.infer<typeof BananaTradersMessageSchema>;
 
 const BananaTradersPlayerEntityPropSchema = z.object({
   schema: BananaTradersPlayerSchemaTypeLiteral,
@@ -1670,6 +1748,7 @@ export const EntitySchema = z.union([
   CodebreakersPlayerEntitySchema,
   LittleVigilanteGameEntitySchema,
   LittleVigilantePlayerEntitySchema,
+  TriggerEntitySchema,
 ]);
 
 export type Entity = z.infer<typeof EntitySchema>;
@@ -1719,16 +1798,16 @@ export type EntityMachine =
       machine: RoomMachine;
     }
   | {
-      type: 'trigger';
-      machine: TriggerMachine;
-    }
-  | {
       type: 'workflow';
       machine: WorkflowMachine;
     }
   | {
       type: 'message_channel';
       machine: MessageChannelMachine;
+    }
+  | {
+      type: 'trigger';
+      machine: TriggerMachine;
     }
   | {
       type: 'codebreakers_game';
