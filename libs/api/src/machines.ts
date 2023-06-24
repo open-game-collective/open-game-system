@@ -18,6 +18,8 @@ import { createSessionMachine } from './entities/session';
 import { createUserMachine } from './entities/user';
 import { createMessageChannelMachine } from './entities/messsage-channel';
 import { ObservableProps } from '@explorers-club/utils';
+import { createWorkflowMachine } from './entities/workflow';
+import { createTriggerMachine } from './entities/trigger';
 
 // type EntityMachineCreators = {
 //   [TSchemaType in keyof EntityMachineMap]: <
@@ -55,6 +57,8 @@ export const machineMap: EntityMachineCreators = {
   session: createSessionMachine,
   room: createRoomMachine,
   user: createUserMachine,
+  workflow: createWorkflowMachine,
+  trigger: createTriggerMachine,
   message_channel: createMessageChannelMachine,
   codebreakers_game: createCodebreakersGameMachine,
   codebreakers_player: createCodebreakersPlayerMachine,

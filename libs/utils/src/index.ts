@@ -129,3 +129,26 @@ export function deepEqual(a: any, b: any): boolean {
   if (keys.length !== Object.keys(b).length) return false;
   return keys.every((k) => deepEqual(a[k], b[k]));
 }
+
+export function getValueFromPath(obj: any, path: string): any {
+  // Remove the leading slash and split the path into parts
+  const pathParts = path.slice(1).split('/');
+  let currentValue = obj;
+
+  for (const part of pathParts) {
+    // Handle arrays
+    if (Array.isArray(currentValue)) {
+      currentValue = currentValue[Number(part)];
+    } 
+    // Handle objects
+    else if (typeof currentValue === 'object' && currentValue !== null) {
+      currentValue = currentValue[part];
+    } 
+    // If the current value is neither an array nor an object, it means the path is invalid
+    else {
+      return undefined;
+    }
+  }
+
+  return currentValue;
+}

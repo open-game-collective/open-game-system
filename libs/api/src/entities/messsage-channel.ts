@@ -12,11 +12,11 @@
 import { assert } from '@explorers-club/utils';
 import {
   Entity,
+  Message,
   MessageChannelCommand,
   MessageChannelContext,
   MessageChannelEntity,
   MessageChannelMachine,
-  MessageData,
 } from '@explorers-club/schema';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
@@ -45,11 +45,8 @@ export const createMessageChannelMachine = ({
   const parentEntity = entitiesById.get(messageChannelEntity.parentId);
   assert(parentEntity, "expected parentEntity but wasn't found");
   assert('channel' in parentEntity, 'expected channel in parentEntity');
-  const channel = parentEntity.channel as Observable<MessageData>;
+  const channel = parentEntity.channel as Observable<Message>;
 
-  // channel.subscribe((e) => {
-  //   console.log('listening from msg channel', e);
-  // });
   return createMachine({
     id: 'MessageChannelMachine',
     initial: 'Initialized',

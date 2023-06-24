@@ -194,18 +194,19 @@ export const createConnectionMachine = ({
                       schema: 'room',
                       slug: connectionEntity.currentRoomSlug,
                       hostConnectionEntityId: connectionEntity.id,
-                      connectedEntityIds: [connectionEntity.id],
+                      connectedEntityIds: [],
                     });
                     world.add(roomEntity);
-                  } else {
-                    // Otherwise connect to existing one
-                    roomEntity.send({
-                      type: 'CONNECT',
-                      connectionEntityId: connectionEntity.id,
-                    });
                   }
 
+                  // Connect to it
+                  roomEntity.send({
+                    type: 'CONNECT',
+                    connectionEntityId: connectionEntity.id,
+                  });
+
                   // Join the chat room
+                  // todo: is this still used? or just use message_channel entity now
                   context.chatServiceRef.send({
                     type: 'JOIN_CHANNEL',
                     channelId: roomEntity.id,
@@ -336,6 +337,7 @@ export const createConnectionMachine = ({
                         name: 'Miner',
                       });
                       world.add(userEntity);
+                      // sessionEntity.userId = userEntity.id;
                     }
                   }
 
@@ -355,6 +357,7 @@ export const createConnectionMachine = ({
                     sessionEntity = createEntity<SessionEntity>({
                       schema: 'session',
                       userId,
+                      name: 'Miner #48572',
                     });
                     // add the session Id to the connection
                     world.addComponent(
@@ -411,11 +414,7 @@ export const createConnectionMachine = ({
                   },
                 },
               },
-              // on: {
-              //   UPDATE_GEOLOCATION_POSITION
-              // }
             },
-            // TimedOut: {},
             Error: {},
             Denied: {},
           },
@@ -432,29 +431,6 @@ export const createConnectionMachine = ({
               'chatService'
             ) as ConnectionContext['chatServiceRef'],
         }),
-        // spawnChatService: assign({
-        //   chatServiceRef: () => {
-        //     console.log('this does not');
-        //     return spawn(
-        //       createChatMachine({ connectionEntity }),
-        //       'chatService'
-        //     ) as ConnectionContext['chatServiceRef'];
-        //   },
-        // }),
-        // spawnChatService: () => {
-        //   console.log('SPAWNING');
-        //   console.log('SPAWNINGee');
-        // },
-        // spawnChatService: assignImmer<ConnectionContext>((context) => {
-        //   console.log('SPAWNING');
-        //   if (!context.chatServiceRef) {
-        //     context.chatServiceRef = spawn(
-        //       createChatMachine({ connectionEntity }),
-        //       'chatService'
-        //     ) as ConnectionContext['chatServiceRef'];
-        //   }
-        //   console.log('SPAWNINGee');
-        // }),
         initializeCurrentRoom: (_, event) => {
           console.log('inintializing');
           assertEventType(event, 'INITIALIZE');

@@ -1,11 +1,11 @@
 import {
   Entity,
   EntitySchemas,
-  SchemaType,
+  EntitySchemaType,
   SnowflakeId,
 } from '@explorers-club/schema';
-import { FromSubject } from '@explorers-club/utils';
-import { World } from 'miniplex';
+import { assert, FromArchetype, FromSubject } from '@explorers-club/utils';
+import { ArchetypeBucket, World } from 'miniplex';
 import { Observable, Subject } from 'rxjs';
 import { AnyFunction } from 'xstate';
 import { z } from 'zod';
@@ -106,87 +106,26 @@ export const createSchemaIndex = <
   return [index, subject as Observable<FromSubject<typeof subject>>] as const;
 };
 
-/**
- * Given a bucket and a prop name to use as an index key, returns back
- * a tuple that includes a map of all the items in the index, indexed
- * by the key, and an observable that emits events when a change on
- * any entity happens
- * @param bucket
- * @param indexKey
- * @returns
- */
-// export const createArchetypeIndex = <TEntity extends Entity>(
-//   bucket: ArchetypeBucket<TEntity>,
-//   indexKey: keyof TEntity | ((data: TEntity) => string)
-// ) => {
-//   type BucketEntity = FromArchetype<typeof bucket>;
-//   const index = new Map<string, BucketEntity>();
-//   const subject = new Subject<EntityIndexEvent<TEntity>>();
+export const createArchetypeIndex = <TEntity extends Entity>(
+  bucket: ArchetypeBucket<TEntity>
+) => {
+  type BucketEntity = FromArchetype<typeof bucket>;
+  const index = new Map<string, BucketEntity>();
+  const subject = new Subject<EntityIndexEvent<TEntity>>();
 
-//   const getKey = (entity: TEntity) => {
-//     if (typeof indexKey === 'function') {
-//       return indexKey(entity) as string;
-//     } else {
-//       return entity[indexKey] as string;
-//     }
-//   };
+  for (const entity of bucket) {
+    index.set(entity.id, entity);
+  }
 
-//   for (const entity of bucket) {
-//     const key = getKey(entity);
-//     index.set(key, entity);
-//   }
+  bucket.onEntityAdded.add((entity) => {
+    assert(!index.has(entity.id), 'expected entity to not already exist');
 
-//   subject.next({
-//     type: 'INIT',
-//     data: bucket.entities,
-//   });
+    index.set(entity.id, entity);
+  });
 
-//   const entitySubscriptionsMap = new Map<SnowflakeId, AnyFunction>();
+  bucket.onEntityRemoved.add((entity) => {
+    index.delete(entity.id);
+  });
 
-//   bucket.onEntityAdded.add((entity) => {
-//     const key = getKey(entity);
-//     if (index.has(key)) {
-//       console.warn('index received duplicate key. igorning', key);
-//     }
-
-//     index.set(key, entity);
-//     subject.next({
-//       type: 'ADD',
-//       data: entity,
-//     });
-
-//     const entitySubscription = entity.subscribe((event) => {
-//       if (event.type === 'CHANGE') {
-//         subject.next({
-//           type: 'CHANGE',
-//           data: entity,
-//           delta: event.delta as EntityChangeDelta<TEntity>,
-//         });
-//       }
-//     });
-
-//     entitySubscriptionsMap.set(entity.id, entitySubscription);
-//   });
-
-//   bucket.onEntityRemoved.add((entity) => {
-//     const key = getKey(entity);
-//     index.delete(key);
-
-//     const entitySubscription = entitySubscriptionsMap.get(entity.id);
-//     if (entitySubscription) {
-//       entitySubscription(); //
-//     } else {
-//       console.warn(
-//         "expected entity subscritption but didn't find one for ",
-//         entity.id
-//       );
-//     }
-
-//     subject.next({
-//       type: 'REMOVE',
-//       data: entity,
-//     });
-//   });
-
-//   return [index, subject as Observable<FromSubject<typeof subject>>] as const;
-// };
+  return [index, subject as Observable<FromSubject<typeof subject>>] as const;
+};

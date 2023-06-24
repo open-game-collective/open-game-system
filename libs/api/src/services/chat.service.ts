@@ -39,12 +39,9 @@ export const createChatMachine = <TMessage extends Message>({
               channelEntityIds: (context, event) => {
                 // Create a message channel eentity if we don't already have one
                 if (!context.channelEntityIds[event.channelId]) {
-                  const messageType = getMessageType(event.channelId);
-
                   const entity = createEntity<MessageChannelEntity>({
                     schema: 'message_channel',
                     messages: [], // todo prefill previous messages if they exist,
-                    messageType,
                     parentId: event.channelId,
                     connectionId: connectionEntity.id,
                   });
@@ -98,27 +95,27 @@ const fromEntity = <TEntity extends Entity>(entity: TEntity) => {
   return event$ as Observable<TEvent>;
 };
 
-const getMessageType: (channelId: SnowflakeId) => MessageType = (
-  channelId: SnowflakeId
-) => {
-  const entity = entitiesById.get(channelId);
-  assert(
-    entity,
-    'expected to find entity `{channelId}` when getting messageType but failed'
-  );
+// const getMessageType: (channelId: SnowflakeId) => MessageType = (
+//   channelId: SnowflakeId
+// ) => {
+//   const entity = entitiesById.get(channelId);
+//   assert(
+//     entity,
+//     'expected to find entity `{channelId}` when getting messageType but failed'
+//   );
 
-  switch (entity.schema) {
-    case 'room':
-      return 'room_message';
-    case 'codebreakers_game':
-      return 'codebreakers_game_message';
-    case 'little_vigilante_game':
-      return 'little_vigilante_game_message';
-    case 'banana_traders_game':
-      return 'banana_traders_game_message';
-    default:
-      throw new Error(
-        `getMessageType not implemented for schema ${entity.schema}`
-      );
-  }
-};
+//   switch (entity.schema) {
+//     case 'room':
+//       return 'room_message';
+//     case 'codebreakers_game':
+//       return 'codebreakers_game_message';
+//     case 'little_vigilante_game':
+//       return 'little_vigilante_game_message';
+//     case 'banana_traders_game':
+//       return 'banana_traders_game_message';
+//     default:
+//       throw new Error(
+//         `getMessageType not implemented for schema ${entity.schema}`
+//       );
+//   }
+// };
