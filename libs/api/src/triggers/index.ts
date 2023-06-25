@@ -1,22 +1,22 @@
 import { TriggerConfig } from '@explorers-club/schema';
 
-const NewRoomTriggerConfig = {
-  id: 'NewRoomTrigger',
-  event: {
-    type: 'JOIN',
-    // filters: [
-    //   ['']
-    // ]
-  },
-  entity: {
-    schema: 'room',
-    // filters: [['/slug', 'eq', '1234']],
-  },
-  workflowConfigId: 'OnboardingWorkflow',
-  // inputs: {
+// const NewRoomTriggerConfig = {
+//   id: 'NewRoomTrigger',
+//   event: {
+//     type: 'JOIN',
+//     // filters: [
+//     //   ['']
+//     // ]
+//   },
+//   entity: {
+//     schema: 'room',
+//     // filters: [['/slug', 'eq', '1234']],
+//   },
+//   workflowConfigId: 'OnboardingWorkflow',
+//   // inputs: {
 
-  // }
-} satisfies TriggerConfig;
+//   // }
+// } satisfies TriggerConfig;
 
 // const OnboardingWorkflow
 

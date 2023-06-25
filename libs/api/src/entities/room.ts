@@ -64,6 +64,12 @@ export const createRoomMachine = ({
               event.connectionEntityId,
             ];
 
+            roomChannel.next({
+              type: 'MESSAGE',
+              content: 'HELLO!',
+              sender: roomEntity.id,
+            });
+
             // TODO send a channel event here...
 
             // const data = {

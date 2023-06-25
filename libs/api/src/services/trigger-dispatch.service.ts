@@ -14,14 +14,11 @@ export const triggerDispatchMachine = createMachine({
   states: {
     Running: {
       on: {
-        JOIN: {},
-        LEAVE: {},
-        MESSAGE: {
+        '*': {
           actions: ({ world }, event) => {
-            console.log('dispatching trigger, adding to world', event);
+            console.log('receved channel event', event);
           },
         },
-        LOG: {},
       },
       invoke: {
         src: (context) => {
