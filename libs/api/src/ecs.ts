@@ -1,5 +1,7 @@
 import {
   CallbackFromEntity,
+  ChannelEvent,
+  CreateEventProps,
   Entity,
   EntityMachineMap,
   // EntityMessageMap,
@@ -14,7 +16,7 @@ import { AnyActorRef, InterpreterFrom, interpret } from 'xstate';
 import { world } from './server/state';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
-import { Observable, ReplaySubject, Subject } from 'rxjs';
+import { Observable, ReplaySubject, Subject, map } from 'rxjs';
 import { FromObservable, ObservableProps } from '@explorers-club/utils';
 
 enablePatches();
@@ -149,19 +151,30 @@ export const createEntity = <TEntity extends Entity>(
     subscribe,
   };
 
-  const channel = new ReplaySubject(5 /* msg buffer size */); // not always used but passed in anyways
+  const channelSubject = new ReplaySubject<CreateEventProps<ChannelEvent>>(
+    5 /* msg buffer size */
+  ); // not always used but passed in anyways
+  const channelObservable = channelSubject.pipe(
+    map((event) => {
+      return {
+        ...event,
+        id: generateSnowflakeId(),
+        channelId: id,
+      };
+    })
+  );
 
   const entity: TEntity = {
     ...entityBase,
     ...entityProps,
-    channel,
+    channel: channelObservable,
   } as unknown as TEntity; // todo fix hack, pretty sure this works though
 
   const proxy = new Proxy(entity, handler);
   const machine = machineMap[entityProps.schema]({
     world,
     entity: proxy,
-    channel,
+    channel: channelSubject,
   });
   // todo fix types
   const service = interpret(machine as any) as unknown as TInterpreter;

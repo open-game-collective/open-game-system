@@ -1,4 +1,6 @@
 import {
+  ChannelEvent,
+  CreateEventProps,
   Entity,
   EntityMachine,
   EntityMachineMap,
@@ -20,26 +22,6 @@ import { createTriggerMachine } from './entities/trigger';
 import { createUserMachine } from './entities/user';
 import { createWorkflowMachine } from './entities/workflow';
 
-// type EntityMachineCreators = {
-//   [TSchemaType in keyof EntityMachineMap]: <
-//     TEntity extends Entity & EntityTypeMap[TSchemaType]
-//   >(props: {
-//     world: World<Entity>;
-//     entity: TEntity;
-//     channel: ReplaySubject<TEntity['channel']>;
-//   }) => Extract<EntityMachine, { type: TSchemaType }>['machine'];
-// };
-
-// type EntityMachineCreators = {
-//   [TSchemaType in keyof EntityMachineMap]: <
-//     TEntity extends Entity & EntityTypeMap[TSchemaType]
-//   >(props: {
-//     world: World<Entity>;
-//     entity: TEntity;
-//     channel: ReplaySubject<TEntity['channel']>;
-//   }) => Extract<EntityMachine, { type: TSchemaType }>['machine'];
-// };
-
 type EntityMachineCreators = {
   [TSchemaType in keyof EntityMachineMap]: <
     TEntity extends Entity,
@@ -47,7 +29,7 @@ type EntityMachineCreators = {
   >(props: {
     world: World<Entity>;
     entity: TEntity;
-    channel: ReplaySubject<ObservableProps<TChannel>>;
+    channel: ReplaySubject<CreateEventProps<ChannelEvent>>;
   }) => Extract<EntityMachine, { type: TSchemaType }>['machine'];
 };
 

@@ -12,7 +12,7 @@
 import { assert } from '@explorers-club/utils';
 import {
   Entity,
-  Message,
+  ChannelEvent,
   MessageChannelCommand,
   MessageChannelContext,
   MessageChannelEntity,
@@ -45,7 +45,7 @@ export const createMessageChannelMachine = ({
   const parentEntity = entitiesById.get(messageChannelEntity.parentId);
   assert(parentEntity, "expected parentEntity but wasn't found");
   assert('channel' in parentEntity, 'expected channel in parentEntity');
-  const channel = parentEntity.channel as Observable<Message>;
+  const channel = parentEntity.channel as unknown as Observable<ChannelEvent>;
 
   return createMachine({
     id: 'MessageChannelMachine',

@@ -1,22 +1,20 @@
-import { assert } from '@explorers-club/utils';
 import {
+  ChannelEvent,
   ChatCommand,
   ChatContext,
   ChatMachine,
   ConnectionEntity,
   Entity,
-  Message,
   MessageChannelEntity,
-  MessageType,
-  SnowflakeId,
 } from '@explorers-club/schema';
+import { assert } from '@explorers-club/utils';
+import { assign as immerAssign } from '@xstate/immer';
 import { Observable, Subject } from 'rxjs';
 import { assign, createMachine } from 'xstate';
-import { assign as immerAssign } from '@xstate/immer';
 import { createEntity } from '../ecs';
 import { entitiesById, world } from '../server/state';
 
-export const createChatMachine = <TMessage extends Message>({
+export const createChatMachine = <TMessage extends ChannelEvent>({
   connectionEntity,
 }: {
   connectionEntity: ConnectionEntity;

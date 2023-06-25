@@ -1,12 +1,10 @@
-import {
-  ConnectionEntity,
-  Entity,
-  InitializedConnectionEntity,
-} from '@explorers-club/schema';
+import { Entity } from '@explorers-club/schema';
+import { World } from 'miniplex';
+import { Observable, Subject } from 'rxjs';
 import { EventObject } from 'xstate';
-export * from './types';
-export * from './hooks';
 export * from './forms';
+export * from './hooks';
+export * from './types';
 
 export function assert<T>(
   expression: T,
@@ -139,11 +137,11 @@ export function getValueFromPath(obj: any, path: string): any {
     // Handle arrays
     if (Array.isArray(currentValue)) {
       currentValue = currentValue[Number(part)];
-    } 
+    }
     // Handle objects
     else if (typeof currentValue === 'object' && currentValue !== null) {
       currentValue = currentValue[part];
-    } 
+    }
     // If the current value is neither an array nor an object, it means the path is invalid
     else {
       return undefined;
@@ -152,3 +150,12 @@ export function getValueFromPath(obj: any, path: string): any {
 
   return currentValue;
 }
+
+export const fromWorld = (world: World<Entity>) => {
+  const subject = new Subject<Entity>();
+  world.onEntityAdded.add((entity) => {
+    subject.next(entity);
+  });
+
+  return subject as Observable<Entity>;
+};

@@ -64,20 +64,23 @@ export const createRoomMachine = ({
               event.connectionEntityId,
             ];
 
-            const data = {
-              triggerType: 'room_trigger',
-              entityIds: {
-                room: roomEntity.id,
-                session: sessionEntity.id,
-              },
-            } satisfies TriggerData;
+            // TODO send a channel event here...
+
+            // const data = {
+            //   triggerType: 'room_trigger',
+            //   entityIds: {
+            //     room: roomEntity.id,
+            //     session: sessionEntity.id,
+            //   },
+            // } satisfies TriggerData;
             // } satisfies TriggerData;
 
-            createEntity<TriggerEntity>({
-              schema: 'trigger',
-              workflowIds: [],
-              data,
-            });
+            // const trigger = createEntity<TriggerEntity>({
+            //   schema: 'trigger',
+            //   // workflowIds: [],
+            //   data,
+            // });
+            // world.add(trigger);
 
             // const sendMessageParams = {
             //   template: `Hello <PlayerAvatar onEnterName={onEnterName} userName={userName} roomSlug={roomSlug} />. <Group><Button id="YES" requireConfirmation={true} /><Button id="NO" /> /> <Form id="NAME_FORM"><TextInput id="NAME" /></Form></Group>`,

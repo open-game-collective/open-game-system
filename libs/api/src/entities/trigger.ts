@@ -18,11 +18,25 @@ export const createTriggerMachine = ({
 
   return createMachine({
     id: 'TriggerGameMachine',
-    type: 'parallel',
+    initial: 'Running',
     schema: {
       context: {} as TriggerContext,
       events: {} as TriggerCommand,
     },
-    states: {},
+    states: {
+      Running: {
+        invoke: {
+          src: async (context) => {
+            // TODO
+            // Get the workflow ids that match this trigger
+
+            // triggerEntity.workflowIds.map(workflowId);
+
+            // return Promise.all(workflows)
+          },
+        },
+      },
+      Done: {},
+    },
   });
 };

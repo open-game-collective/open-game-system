@@ -8,8 +8,7 @@ import { assert, FromArchetype, FromSubject } from '@explorers-club/utils';
 import { ArchetypeBucket, World } from 'miniplex';
 import { Observable, Subject } from 'rxjs';
 import { AnyFunction } from 'xstate';
-import { z } from 'zod';
-import { EntityIndexEvent } from './events';
+import { EntityIndexEvent } from '@explorers-club/schema';
 
 type IndexFunction = (entity: Entity) => string;
 
