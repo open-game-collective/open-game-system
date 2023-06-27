@@ -5,15 +5,28 @@ import {
   EntityMachineMap,
   // EntityMessageMap,
   EntityServiceKeys,
+  EventTriggerConfigSchema,
   InitialEntityProps,
+  SnowflakeId,
+  TriggerEntity,
 } from '@explorers-club/schema';
+import { assert, fromWorld } from '@explorers-club/utils';
 import { compare } from 'fast-json-patch';
 import { enablePatches, produce, setAutoFreeze } from 'immer';
-import { ReplaySubject, map } from 'rxjs';
-import { AnyActorRef, InterpreterFrom, interpret } from 'xstate';
+import { Observable, ReplaySubject, map, mergeMap } from 'rxjs';
+import {
+  AnyActorRef,
+  InterpreterFrom,
+  assign,
+  createMachine,
+  interpret,
+} from 'xstate';
 import { generateSnowflakeId } from './ids';
 import { machineMap } from './machines';
-import { world } from './server/state';
+import { entitiesById, world } from './server/state';
+// import { eventTriggerDispatchMachine } from './services/event-trigger-dispatch.service';
+import { World } from 'miniplex';
+import { greetOnJoinTrigger } from './configs/triggers';
 
 enablePatches();
 setAutoFreeze(false);
@@ -183,3 +196,96 @@ export const createEntity = <TEntity extends Entity>(
 
   return proxy;
 };
+
+type TriggerDispatchContext = {
+  world: World<Entity>;
+  entitiesById: Map<SnowflakeId, Entity>;
+  configs: EventTriggerConfigSchema[];
+  triggerEntities: Record<SnowflakeId, TriggerEntity>;
+};
+
+const eventTriggerDispatchMachine = createMachine({
+  id: 'EventTriggerDispatchMachine',
+  initial: 'Running',
+  schema: {
+    context: {} as TriggerDispatchContext,
+    events: {} as ChannelEvent,
+  },
+  states: {
+    Running: {
+      on: {
+        '*': {
+          actions: 'maybeCreateEventTriggerEntity',
+        },
+      },
+      invoke: {
+        src: (context) =>
+          fromWorld(context.world).pipe(
+            mergeMap(
+              (entity) => entity.channel as unknown as Observable<ChannelEvent>
+            )
+          ),
+        onDone: 'Done',
+        onError: 'Error',
+      },
+    },
+    Done: {
+      entry: () => {
+        console.log('DONE!');
+      },
+    },
+    Error: {},
+  },
+});
+
+const eventTriggerDispatchService = interpret(
+  eventTriggerDispatchMachine
+    .withContext({
+      world,
+      triggerEntities: {},
+      entitiesById,
+      configs: [greetOnJoinTrigger],
+    })
+    .withConfig({
+      actions: {
+        maybeCreateEventTriggerEntity: assign({
+          triggerEntities: (
+            { entitiesById, configs, triggerEntities },
+            event
+          ) => {
+            const entity = entitiesById.get(event.channelId);
+            assert(
+              entity,
+              'expected channel entity when processing channel event but not found, channelId: ' +
+                event.channelId
+            );
+            const result = {
+              ...triggerEntities,
+            };
+            for (const config of configs) {
+              // Must match entity schema
+              if (entity.schema !== config.entity.schema) {
+                break;
+              }
+              // Must match event type
+              if (event.type !== config.event.type) {
+                break;
+              }
+
+              // TODO future filters/matchers go here
+
+              const triggerEntity = createEntity<TriggerEntity>({
+                schema: 'trigger',
+                config,
+              });
+
+              world.add(triggerEntity);
+              result[triggerEntity.id] = triggerEntity;
+            }
+            return result;
+          },
+        }),
+      },
+    })
+);
+eventTriggerDispatchService.start();

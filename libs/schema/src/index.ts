@@ -2046,14 +2046,21 @@ const MatchesGuardSchema = z.object({
 });
 export type MatchesGuard = z.infer<typeof MatchesGuardSchema>;
 
-const SendMessageDataSchema = z.object({
+// const SendMessageDataSchema = z.object({
+//   template: z.string(),
+//   variables: z.array(TemplateVariableSchema),
+//   handlers: TemplateHandlerSchema,
+//   // entities: z.record(z.string()),
+// });
+
+const MessageTemplateMetadataSchema = z.object({
   template: z.string(),
   variables: z.array(TemplateVariableSchema),
   handlers: TemplateHandlerSchema,
   // entities: z.record(z.string()),
 });
 
-export type SendMessageInvokeMeta = z.infer<typeof SendMessageDataSchema>;
+// export type SendMessageData = z.infer<typeof SendMessageDataSchema>;
 
 // const AssertInputInvokeMetaSchema = z.object({
 //   value: z.any(),
@@ -2120,17 +2127,35 @@ const GuardLiteralsSchema = MatchesGuardLiteral;
 
 const SendMessageServiceLiteral = z.literal('sendMessage');
 const BroadcastMessageServiceLiteral = z.literal('broadcastMessage');
+
 const TriggerServiceTypeSchema = z.union([
   SendMessageServiceLiteral,
   BroadcastMessageServiceLiteral,
 ]);
+export type TriggerServiceType = z.infer<typeof TriggerServiceTypeSchema>;
 
-const TriggerServiceSchema = z.discriminatedUnion('serviceType', [
-  z.object({
-    serviceType: SendMessageServiceLiteral,
-    data: SendMessageDataSchema,
-  }),
+const SendMessageMetadataataSchema = z.object({
+  serviceType: SendMessageServiceLiteral,
+  data: MessageTemplateMetadataSchema,
+});
+export type SendMessageMetadata = z.infer<typeof SendMessageMetadataataSchema>;
+
+const BroadcastMessageMetadataataSchema = z.object({
+  serviceType: BroadcastMessageServiceLiteral,
+  data: MessageTemplateMetadataSchema,
+});
+
+export type BroadcastMessageMetadata = z.infer<
+  typeof BroadcastMessageMetadataataSchema
+>;
+
+const TriggerServiceMetadataDataSchema = z.discriminatedUnion('serviceType', [
+  SendMessageMetadataataSchema,
+  BroadcastMessageMetadataataSchema,
 ]);
+export type TriggerServiceMetadata = z.infer<
+  typeof TriggerServiceMetadataDataSchema
+>;
 
 const TriggerGuardSchema = z.discriminatedUnion('guardType', [
   MatchesGuardSchema,
@@ -2155,7 +2180,7 @@ const EventTriggerConfigSchema = z.object({
     machine: z.custom<Parameters<typeof createMachine>[0]>(),
     actions: z.record(z.string(), TriggerActionsSchema).optional(),
     guards: z.record(z.string(), TriggerGuardSchema).optional(),
-    services: z.record(z.string(), TriggerServiceSchema).optional(),
+    services: z.record(z.string(), TriggerServiceMetadataDataSchema).optional(),
   }),
 });
 
@@ -2165,7 +2190,7 @@ const WorkflowConfigSchema = z.object({
   machine: z.custom<Parameters<typeof createMachine>[0]>(),
   actions: z.record(z.string(), TriggerActionsSchema),
   guards: z.record(z.string(), TriggerGuardSchema),
-  services: z.record(z.string(), TriggerServiceSchema),
+  services: z.record(z.string(), TriggerServiceMetadataDataSchema),
 });
 
 const ScheduledTriggerConfigSchema = z.object({
@@ -2175,7 +2200,7 @@ const ScheduledTriggerConfigSchema = z.object({
     machine: z.custom<Parameters<typeof createMachine>[0]>(),
     actions: z.record(z.string(), TriggerActionsSchema),
     guards: z.record(z.string(), TriggerGuardSchema),
-    services: z.record(z.string(), TriggerServiceSchema),
+    services: z.record(z.string(), TriggerServiceMetadataDataSchema),
   }),
 });
 
@@ -2186,14 +2211,18 @@ const WebhookTriggerConfigSchema = z.object({
     machine: z.custom<Parameters<typeof createMachine>[0]>(),
     actions: z.record(z.string(), TriggerActionsSchema),
     guards: z.record(z.string(), TriggerGuardSchema),
-    services: z.record(z.string(), TriggerServiceSchema),
+    services: z.record(z.string(), TriggerServiceMetadataDataSchema),
   }),
 });
+
+// const ServicesMapSchema = z.object({
+//   sendMessage: z.function()
+// })
 
 const TriggerConfigSchema = z.discriminatedUnion('triggerType', [
   EventTriggerConfigSchema,
   WebhookTriggerConfigSchema,
-  ScheduledTriggerConfigSchema
+  ScheduledTriggerConfigSchema,
 ]);
 
 export type TriggerConfig = z.infer<typeof TriggerConfigSchema>;

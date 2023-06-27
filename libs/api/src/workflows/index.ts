@@ -1,5 +1,5 @@
 import {
-  SendMessageInvokeMeta,
+  SendMessageMetadata,
   TemplateVariable,
   WorkflowCommand,
   WorkflowContext,
@@ -12,7 +12,7 @@ export const workflowServices = {
   sendMessage: async (
     context: WorkflowContext,
     event: WorkflowCommand,
-    invokeMeta: SendMessageInvokeMeta
+    invokeMeta: SendMessageMetadata
   ) => {
     // const { sendMessage } = invokeMeta;
 
