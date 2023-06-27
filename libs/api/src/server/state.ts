@@ -1,40 +1,19 @@
 import { createMachine, interpret } from 'xstate';
-import { Entity } from '@explorers-club/schema';
+import { Entity, SendMessageInvokeMeta } from '@explorers-club/schema';
 import { World } from 'miniplex';
 import { createIndex } from '../world';
-import { triggerDispatchMachine } from '../services/trigger-dispatch.service';
+import { eventTriggerDispatchMachine } from '../services/event-trigger-dispatch.service';
+import { greetOnJoinTrigger } from '../configs/triggers';
 
 export const world = new World<Entity>();
 export const entitiesById = createIndex(world);
 
 const triggerDispatchService = interpret(
-  triggerDispatchMachine.withContext({
+  eventTriggerDispatchMachine.withContext({
     world,
-    configs: [
-      {
-        id: 'GreetOnJoinRoom',
-        event: {
-          type: 'JOIN',
-        },
-        entity: {
-          schema: 'room',
-        },
-        workflowConfig: createMachine({
-          id: 'MyStateMachine',
-          initial: 'Running',
-          states: {
-            Running: {},
-          },
-        }),
-        inputs: [
-          {
-            inputType: 'entity',
-            key: 'room',
-            path: '/id',
-          },
-        ],
-      },
-    ],
+    triggerEntities: {},
+    entitiesById,
+    configs: [greetOnJoinTrigger],
   })
 );
 triggerDispatchService.start();

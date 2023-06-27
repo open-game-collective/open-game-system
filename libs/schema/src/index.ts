@@ -189,6 +189,23 @@ const LittleVigilantePlayerSchemaTypeLiteral = z.literal(
 const CodebreakersGameSchemaTypeLiteral = z.literal('codebreakers_game');
 const CodebreakersPlayerSchemaTypeLiteral = z.literal('codebreakers_player');
 const TriggerSchemaTypeLiteral = z.literal('trigger');
+const ChannelWorkflowLiteral = z.literal('channel_workflow');
+
+const TriggerEventTemplateDataTypeLiteral = z.literal('trigger_event');
+const TriggerEntityTemplateDataTypeLiteral = z.literal('trigger_entity');
+const TriggerEventSubjectTemplateDataTypeLiteral = z.literal(
+  'trigger_event_subject'
+);
+const TriggerMetadataTemplateDataTypeLiteral = z.literal('trigger_metadata');
+const WorkflowEventTemplateDataTypeLiteral = z.literal('workflow_event');
+
+export const TemplateDataTypeLiteralSchema = z.union([
+  TriggerEventTemplateDataTypeLiteral,
+  TriggerEntityTemplateDataTypeLiteral,
+  TriggerEventSubjectTemplateDataTypeLiteral,
+  TriggerMetadataTemplateDataTypeLiteral,
+  WorkflowEventTemplateDataTypeLiteral,
+]);
 
 export const LoginInputSchema = z.object({
   email: z.string().email(),
@@ -256,7 +273,7 @@ export type EntityTypeMap = {
   room: RoomEntity;
   user: UserEntity;
   message_channel: MessageChannelEntity;
-  workflow: WorkflowEntity;
+  // workflow: WorkflowEntity;
   codebreakers_game: CodebreakersGameEntity;
   codebreakers_player: CodebreakersPlayerEntity;
   banana_traders_game: BananaTradersGameEntity;
@@ -326,11 +343,6 @@ const LeaveEventTypeLiteral = z.literal('LEAVE');
 //   });
 // };
 
-const TemplateVariableSchema = z.object({
-  entity: EntitySchemaLiteralsSchema,
-  path: z.string(),
-});
-
 const CommandHandlerSchema = z.object({
   command: z.string(),
 });
@@ -357,15 +369,6 @@ export type ChannelWorkflowContext = z.infer<
 //   userId: SnowflakeId;
 //   channelId: SnowflakeId;
 // };
-
-const SendMessageParamsSchema = z.object({
-  template: z.string(),
-  variables: z.record(TemplateVariableSchema),
-  handlers: TemplateHandlerSchema,
-  // entities: z.record(z.string()),
-});
-
-export type SendMessageParams = z.infer<typeof SendMessageParamsSchema>;
 
 // Define separate Zod schemas for each event type
 const DisconnectEventSchema = z.object({ type: z.literal('DISCONNECT') });
@@ -472,7 +475,7 @@ export type ChannelEvent = z.infer<typeof ChannelEventSchema>;
 
 export type CreateEventProps<TEvent extends ChannelEvent> = Omit<
   TEvent,
-  'id' | 'channel'
+  'id' | 'channelId'
 >;
 
 // // Define a custom Zod schema for the send function
@@ -864,45 +867,72 @@ export type TriggerData = z.infer<typeof TriggerDataSchema>;
 // export type TriggerEntity = z.infer<typeof TriggerEntitySchema>;
 
 // ------------ Workflow Entity Definition ------------
-const WorkflowContextSchema = z.object({
-  foo: z.string(),
+// const WorkflowContextSchema = z.object({
+//   foo: z.string(),
+// });
+
+// export type WorkflowContext = z.infer<typeof WorkflowContextSchema>;
+
+// const WorkflowCommandSchema = z.object({
+//   foo: z.string(),
+// });
+
+const SubmitFormEventSchema = z.object({
+  type: z.literal('SUBMIT_FORM'),
+  key: z.string(),
+  formData: z.record(z.string()),
 });
 
-export type WorkflowContext = z.infer<typeof WorkflowContextSchema>;
-
-const WorkflowEntityPropsSchema = z.object({
-  schema: WorkflowSchemaTypeLiteral,
+const InputChangeEventSchema = z.object({
+  type: z.literal('INPUT_CHANGE'),
+  key: z.string(),
+  value: z.string(),
 });
 
-const WorkflowCommandSchema = z.object({
-  type: z.literal('foo'),
-  triggerId: SnowflakeIdSchema,
-  config: z.custom<AnyStateMachine>(),
-});
+const WorkflowCommandSchema = z.discriminatedUnion('type', [
+  InputChangeEventSchema,
+  SubmitFormEventSchema,
+]);
+
 export type WorkflowCommand = z.infer<typeof WorkflowCommandSchema>;
 
-const WorkflowStateValueSchema = z.object({
-  Running: z.enum(['True', 'False']),
-  Complete: z.enum(['True', 'False']),
-});
+// const SendMessageInvokeMetaSchema = z.object({
 
-type WorkflowStateValue = z.infer<typeof WorkflowStateValueSchema>;
-type WorkflowStateSchema = StateSchemaFromStateValue<WorkflowStateValue>;
+// });
 
-export type WorkflowMachine = StateMachine<
-  WorkflowContext,
-  WorkflowStateSchema,
-  WorkflowCommand
->;
-export type WorkflowInterpreter = InterpreterFrom<WorkflowMachine>;
+// const WorkflowEntityPropsSchema = z.object({
+//   schema: WorkflowSchemaTypeLiteral,
+// });
 
-export const WorkflowEntitySchema = EntityBaseSchema(
-  WorkflowEntityPropsSchema,
-  WorkflowCommandSchema,
-  WorkflowStateValueSchema,
-  MessageEventSchema
-);
-export type WorkflowEntity = z.infer<typeof WorkflowEntitySchema>;
+// const WorkflowCommandSchema = z.object({
+//   type: z.literal('foo'),
+//   triggerId: SnowflakeIdSchema,
+//   config: z.custom<AnyStateMachine>(),
+// });
+// export type WorkflowCommand = z.infer<typeof WorkflowCommandSchema>;
+
+// const WorkflowStateValueSchema = z.object({
+//   Running: z.enum(['True', 'False']),
+//   Complete: z.enum(['True', 'False']),
+// });
+
+// type WorkflowStateValue = z.infer<typeof WorkflowStateValueSchema>;
+// type WorkflowStateSchema = StateSchemaFromStateValue<WorkflowStateValue>;
+
+// export type WorkflowMachine = StateMachine<
+//   WorkflowContext,
+//   WorkflowStateSchema,
+//   WorkflowCommand
+// >;
+// export type WorkflowInterpreter = InterpreterFrom<WorkflowMachine>;
+
+// export const WorkflowEntitySchema = EntityBaseSchema(
+//   WorkflowEntityPropsSchema,
+//   WorkflowCommandSchema,
+//   WorkflowStateValueSchema,
+//   MessageEventSchema
+// );
+// export type WorkflowEntity = z.infer<typeof WorkflowEntitySchema>;
 
 // ------------ User Entity Definition ------------
 const UserContextSchema = z.object({
@@ -1335,6 +1365,8 @@ const RoomEventSchema = z.discriminatedUnion('type', [
   LeaveEventSchema,
 ]);
 
+export type RoomEvent = z.infer<typeof RoomEventSchema>;
+
 const RoomEntitySchema = EntityBaseSchema(
   RoomEntityPropsSchema,
   RoomCommandSchema,
@@ -1554,43 +1586,18 @@ export type CodebreakersPlayerMachine = StateMachine<
   CodebreakersPlayerCommand
 >;
 
-const EventInputDataSchema = z.object({
-  key: z.string(),
-  path: z.string(),
-  inputType: z.literal('event'),
-});
-const EntityInputDataSchema = z.object({
-  key: z.string(),
-  path: z.string(),
-  inputType: z.literal('entity'),
-});
-
-const WorkflowInputSchema = z.discriminatedUnion('inputType', [
-  EntityInputDataSchema,
-  EventInputDataSchema,
-]);
-
-// todo add 'filtering' capabilities to these schemas
-const EventMatchersSchema = z.object({
-  type: ChannelEventTypeSchema,
-});
-const EntityMatchersSchema = z.object({
-  schema: EntitySchemaLiteralsSchema,
-});
-
-const TriggerConfigSchema = z.object({
-  id: z.string(),
-  event: EventMatchersSchema,
-  entity: EntityMatchersSchema,
-  workflowConfig: z.custom<AnyStateMachine>(),
-  inputs: z.array(WorkflowInputSchema),
-});
-export type TriggerConfig = z.infer<typeof TriggerConfigSchema>;
-
 const TriggerEntityPropSchema = z.object({
+  // id: z.string(),
+  // event: EventMatchersSchema,
+  // entity: EntityMatchersSchema,
+  // workflowConfig: z.custom<AnyStateMachine>(),
+  // workflowType: WorkflowTypeLiteralSchema,
+
+  // event: EventMatchersSchema,
+  // entity: EntityMatchersSchema,
   schema: TriggerSchemaTypeLiteral,
-  data: TriggerDataSchema,
-  configId: z.string(),
+  // data: TriggerDataSchema,
+  config: z.lazy(() => TriggerConfigSchema),
 });
 
 const TriggerStateValueSchema = z.object({
@@ -1613,7 +1620,7 @@ const TriggerEntitySchema = EntityBaseSchema(
 export type TriggerEntity = z.infer<typeof TriggerEntitySchema>;
 
 const TriggerContextSchema = z.object({
-  workflowRefs: z.map(SnowflakeIdSchema, z.custom<WorkflowInterpreter>()),
+  foo: z.string(),
 });
 export type TriggerContext = z.infer<typeof TriggerContextSchema>;
 
@@ -1830,8 +1837,8 @@ export const EntitySchema = z.union([
   SessionEntitySchema,
   RoomEntitySchema,
   UserEntitySchema,
-  WorkflowEntitySchema,
-  // TriggerEntitySchema,
+  // WorkflowEntitySchema,
+  TriggerEntitySchema,
   MessageChannelEntitySchema,
   BananaTradersGameEntitySchema,
   BananaTradersPlayerEntitySchema,
@@ -1839,7 +1846,7 @@ export const EntitySchema = z.union([
   CodebreakersPlayerEntitySchema,
   LittleVigilanteGameEntitySchema,
   LittleVigilantePlayerEntitySchema,
-  TriggerEntitySchema,
+  // TriggerEntitySchema,
 ]);
 
 export type Entity = z.infer<typeof EntitySchema>;
@@ -1856,7 +1863,7 @@ export const EntitySchemas = {
   room: RoomEntitySchema,
   session: SessionEntitySchema,
   connection: ConnectionEntitySchema,
-  workflow: WorkflowEntitySchema,
+  // workflow: WorkflowEntitySchema,
   trigger: TriggerEntitySchema,
   message_channel: MessageChannelEntitySchema,
   banana_traders_game: BananaTradersGameEntitySchema,
@@ -1888,10 +1895,10 @@ export type EntityMachine =
       type: 'room';
       machine: RoomMachine;
     }
-  | {
-      type: 'workflow';
-      machine: WorkflowMachine;
-    }
+  // | {
+  //     type: 'workflow';
+  //     machine: WorkflowMachine;
+  //   }
   | {
       type: 'message_channel';
       machine: MessageChannelMachine;
@@ -1977,3 +1984,233 @@ export type EntityIndexEvent<TEntity extends Entity> =
   | EntityIndexInitEvent<TEntity>
   | EntityIndexAddEvent<TEntity>
   | EntityIndexRemoveEvent<TEntity>;
+
+const TriggerEventTemplateVariableSchema = z.object({
+  key: z.string(),
+  path: z.string(),
+  templateDataType: TriggerEventTemplateDataTypeLiteral,
+});
+
+const TriggerEntityTemplateVariableSchema = z.object({
+  key: z.string(),
+  path: z.string(),
+  templateDataType: TriggerEntityTemplateDataTypeLiteral,
+});
+
+const TriggerEventSubjectTemplateVariableSchema = z.object({
+  key: z.string(),
+  path: z.string(),
+  templateDataType: TriggerEventSubjectTemplateDataTypeLiteral,
+});
+
+const TriggerMetadataTemplateVariableSchema = z.object({
+  key: z.string(),
+  path: z.string(),
+  templateDataType: TriggerMetadataTemplateDataTypeLiteral,
+});
+
+const WorkflowEventTemplateVariableSchema = z.object({
+  key: z.string(),
+  path: z.string(),
+  templateDataType: WorkflowEventTemplateDataTypeLiteral,
+});
+
+const TemplateVariableSchema = z.discriminatedUnion('templateDataType', [
+  TriggerEntityTemplateVariableSchema,
+  TriggerEventTemplateVariableSchema,
+  TriggerMetadataTemplateVariableSchema,
+  TriggerEventSubjectTemplateVariableSchema,
+  WorkflowEventTemplateVariableSchema,
+]);
+
+export type TemplateVariable = z.infer<typeof TemplateVariableSchema>;
+
+const MatchesGuardLiteral = z.literal('matches');
+
+const MatchesGuardSchema = z.object({
+  guardType: MatchesGuardLiteral,
+  variable: TemplateVariableSchema,
+  operator: z.enum([
+    '<',
+    '<==',
+    '==',
+    '>',
+    '>=',
+    '!=',
+    'array-contains',
+    'array-contains-any',
+    'in',
+    'not-in',
+  ]),
+  value: z.union([z.number(), z.string()]),
+});
+export type MatchesGuard = z.infer<typeof MatchesGuardSchema>;
+
+const SendMessageDataSchema = z.object({
+  template: z.string(),
+  variables: z.array(TemplateVariableSchema),
+  handlers: TemplateHandlerSchema,
+  // entities: z.record(z.string()),
+});
+
+export type SendMessageInvokeMeta = z.infer<typeof SendMessageDataSchema>;
+
+// const AssertInputInvokeMetaSchema = z.object({
+//   value: z.any(),
+//   templateDataType: TemplateDataTypeLiteralSchema,
+//   path: z.string(),
+// });
+
+// export type AssertInputInvokeMeta = z.infer<typeof SendMessageInvokeMetaSchema>;
+
+// export type AssertInputValueInvokeMeta = z.infer<
+//   typeof SetMetadataInvokeMetaSchema
+// >;
+
+// const SetMetadataInvokeMetaSchema = z.object({
+//   key: z.string(),
+//   eventPath: z.string(),
+// });
+
+// export type SetMetadataInvokeMeta = z.infer<typeof SetMetadataInvokeMetaSchema>;
+
+// const ChannelWorkflowInvokeMeta = z.object({
+//   workflowType: ChannelWorkflowLiteral,
+//   sendMessage: SendMessageDataSchema,
+// });
+
+// const WorkflowInvokeMetaSchema = z.discriminatedUnion('workflowType', [
+//   ChannelWorkflowInvokeMeta,
+// ]);
+// export type WorkflowInvokeMeta = z.infer<typeof WorkflowInvokeMetaSchema>;
+
+const WorkflowInputConfigSchema = z.discriminatedUnion('templateDataType', [
+  TriggerEntityTemplateVariableSchema,
+  TriggerEventTemplateVariableSchema,
+]);
+
+export type WorkflowInputConfig = z.infer<typeof WorkflowInputConfigSchema>;
+
+const WorkflowTypeLiteralSchema = ChannelWorkflowLiteral;
+
+const EventTriggerTypeLiteral = z.literal('event');
+const EntityTriggerTypeLiteral = z.literal('entity');
+const IndexTriggerTypeLiteral = z.literal('index');
+const CommandTriggerTypeLiteral = z.literal('command');
+const WebhookTriggerTypeLiteral = z.literal('webhook');
+const ScheduledTriggerTypeLiteral = z.literal('scheduled');
+
+export const TriggerTypeLiteralSchema = z.union([
+  EventTriggerTypeLiteral,
+  EntityTriggerTypeLiteral,
+  IndexTriggerTypeLiteral,
+  CommandTriggerTypeLiteral,
+  WebhookTriggerTypeLiteral,
+]);
+
+// todo add 'filtering' capabilities to these schemas, use firebase ref
+const EventMatchersSchema = z.object({
+  type: ChannelEventTypeSchema,
+});
+const EntityMatchersSchema = z.object({
+  schema: EntitySchemaLiteralsSchema,
+});
+
+const GuardLiteralsSchema = MatchesGuardLiteral;
+
+const SendMessageServiceLiteral = z.literal('sendMessage');
+const BroadcastMessageServiceLiteral = z.literal('broadcastMessage');
+const TriggerServiceTypeSchema = z.union([
+  SendMessageServiceLiteral,
+  BroadcastMessageServiceLiteral,
+]);
+
+const TriggerServiceSchema = z.discriminatedUnion('serviceType', [
+  z.object({
+    serviceType: SendMessageServiceLiteral,
+    data: SendMessageDataSchema,
+  }),
+]);
+
+const TriggerGuardSchema = z.discriminatedUnion('guardType', [
+  MatchesGuardSchema,
+]);
+
+// dummy action probably not used
+const ConsoleLogActionSchema = z.object({
+  actionType: z.literal('ConsoleLog'),
+  message: z.string(),
+});
+
+const TriggerActionsSchema = z.discriminatedUnion('actionType', [
+  ConsoleLogActionSchema,
+]);
+
+const EventTriggerConfigSchema = z.object({
+  id: SnowflakeIdSchema,
+  event: EventMatchersSchema,
+  entity: EntityMatchersSchema,
+  triggerType: EventTriggerTypeLiteral,
+  workflowConfig: z.object({
+    machine: z.custom<Parameters<typeof createMachine>[0]>(),
+    actions: z.record(z.string(), TriggerActionsSchema).optional(),
+    guards: z.record(z.string(), TriggerGuardSchema).optional(),
+    services: z.record(z.string(), TriggerServiceSchema).optional(),
+  }),
+});
+
+export type EventTriggerConfigSchema = z.infer<typeof EventTriggerConfigSchema>;
+
+const WorkflowConfigSchema = z.object({
+  machine: z.custom<Parameters<typeof createMachine>[0]>(),
+  actions: z.record(z.string(), TriggerActionsSchema),
+  guards: z.record(z.string(), TriggerGuardSchema),
+  services: z.record(z.string(), TriggerServiceSchema),
+});
+
+const ScheduledTriggerConfigSchema = z.object({
+  id: SnowflakeIdSchema,
+  triggerType: ScheduledTriggerTypeLiteral,
+  workflowConfig: z.object({
+    machine: z.custom<Parameters<typeof createMachine>[0]>(),
+    actions: z.record(z.string(), TriggerActionsSchema),
+    guards: z.record(z.string(), TriggerGuardSchema),
+    services: z.record(z.string(), TriggerServiceSchema),
+  }),
+});
+
+const WebhookTriggerConfigSchema = z.object({
+  id: SnowflakeIdSchema,
+  triggerType: WebhookTriggerTypeLiteral,
+  workflowConfig: z.object({
+    machine: z.custom<Parameters<typeof createMachine>[0]>(),
+    actions: z.record(z.string(), TriggerActionsSchema),
+    guards: z.record(z.string(), TriggerGuardSchema),
+    services: z.record(z.string(), TriggerServiceSchema),
+  }),
+});
+
+const TriggerConfigSchema = z.discriminatedUnion('triggerType', [
+  EventTriggerConfigSchema,
+  WebhookTriggerConfigSchema,
+  ScheduledTriggerConfigSchema
+]);
+
+export type TriggerConfig = z.infer<typeof TriggerConfigSchema>;
+
+const WorkflowInputSchema = z.object({
+  event: ChannelEventSchema,
+  entity: EntitySchema,
+  eventSubject: EntitySchema,
+  metadata: z.record(z.any()),
+});
+
+export type WorkflowInput = z.infer<typeof WorkflowInputSchema>;
+
+const WorkflowContextSchema = z.object({
+  workflowId: SnowflakeIdSchema,
+  input: WorkflowInputSchema,
+  triggerConfig: TriggerConfigSchema,
+});
+
+export type WorkflowContext = z.infer<typeof WorkflowContextSchema>;

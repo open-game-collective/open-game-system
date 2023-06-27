@@ -6,14 +6,20 @@ export const NewUserWorkflow = createMachine({
   states: {
     Hello: {
       after: {
-        3000: 'Going',
+        3000: 'Sending',
       },
     },
-    Going: {
-      after: {
-        1000: 'Done',
+    Sending: {
+      invoke: {
+        src: 'sendMessage',
+        meta: {
+          foo: "bar"
+        },
+        onDone: 'Done',
+        onError: 'Error',
       },
     },
+    Error: {},
     Done: {
       type: 'final',
     },

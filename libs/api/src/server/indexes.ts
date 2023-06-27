@@ -2,7 +2,7 @@ import {
   ConnectionEntity,
   RoomEntity,
   SessionEntity,
-  TriggerEntity,
+  // TriggerEntity,
   UserEntity,
 } from '@explorers-club/schema';
 import { createArchetypeIndex, createSchemaIndex } from '../indices';
@@ -29,11 +29,11 @@ export const [roomsBySlug] = createSchemaIndex<RoomEntity>(
   'slug'
 );
 export const [usersById] = createSchemaIndex<UserEntity>(world, 'user', 'id');
-export const [triggersById] = createSchemaIndex<TriggerEntity>(
-  world,
-  'trigger',
-  'id'
-);
+// export const [triggersById] = createSchemaIndex<TriggerEntity>(
+//   world,
+//   'trigger',
+//   'id'
+// );
 export const [channelEntitiesById] = createArchetypeIndex(
   world.with('channel')
 );

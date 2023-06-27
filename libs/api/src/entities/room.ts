@@ -1,22 +1,22 @@
 import {
   ConnectionEntity,
+  CreateEventProps,
   Entity,
   InitializedConnectionEntity,
+  JoinEvent,
   RoomCommand,
   RoomContext,
   RoomEntity,
-  RoomMessageData,
-  TriggerData,
-  TriggerEntity,
+  RoomEvent,
 } from '@explorers-club/schema';
 import { assert } from '@explorers-club/utils';
-import { createEntity } from '../ecs';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
 import { createMachine } from 'xstate';
 import { sessionsById } from '../server/indexes';
 import { entitiesById } from '../server/state';
 import { waitForCondition } from '../world';
+// import { generateSnowflakeId } from '../ids';
 
 export const createRoomMachine = ({
   world,
@@ -28,7 +28,7 @@ export const createRoomMachine = ({
   channel: ReplaySubject<any>;
 }) => {
   const roomEntity = entity as RoomEntity;
-  const roomChannel = channel as ReplaySubject<RoomMessageData>;
+  const roomChannel = channel as ReplaySubject<CreateEventProps<RoomEvent>>;
 
   return createMachine({
     id: 'RoomMachine',
@@ -64,72 +64,11 @@ export const createRoomMachine = ({
               event.connectionEntityId,
             ];
 
-            roomChannel.next({
-              type: 'MESSAGE',
-              content: 'HELLO!',
-              sender: roomEntity.id,
-            });
-
-            // TODO send a channel event here...
-
-            // const data = {
-            //   triggerType: 'room_trigger',
-            //   entityIds: {
-            //     room: roomEntity.id,
-            //     session: sessionEntity.id,
-            //   },
-            // } satisfies TriggerData;
-            // } satisfies TriggerData;
-
-            // const trigger = createEntity<TriggerEntity>({
-            //   schema: 'trigger',
-            //   // workflowIds: [],
-            //   data,
-            // });
-            // world.add(trigger);
-
-            // const sendMessageParams = {
-            //   template: `Hello <PlayerAvatar onEnterName={onEnterName} userName={userName} roomSlug={roomSlug} />. <Group><Button id="YES" requireConfirmation={true} /><Button id="NO" /> /> <Form id="NAME_FORM"><TextInput id="NAME" /></Form></Group>`,
-            //   handlers: {
-            //     onConfirm: {
-            //       YES: {
-            //         command: 'CONFIRM_YES',
-            //       },
-            //     },
-            //     onPress: {
-            //       YES: {
-            //         command: 'PRESS_YES',
-            //       },
-            //     },
-            //     onSubmit: {
-            //       NAME_FORM: {
-            //         command: 'SUBMIT_NAME',
-            //       },
-            //     },
-            //   },
-            //   variables: {
-            //     roomSlug: {
-            //       entity: 'room',
-            //       path: '/slug',
-            //     },
-            //     userName: {
-            //       entity: 'session',
-            //       path: '/name',
-            //     },
-            //   },
-            // } satisfies SendMessageParams;
-
-            // roomChannel.next({
-            //   type: 'JOIN',
-            //   subject: ,
-            //   sender: roomEntity.id,
-            // });
-
-            // roomChannel.next({
-            //   type: 'PLAIN',
-            //   content: `${event.connectionEntityId} has connected.`,
-            //   sender: roomEntity.id,
-            // });
+            const joinEvent = {
+              type: 'JOIN',
+              subject: sessionEntity.id,
+            } as CreateEventProps<JoinEvent>;
+            roomChannel.next(joinEvent);
 
             // If this is the first time this user has been in this channel,
             // run the workflow

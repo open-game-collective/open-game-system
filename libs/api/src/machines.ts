@@ -5,7 +5,6 @@ import {
   EntityMachine,
   EntityMachineMap,
 } from '@explorers-club/schema';
-import { ObservableProps } from '@explorers-club/utils';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
 import { createBananaTradersGameMachine } from './entities/banana-traders-game';
@@ -18,9 +17,10 @@ import { createLittleVigilantePlayerMachine } from './entities/little-vigilante-
 import { createMessageChannelMachine } from './entities/messsage-channel';
 import { createRoomMachine } from './entities/room';
 import { createSessionMachine } from './entities/session';
+// import { createTriggerMachine } from './entities/trigger';
 import { createTriggerMachine } from './entities/trigger';
 import { createUserMachine } from './entities/user';
-import { createWorkflowMachine } from './entities/workflow';
+// import { createWorkflowMachine } from './entities/workflow';
 
 type EntityMachineCreators = {
   [TSchemaType in keyof EntityMachineMap]: <
@@ -38,7 +38,7 @@ export const machineMap: EntityMachineCreators = {
   session: createSessionMachine,
   room: createRoomMachine,
   user: createUserMachine,
-  workflow: createWorkflowMachine,
+  // workflow: createWorkflowMachine,
   message_channel: createMessageChannelMachine,
   codebreakers_game: createCodebreakersGameMachine,
   codebreakers_player: createCodebreakersPlayerMachine,

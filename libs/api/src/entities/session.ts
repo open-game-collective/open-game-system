@@ -1,30 +1,11 @@
-import { generateSnowflakeId } from '../ecs';
 import {
   Entity,
-  SessionContext,
-  SessionEntity,
   SessionCommand,
-  SessionStateSchema,
+  SessionContext,
   SessionTypeState,
 } from '@explorers-club/schema';
-import { assertEventType } from '@explorers-club/utils';
 import { World } from 'miniplex';
-import { assign, createMachine } from 'xstate';
-
-const supabaseUrl = process.env['SUPABASE_URL'];
-const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
-const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
-const supabaseServiceKey = process.env['SUPABASE_SERVICE_KEY'];
-
-// todo: switch to using zod for parsing
-if (
-  !supabaseUrl ||
-  !supabaseJwtSecret ||
-  !supabaseAnonKey ||
-  !supabaseServiceKey
-) {
-  throw new Error('missing supabase configuration');
-}
+import { createMachine } from 'xstate';
 
 export const createSessionMachine = ({
   world,

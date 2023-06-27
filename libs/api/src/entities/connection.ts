@@ -22,16 +22,14 @@ import {
 } from '@explorers-club/utils';
 import { Session, createClient } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
-import { World } from 'miniplex';
-import { assign, DoneInvokeEvent, createMachine, spawn } from 'xstate';
 import { assign as assignImmer } from '@xstate/immer';
-import { createEntity, generateSnowflakeId } from '../ecs';
-import { createSchemaIndex } from '../indices';
-import { world } from '../server/state';
+import { World } from 'miniplex';
+import { DoneInvokeEvent, assign, createMachine, spawn } from 'xstate';
+// import { createEntity } from '../ecs';
+import { generateSnowflakeId } from '../ids';
+import { roomsBySlug, sessionsByUserId, usersById } from '../server/indexes';
 import { newRoomMachine } from '../services';
 import { createChatMachine } from '../services/chat.service';
-import { ReplaySubject, Subject } from 'rxjs';
-import { roomsBySlug, sessionsByUserId, usersById } from '../server/indexes';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -47,18 +45,6 @@ if (
 ) {
   throw new Error('missing supabase configuration');
 }
-
-// const [sessionsById] = createSchemaIndex(world, 'session', 'id');
-// const [sessionsByUserId] = createSchemaIndex(world, 'session', 'userId');
-// const [roomsBySlug] = createSchemaIndex(world, 'room', 'slug');
-
-// const homeRoute = match('/');
-// const newRoomRoute = match('/new');
-// const loginRoute = match('/login');
-// const roomRoute = match('/:id');
-
-// const matchesRoute = (location: string, route: MatchFunction<object>) =>
-//   !!route(new URL(location).pathname);
 
 export const createConnectionMachine = ({
   world,
@@ -145,10 +131,11 @@ export const createConnectionMachine = ({
                 autoForward: true,
                 onDone: {
                   target: 'Room',
-                  actions: (
+                  actions: async (
                     _,
                     event: DoneInvokeEvent<Required<NewRoomContext>>
                   ) => {
+                    const { createEntity } = await import('../ecs');
                     assert(
                       sessionEntity,
                       'expected sessionEntity but not found'
@@ -174,7 +161,8 @@ export const createConnectionMachine = ({
             Room: {
               entry: [
                 'spawnChatService',
-                (context) => {
+                async (context) => {
+                  const { createEntity } = await import('../ecs');
                   assert(
                     context.chatServiceRef,
                     'expected chat service to be initialized'
@@ -432,7 +420,6 @@ export const createConnectionMachine = ({
             ) as ConnectionContext['chatServiceRef'],
         }),
         initializeCurrentRoom: (_, event) => {
-          console.log('inintializing');
           assertEventType(event, 'INITIALIZE');
 
           if (event.initialRouteProps.name == 'Room') {
