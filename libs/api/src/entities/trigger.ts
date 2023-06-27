@@ -1,11 +1,5 @@
 import {
   Entity,
-  SendMessageMetadata,
-  SessionCommand,
-  SessionContext,
-  SessionTypeState,
-  SnowflakeId,
-  TriggerData,
   TriggerEntity,
   TriggerMachine,
   TriggerServiceMetadata,
@@ -60,14 +54,17 @@ export const createTriggerMachine = ({
   const delays = {} as any;
 
   const workflowMachine = createMachine(
-    triggerEntity.config.workflowConfig.machine,
-    {
+    triggerEntity.config.workflowConfig.machine
+  )
+    .withContext({
+      entity: triggerEntity,
+    } satisfies WorkflowContext)
+    .withConfig({
       services,
       actions,
       guards,
       delays,
-    }
-  );
+    });
 
   return createMachine({
     id: 'TriggerMachine',

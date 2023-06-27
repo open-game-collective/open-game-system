@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { Observable } from 'rxjs';
 import { Database } from '@explorers-club/database';
 import { IndexByType, MakeRequired } from '@explorers-club/utils';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Operation } from 'fast-json-patch';
+import { Observable } from 'rxjs';
 import {
   AnyEventObject,
   AnyInterpreter,
-  AnyStateMachine,
   InterpreterFrom,
   StateMachine,
   StateSchema,
@@ -2227,19 +2226,17 @@ const TriggerConfigSchema = z.discriminatedUnion('triggerType', [
 
 export type TriggerConfig = z.infer<typeof TriggerConfigSchema>;
 
-const WorkflowInputSchema = z.object({
-  event: ChannelEventSchema,
-  entity: EntitySchema,
-  eventSubject: EntitySchema,
-  metadata: z.record(z.any()),
-});
+// const WorkflowInputSchema = z.object({
+//   event: ChannelEventSchema,
+//   entity: EntitySchema,
+//   eventSubject: EntitySchema,
+//   metadata: z.record(z.any()),
+// });
 
-export type WorkflowInput = z.infer<typeof WorkflowInputSchema>;
+// export type WorkflowInput = z.infer<typeof WorkflowInputSchema>;
 
 const WorkflowContextSchema = z.object({
-  workflowId: SnowflakeIdSchema,
-  input: WorkflowInputSchema,
-  triggerConfig: TriggerConfigSchema,
+  entity: TriggerEntitySchema,
 });
 
 export type WorkflowContext = z.infer<typeof WorkflowContextSchema>;

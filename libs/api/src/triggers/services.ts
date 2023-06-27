@@ -20,7 +20,7 @@ export const triggerServices = {
     event: WorkflowCommand,
     metadata: SendMessageMetadata
   ) => {
-    console.log('SEND MESSAGE WITH DATA!', metadata);
+    console.log('SEND MESSAGE WITH DATA!', metadata, context);
   },
   broadcastMessage: (
     context: WorkflowContext,

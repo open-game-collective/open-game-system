@@ -1,7 +1,4 @@
-import {
-  EventTriggerConfigSchema,
-  SendMessageMetadata,
-} from '../../../schema/src';
+import { EventTriggerConfigSchema } from '../../../schema/src';
 
 export const greetOnJoinTrigger = {
   id: 'GreetOnJoinRoom',
