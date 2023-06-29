@@ -43,8 +43,20 @@ export const greetOnJoinTrigger = {
     services: {
       sendJoinMessage: {
         serviceType: 'sendMessage',
-        data: {
-          template: 'Hello',
+        channelId: {
+          templateDataType: 'trigger_entity',
+          path: '/id',
+        },
+        recipientId: {
+          templateDataType: 'trigger_entity',
+          path: '/id',
+        },
+        senderId: {
+          templateDataType: 'trigger_event_subject',
+          path: '/id',
+        },
+        template: {
+          markup: 'Hello c{channelId} r {recipientId} s{senderId}',
           handlers: {
             onSubmit: {
               FOO: {
@@ -59,9 +71,8 @@ export const greetOnJoinTrigger = {
   },
 } satisfies EventTriggerConfigSchema;
 
-// meta: {
-//   // template: `Hello <PlayerAvatar userName={userName} roomSlug={roomSlug} />. <Group><Button id="YES" requireConfirmation={true} /><Button id="NO" /> /> <Form id="NAME_FORM"><TextInput id="NAME" /></Form></Group>`,
-//   template: `Welcome Miner #{}`,
+// const meta = {
+//   template: `Hello <PlayerAvatar userName={userName} roomSlug={roomSlug} />. <Group><Button id="YES" requireConfirmation={true} /><Button id="NO" /> /> <Form id="NAME_FORM"><TextInput id="NAME" /></Form></Group>`,
 //   handlers: {
 //     onConfirm: {
 //       YES: {
@@ -91,4 +102,4 @@ export const greetOnJoinTrigger = {
 //       path: '/name',
 //     },
 //   ],
-// } satisfies SendMessageData,
+// }

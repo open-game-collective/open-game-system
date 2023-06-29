@@ -1,6 +1,7 @@
 import {
   Entity,
   TriggerEntity,
+  TriggerInputSchema,
   TriggerMachine,
   TriggerServiceMetadata,
   WorkflowCommand,
@@ -32,15 +33,10 @@ export const createTriggerMachine = ({
         context: WorkflowContext,
         event: WorkflowCommand /*, meta todo: use? */
       ) => {
-        return service(
-          context,
-          event,
-          triggerService.data as unknown as TriggerServiceMetadata
-        );
+        return service(context, event, triggerService);
       };
     }
   }
-  console.log(services);
 
   const actions = {} as any;
   // todo do same we did for actiosn for others...
@@ -52,12 +48,14 @@ export const createTriggerMachine = ({
 
   const guards = {} as any;
   const delays = {} as any;
+  const input = TriggerInputSchema.parse(triggerEntity.input);
 
   const workflowMachine = createMachine(
     triggerEntity.config.workflowConfig.machine
   )
     .withContext({
       entity: triggerEntity,
+      input,
     } satisfies WorkflowContext)
     .withConfig({
       services,

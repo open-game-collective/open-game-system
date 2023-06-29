@@ -66,7 +66,7 @@ export const createRoomMachine = ({
 
             const joinEvent = {
               type: 'JOIN',
-              subject: sessionEntity.id,
+              subjectId: sessionEntity.id,
             } as CreateEventProps<JoinEvent>;
             roomChannel.next(joinEvent);
 

@@ -9,6 +9,7 @@ import {
   InitialEntityProps,
   SnowflakeId,
   TriggerEntity,
+  TriggerInput,
 } from '@explorers-club/schema';
 import { assert, fromWorld } from '@explorers-club/utils';
 import { compare } from 'fast-json-patch';
@@ -23,10 +24,11 @@ import {
 } from 'xstate';
 import { generateSnowflakeId } from './ids';
 import { machineMap } from './machines';
-import { entitiesById, world } from './server/state';
+import { channelsById, entitiesById, world } from './server/state';
 // import { eventTriggerDispatchMachine } from './services/event-trigger-dispatch.service';
 import { World } from 'miniplex';
 import { greetOnJoinTrigger } from './configs/triggers';
+import { ChangeEvent } from 'react';
 
 enablePatches();
 setAutoFreeze(false);
@@ -72,6 +74,8 @@ export const createEntity = <TEntity extends Entity>(
         type Prop = keyof typeof draft;
         draft[property as Prop] = value;
       });
+      // console.log(property, value, target);
+      // delete nextTarget['channel']; // hack
 
       const patches = compare(target, nextTarget);
       target[property as PropNames] = value;
@@ -125,21 +129,21 @@ export const createEntity = <TEntity extends Entity>(
 
   const channelSubject = new ReplaySubject<CreateEventProps<ChannelEvent>>(
     5 /* msg buffer size */
-  ); // not always used but passed in anyways
+  );
   const channelObservable = channelSubject.pipe(
     map((event) => {
       return {
         ...event,
         id: generateSnowflakeId(),
         channelId: id,
-      };
+      } as ChannelEvent;
     })
   );
+  channelsById.set(id, channelObservable);
 
   const entity: TEntity = {
     ...entityBase,
     ...entityProps,
-    channel: channelObservable,
   } as unknown as TEntity; // todo fix hack, pretty sure this works though
 
   const proxy = new Proxy(entity, handler);
@@ -221,9 +225,11 @@ const eventTriggerDispatchMachine = createMachine({
       invoke: {
         src: (context) =>
           fromWorld(context.world).pipe(
-            mergeMap(
-              (entity) => entity.channel as unknown as Observable<ChannelEvent>
-            )
+            mergeMap((entity) => {
+              const channel = channelsById.get(entity.id);
+              assert(channel, 'expected channel when creating trigger');
+              return channel;
+            })
           ),
         onDone: 'Done',
         onError: 'Error',
@@ -277,6 +283,13 @@ const eventTriggerDispatchService = interpret(
               const triggerEntity = createEntity<TriggerEntity>({
                 schema: 'trigger',
                 config,
+                input: {
+                  triggerType: 'event',
+                  entity,
+                  event,
+                  metadata: {},
+                } satisfies TriggerInput,
+                // input:
               });
 
               world.add(triggerEntity);

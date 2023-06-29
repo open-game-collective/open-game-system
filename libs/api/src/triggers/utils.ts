@@ -1,5 +1,5 @@
 import {
-  TemplateVariable,
+  WorkflowVariable,
   WorkflowCommand,
   WorkflowContext,
 } from '@explorers-club/schema';
@@ -10,9 +10,9 @@ import { entitiesById } from '../server/state';
 export const getAllTempateVars = (
   context: WorkflowContext,
   workflowEvent: WorkflowCommand,
-  variables: TemplateVariable[]
+  variables: WorkflowVariable[]
 ) => {
-  const result: Record<TemplateVariable['key'], any> = {};
+  const result: Record<WorkflowVariable['key'], any> = {};
   for (const idx in variables) {
     const variable = variables[idx];
     const value = getTemplateVarValue(context, workflowEvent, variable);
@@ -25,7 +25,7 @@ export const getAllTempateVars = (
 export const getTemplateVarValue = (
   context: WorkflowContext,
   workflowEvent: WorkflowCommand,
-  variable: TemplateVariable
+  variable: WorkflowVariable
 ) => {
   const { input } = context;
   const { entity, event, eventSubject } = context.input;

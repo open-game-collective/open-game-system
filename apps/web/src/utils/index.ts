@@ -44,3 +44,7 @@ export const getClubNameFromPath = () => {
 
 //   return selectedSnapshot;
 // }
+export function filterKeyFromObject<T extends object, K extends keyof T>(obj: T, keyToFilterOut: K): Omit<T, K> {
+  const { [keyToFilterOut]: _, ...filteredObj } = obj;
+  return filteredObj;
+}
