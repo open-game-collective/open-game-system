@@ -68,6 +68,7 @@
       ],
       "@explorers-club/room": ["libs/room/src/index.ts"],
       "@explorers-club/schema": ["libs/schema/src/index.ts"],
+      "@schema/*": ["libs/schema/src/*"],
       "@explorers-club/schema-types/*": ["libs/schema/@types/generated/*"],
       "@explorers-club/styles": ["libs/components/src/stitches.config.ts"],
       "@explorers-club/trivia-jam/meta/*": ["games/trivia-jam/src/meta/*"],

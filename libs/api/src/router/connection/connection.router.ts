@@ -1,4 +1,4 @@
-import { ConnectionInitializeInputSchema } from '@explorers-club/schema';
+import { ConnectionInitializeInputSchema } from '@schema/lib/connection';
 import { protectedProcedure, publicProcedure, router } from '../../trpc';
 
 export const connectionRouter = router({

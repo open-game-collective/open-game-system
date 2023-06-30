@@ -10,7 +10,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { FormEventHandler, useCallback, useRef, useState } from 'react';
 import { useAppSend, useServiceSelector } from '../services';
 import { AppState } from '../state/app.machine';
-import { LoginInputSchema } from '@explorers-club/schema';
+import { LoginInputSchema } from '@schema/inputs/login-input';
 import * as z from 'zod';
 import { getErrorMessageForField } from '@explorers-club/utils';
 

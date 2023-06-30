@@ -1,9 +1,9 @@
 import {
   Entity,
-  EntitySchemas,
   EntitySchemaType,
   SnowflakeId,
 } from '@explorers-club/schema';
+import { EntitySchemas } from '@schema/entity';
 import { assert, FromArchetype, FromSubject } from '@explorers-club/utils';
 import { ArchetypeBucket, World } from 'miniplex';
 import { Observable, Subject } from 'rxjs';

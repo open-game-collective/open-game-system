@@ -1,12 +1,12 @@
 import {
   ConnectionEntity,
   Entity,
-  EntityCommandSchema,
   EntityEvent,
   EntityListEvent,
   SnowflakeId,
-  SnowflakeIdSchema,
 } from '@explorers-club/schema';
+import { EntityCommandSchema } from '@schema/entity';
+import { SnowflakeIdSchema } from '@schema/common';
 import { TRPCError } from '@trpc/server';
 import { Observer, observable } from '@trpc/server/observable';
 import { AnyFunction } from 'xstate';

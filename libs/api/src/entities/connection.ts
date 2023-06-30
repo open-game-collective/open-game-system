@@ -5,16 +5,16 @@ import {
   ConnectionEntity,
   ConnectionTypeState,
   Entity,
-  HomeRoutePropsSchema,
   InitializedConnectionContext,
-  LoginRoutePropsSchema,
   NewRoomContext,
-  NewRoomRoutePropsSchema,
   RoomEntity,
-  RoomRoutePropsSchema,
   SessionEntity,
   UserEntity,
 } from '@explorers-club/schema';
+import { HomeRoutePropsSchema } from '@schema/lib/connection';
+import { LoginRoutePropsSchema } from '@schema/lib/connection';
+import { NewRoomRoutePropsSchema } from '@schema/lib/connection';
+import { RoomRoutePropsSchema } from '@schema/lib/connection';
 import {
   assert,
   assertEventType,

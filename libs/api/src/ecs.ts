@@ -9,8 +9,10 @@ import {
   InitialEntityProps,
   SnowflakeId,
   TriggerEntity,
-  TriggerInput,
+  TriggerInput
 } from '@explorers-club/schema';
+// import { EventTriggerConfigSche}
+// import { TriggerInputSchema } from '@schema/lib/trigger';
 import { assert, fromWorld } from '@explorers-club/utils';
 import { compare } from 'fast-json-patch';
 import { enablePatches, produce, setAutoFreeze } from 'immer';

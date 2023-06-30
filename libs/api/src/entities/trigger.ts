@@ -1,12 +1,11 @@
 import {
   Entity,
   TriggerEntity,
-  TriggerInputSchema,
   TriggerMachine,
-  TriggerServiceMetadata,
   WorkflowCommand,
   WorkflowContext,
 } from '@explorers-club/schema';
+import { TriggerInputSchema } from '@schema/lib/trigger';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
 import { triggerServices } from '../triggers/services';

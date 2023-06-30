@@ -1,7 +1,5 @@
-import {
-  ConnectionEntitySchema,
-  LoginInputSchema,
-} from '@explorers-club/schema';
+import { ConnectionEntitySchema } from '@schema/lib/connection';
+import { LoginInputSchema } from '@schema/inputs/login-input';
 import { TRPCError } from '@trpc/server';
 import { waitFor } from 'xstate/lib/waitFor';
 import { z } from 'zod';
