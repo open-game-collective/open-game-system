@@ -5,14 +5,6 @@ import {
   ConversationSchema,
   MessageSchema,
 } from './schema';
-import { StrikersPlayerCardSchema } from '@schema/game-configuration/strikers';
-import {
-  StrikersGameCommandSchema,
-  StrikersGameContextSchema,
-  StrikersGameStateValueSchema,
-} from '@schema/games/strikers';
-import { StateSchemaFromStateValue } from '@schema/common';
-import { EntityCommandSchema } from '../../schema/src/entity';
 
 export type Message = z.infer<typeof MessageSchema>;
 

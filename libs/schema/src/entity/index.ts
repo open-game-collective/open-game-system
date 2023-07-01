@@ -2,7 +2,11 @@ import {
   CodebreakersGameEntitySchema,
   CodebreakersPlayerEntitySchema,
 } from '@schema/games/codebreakers';
-import { StrikersGameEntitySchema } from '@schema/games/strikers';
+import {
+  StrikersGameEntitySchema,
+  StrikersPlayerEntitySchema,
+  StrikersTurnEntitySchema,
+} from '@schema/games/strikers';
 import {
   BananaTradersGameEntitySchema,
   BananaTradersPlayerEntitySchema,
@@ -42,6 +46,8 @@ export const EntitySchemas = {
   little_vigilante_game: LittleVigilanteGameEntitySchema,
   little_vigilante_player: LittleVigilantePlayerEntitySchema,
   strikers_game: StrikersGameEntitySchema,
+  strikers_player: StrikersPlayerEntitySchema,
+  strikers_turn: StrikersTurnEntitySchema,
 };
 
 export const EntitySchema = z.discriminatedUnion('schema', [
@@ -52,6 +58,7 @@ export const EntitySchema = z.discriminatedUnion('schema', [
   TriggerEntitySchema,
   MessageChannelEntitySchema,
   StrikersGameEntitySchema,
+  StrikersPlayerEntitySchema,
   //   BananaTradersGameEntitySchema,
   //   BananaTradersPlayerEntitySchema,
   //   CodebreakersGameEntitySchema,

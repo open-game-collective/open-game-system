@@ -335,6 +335,14 @@ export type EntityMachine =
   | {
       type: 'strikers_game';
       machine: StrikersGameMachine;
+    }
+  | {
+      type: 'strikers_turn';
+      machine: StrikersTurnMachine;
+    }
+  | {
+      type: 'strikers_player';
+      machine: StrikersPlayerMachine;
     };
 
 export type EntityMachineMap = IndexByType<EntityMachine>;

@@ -6,15 +6,18 @@ import {
   WithSenderId,
   SnowflakeId,
 } from '@explorers-club/schema';
+import { assert } from '@explorers-club/utils';
+import type { StrikersPlayerEntity } from '@schema/types';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
-import { entitiesById } from '../server/state';
-import { assert } from '@explorers-club/utils';
+import { entitiesById, world } from '../server/state';
 import { createSchemaIndex } from '../indices';
 
 // createSchemaIndex({
 // })
 // createSchemaIndex(world, "")
+export const [strikersPlayersByUserId] =
+  createSchemaIndex<StrikersPlayerEntity>(world, 'strikers_player', 'userid');
 
 export const createStrikersGameMachine = ({
   world,
@@ -28,12 +31,17 @@ export const createStrikersGameMachine = ({
 
   const getPlayer = (senderId: SnowflakeId) => {
     const sessionEntity = entitiesById.get(senderId);
-    assert(sessionEntity && sessionEntity.schema === "session", "expected sessionEntity when looking up player")
+    assert(
+      sessionEntity && sessionEntity.schema === 'session',
+      'expected sessionEntity when looking up player'
+    );
 
-
-    sessionEntity.userId
-    // return {} as 
-  }
+    const strikersPlayerEntity = strikersPlayersByUserId.get(
+      sessionEntity.userId
+    );
+    assert(strikersPlayerEntity, 'strikers player entity');
+    return strikersPlayerEntity;
+  };
 
   return createMachine({
     id: 'StrikersGameMachine',
@@ -44,9 +52,8 @@ export const createStrikersGameMachine = ({
     },
     states: {
       Setup: {
-        initial: 'Rosters',
+        initial: 'Lineups',
         states: {
-          Rosters: {},
           Lineups: {},
         },
       },
@@ -62,3 +69,11 @@ export const createStrikersGameMachine = ({
     },
   });
 };
+
+const LineupSetupMachine = createMachine({
+  id: 'LineupSetupMachine',
+  initial: 'ChoosingPlayers',
+  states: {
+    ChoosingPlayers: {},
+  },
+});

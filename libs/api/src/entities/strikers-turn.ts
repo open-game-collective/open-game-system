@@ -3,14 +3,14 @@ import { StrikersTurnCommand, StrikersTurnContext } from '@schema/types';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
 
-export const createStrikersGameTurnMachine = ({
+export const createStrikersTurnMachine = ({
   world,
 }: {
   world: World;
   entity: Entity;
 }) => {
   return createMachine({
-    id: 'StrikersGameTurnMachine',
+    id: 'StrikersTurnMachine',
     initial: 'Setup',
     schema: {
       context: {} as StrikersTurnContext,
