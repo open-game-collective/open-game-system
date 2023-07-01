@@ -1,4 +1,4 @@
-import { defineHex, HexCoordinates } from 'honeycomb-grid';
+import { defineHex, Grid, HexCoordinates, Orientation } from 'honeycomb-grid';
 import { Observable } from 'rxjs';
 import { StateMachine } from 'xstate';
 import { z } from 'zod';
@@ -11,31 +11,51 @@ import {
   StrikersPlayerSchemaTypeLiteral,
   StrikersTurnSchemaTypeLiteral,
 } from '../literals';
+import { StrikersGameConfigDataSchema } from '@schema/game-configuration/strikers';
 
 const StrikersRollSchema = z.object({
   rawValue: z.number(), // 1-20
   modifiers: z.array(z.number()), // bonuses, buffs
-  result: z.number(),
+  total: z.number(),
 });
 
-class StrikersFieldHex extends defineHex() {
-  static create(coordinates: HexCoordinates, custom: string) {
+class StrikersFieldHex extends defineHex({
+  orientation: Orientation.POINTY,
+}) {
+  static create(coordinates: HexCoordinates, cardId: string) {
     const hex = new StrikersFieldHex(coordinates);
-    hex.custom = custom;
+    hex.cardId = cardId;
     return hex;
   }
 
-  custom!: string;
+  cardId!: string;
 }
+
+// const grid = new Grid(StrikersFieldHex);
+// // grid.
+// const asjson = grid.toJSON();
+// asjson.coordinates.map((value) => {
+//   value.q;
+//   // value as StrikersFieldHex
+// });
+// grid.
+
+// const hex = StrikersFieldHex.create(
+//   {
+//     q: 1,
+//     r: 1,
+//   },
+//   'foo'
+// );
 
 // const StrikersGridSchema = z.custom<GridAsJSON<StrikersFieldHex>>();
 
-const KeeperPositionLiteral = z.literal('keeper');
-const DefenderPositionLiteral = z.literal('defender');
-const MidfielderPositionLiteral = z.literal('midfielder');
-const ForwardPositionLiteral = z.literal('forward');
+export const KeeperPositionLiteral = z.literal('keeper');
+export const DefenderPositionLiteral = z.literal('defender');
+export const MidfielderPositionLiteral = z.literal('midfielder');
+export const ForwardPositionLiteral = z.literal('forward');
 
-const StrikersPlayerPositionSchema = z.union([
+export const StrikersPlayerPositionSchema = z.union([
   KeeperPositionLiteral,
   DefenderPositionLiteral,
   MidfielderPositionLiteral,
@@ -95,11 +115,13 @@ export const StrikersPlayerCardSchema = z.union([
   StrikersForwardPlayerCardSchema,
 ]);
 
-const StrikersGameTurnSchema = z.object({
+const StrikersTurnEntityPropsSchema = z.object({
   startTime: z.date(),
+  turn: z.enum(['p1', 'p2']),
   cells: z.array(z.custom<HexCoordinates>()), // todo how do we extend?
   half: z.enum(['first', 'second']),
-  team: z.enum(['home', 'away']),
+  halfIndex: z.number(),
+  turnIndex: z.number(),
   moves: z.array(
     z.object({
       from: z.string(),
@@ -113,22 +135,14 @@ const StrikersGameTurnSchema = z.object({
 const StrikersGameEntityPropSchema = z.object({
   schema: StrikersGameSchemaTypeLiteral,
   gameId: StrikersGameIdLiteral,
-  config: z.any(),
-  //   config: StrikersGameConfigDataSchema,
-  roomEntityId: SnowflakeIdSchema,
-  hostPlayerId: SnowflakeIdSchema,
-  homePlayerId: SnowflakeIdSchema,
-  awayPlayerId: SnowflakeIdSchema,
+  config: StrikersGameConfigDataSchema,
+  channelId: SnowflakeIdSchema,
   turnsIds: z.array(SnowflakeIdSchema),
 });
 
-const StrikersGameStateValueSchema = z.object({
+export const StrikersGameStateValueSchema = z.object({
   Status: z.enum(['Unitialized', 'Paused', 'Running', 'Complete']),
 });
-
-export type StrikersGameStateValue = z.infer<
-  typeof StrikersGameStateValueSchema
->;
 
 const StartCommandSchema = z.object({
   type: z.literal('START'),
@@ -140,32 +154,25 @@ const LeaveCommandSchema = z.object({
   connectionEntityId: SnowflakeIdSchema,
 });
 
-const StrikersGameCommandSchema = z.union([
+const SetPlayerCommandSchema = z.object({
+  type: z.literal('SET_PLAYER'),
+  connectionEntityId: SnowflakeIdSchema,
+});
+
+export const StrikersGameCommandSchema = z.union([
   StartCommandSchema,
   LeaveCommandSchema,
 ]);
 
-export type StrikersGameCommand = z.infer<typeof StrikersGameCommandSchema>;
-
-const StrikersGameEntitySchema = EntityBaseSchema(
+export const StrikersGameEntitySchema = EntityBaseSchema(
   StrikersGameEntityPropSchema,
   StrikersGameCommandSchema,
   StrikersGameStateValueSchema
 );
 
-export type StrikersGameStateSchema =
-  StateSchemaFromStateValue<StrikersGameStateValue>;
-
-const StrikersGameContextSchema = z.object({
+export const StrikersGameContextSchema = z.object({
   foo: z.string(),
 });
-export type StrikersGameContext = z.infer<typeof StrikersGameContextSchema>;
-
-export type StrikersGameMachine = StateMachine<
-  StrikersGameContext,
-  StrikersGameStateSchema,
-  StrikersGameCommand
->;
 
 const StrikersTurnEntityPropSchema = z.object({
   schema: StrikersTurnSchemaTypeLiteral,
@@ -173,40 +180,27 @@ const StrikersTurnEntityPropSchema = z.object({
   team: z.enum(['home', 'away']),
 });
 
-const StrikersTurnStateValueSchema = z.object({
+export const StrikersTurnStateValueSchema = z.object({
   Active: z.enum(['True', 'False']),
 });
-export type StrikersTurnStateValue = z.infer<
-  typeof StrikersTurnStateValueSchema
->;
+// export type StrikersTurnStateValue = z.infer<
+//   typeof StrikersTurnStateValueSchema
+// >;
 
-const StrikersTurnCommandSchema = z.union([
+export const StrikersTurnCommandSchema = z.union([
   StartCommandSchema,
   LeaveCommandSchema,
 ]);
 
-export type StrikersTurnCommand = z.infer<typeof StrikersTurnCommandSchema>;
-
-const StrikersTurnEntitySchema = EntityBaseSchema(
+export const StrikersTurnEntitySchema = EntityBaseSchema(
   StrikersTurnEntityPropSchema,
   StrikersTurnCommandSchema,
   StrikersTurnStateValueSchema
 );
 
-export type StrikersTurnStateSchema =
-  StateSchemaFromStateValue<StrikersTurnStateValue>;
-
-const StrikersTurnContextSchema = z.object({
+export const StrikersTurnContextSchema = z.object({
   foo: z.string(),
 });
-export type StrikersTurnContext = z.infer<typeof StrikersTurnContextSchema>;
-type StrikersTurnEntity = z.infer<typeof StrikersTurnEntitySchema>;
-
-export type StrikersTurnMachine = StateMachine<
-  StrikersTurnContext,
-  StrikersTurnStateSchema,
-  StrikersTurnCommand
->;
 
 const StrikersPlayerEntityPropSchema = z.object({
   schema: StrikersPlayerSchemaTypeLiteral,
@@ -215,37 +209,29 @@ const StrikersPlayerEntityPropSchema = z.object({
   channel: z.custom<Observable<MessageEvent>>(),
 });
 
-const StrikersPlayerStateValueSchema = z.object({
+export const StrikersPlayerStateValueSchema = z.object({
   Active: z.enum(['True', 'False']),
 });
-export type StrikersPlayerStateValue = z.infer<
-  typeof StrikersPlayerStateValueSchema
->;
 
-const StrikersPlayerCommandSchema = z.union([
+export const StrikersPlayerCommandSchema = z.union([
   StartCommandSchema,
   LeaveCommandSchema,
 ]);
 
-export type StrikersPlayerCommand = z.infer<typeof StrikersPlayerCommandSchema>;
-
-const StrikersPlayerEntitySchema = EntityBaseSchema(
+export const StrikersPlayerEntitySchema = EntityBaseSchema(
   StrikersPlayerEntityPropSchema,
   StrikersPlayerCommandSchema,
   StrikersPlayerStateValueSchema
 );
 
-export type StrikersPlayerStateSchema =
-  StateSchemaFromStateValue<StrikersPlayerStateValue>;
-
-const StrikersPlayerContextSchema = z.object({
+export const StrikersPlayerContextSchema = z.object({
   foo: z.string(),
 });
-export type StrikersPlayerContext = z.infer<typeof StrikersPlayerContextSchema>;
-type StrikersPlayerEntity = z.infer<typeof StrikersPlayerEntitySchema>;
+// export type StrikersPlayerContext = z.infer<typeof StrikersPlayerContextSchema>;
+// type StrikersPlayerEntity = z.infer<typeof StrikersPlayerEntitySchema>;
 
-export type StrikersPlayerMachine = StateMachine<
-  StrikersPlayerContext,
-  StrikersPlayerStateSchema,
-  StrikersPlayerCommand
->;
+// export type StrikersPlayerMachine = StateMachine<
+//   StrikersPlayerContext,
+//   StrikersPlayerStateSchema,
+//   StrikersPlayerCommand
+// >;

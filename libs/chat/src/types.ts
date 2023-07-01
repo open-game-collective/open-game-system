@@ -5,6 +5,14 @@ import {
   ConversationSchema,
   MessageSchema,
 } from './schema';
+import { StrikersPlayerCardSchema } from '@schema/game-configuration/strikers';
+import {
+  StrikersGameCommandSchema,
+  StrikersGameContextSchema,
+  StrikersGameStateValueSchema,
+} from '@schema/games/strikers';
+import { StateSchemaFromStateValue } from '@schema/common';
+import { EntityCommandSchema } from '../../schema/src/entity';
 
 export type Message = z.infer<typeof MessageSchema>;
 
@@ -151,7 +159,9 @@ export type SidekickAbilityMessage = z.infer<
 >;
 export type ButlerAbilityMessage = z.infer<typeof ButlerAbilityMessageSchema>;
 export type TwinBoyAbilityMessage = z.infer<typeof TwinBoyAbilityMessageSchema>;
-export type TwinGirlAbilityMessage = z.infer<typeof TwinGirlAbilityMessageSchema>;
+export type TwinGirlAbilityMessage = z.infer<
+  typeof TwinGirlAbilityMessageSchema
+>;
 export type MonkAbilityMessage = z.infer<typeof MonkAbilityMessageSchema>;
 export type VigilanteAbilityPrimaryMessage = z.infer<
   typeof VigilanteAbilityPrimaryMessageSchema

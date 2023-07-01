@@ -15,7 +15,7 @@ export const SessionEntityPropsSchema = z.object({
   name: z.string(),
 });
 
-export const SessionCommandSchema = z.union([
+export const SessionCommandSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal('RECONNECT'),
   }),

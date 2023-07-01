@@ -79,8 +79,8 @@ export const WorldProvider: FC<{
           command,
         } as TEvent);
         await client.entity.send.mutate({
-          id,
-          event: command,
+          entityId: id,
+          command,
         });
         next({
           type: 'SEND_COMPLETE',

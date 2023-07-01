@@ -1,8 +1,5 @@
-import {
-  Entity,
-  StrikersGameContext,
-  StrikersGameCommand,
-} from '@explorers-club/schema';
+import { Entity, WithSenderId } from '@explorers-club/schema';
+import { StrikersTurnCommand, StrikersTurnContext } from '@schema/types';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
 
@@ -16,8 +13,8 @@ export const createStrikersGameTurnMachine = ({
     id: 'StrikersGameTurnMachine',
     initial: 'Setup',
     schema: {
-      context: {} as StrikersGameTurnContext,
-      events: {} as StrikersGameTurnCommand,
+      context: {} as StrikersTurnContext,
+      events: {} as WithSenderId<StrikersTurnCommand>,
     },
     states: {
       Setup: {
@@ -29,7 +26,7 @@ export const createStrikersGameTurnMachine = ({
         },
       },
       Playing: {
-        initial: "FirstHalf",
+        initial: 'FirstHalf',
         states: {
           FirstHalf: {},
           SecondHalf: {},

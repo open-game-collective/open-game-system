@@ -5,7 +5,7 @@ import { Operation } from 'fast-json-patch';
 import { IndexByType, InterpreterFrom, StateMachine } from 'xstate';
 import { z } from 'zod';
 import { SnowflakeIdSchema, StateSchemaFromStateValue } from './common';
-import { EntitySchema, EntitySchemas } from './entity';
+import { EntityCommandSchema, EntitySchema, EntitySchemas } from './entity';
 import { MessageEventSchema } from './events/channel';
 import { ClientEventSchema } from './events/client';
 import {
@@ -103,6 +103,20 @@ import {
   ChatContextSchema,
   ChatStateValueSchema,
 } from './services/chat';
+import {
+  StrikersGameCommandSchema,
+  StrikersGameContextSchema,
+  StrikersGameEntitySchema,
+  StrikersGameStateValueSchema,
+  StrikersPlayerCommandSchema,
+  StrikersPlayerContextSchema,
+  StrikersPlayerEntitySchema,
+  StrikersPlayerStateValueSchema,
+  StrikersTurnCommandSchema,
+  StrikersTurnContextSchema,
+  StrikersTurnEntitySchema,
+  StrikersTurnStateValueSchema,
+} from './games/strikers';
 
 export type ChatContext = z.infer<typeof ChatContextSchema>;
 export type ChatCommand = z.infer<typeof ChatCommandSchema>;
@@ -231,7 +245,6 @@ export type MessageEvent = z.infer<typeof MessageEventSchema>;
 export type LogEvent = z.infer<typeof LogEventSchema>;
 export type DebugEvent = z.infer<typeof DebugEventSchema>;
 export type ChannelEvent = z.infer<typeof ChannelEventSchema>;
-
 export type SnowflakeId = z.infer<typeof SnowflakeIdSchema>;
 
 export type Entity = z.infer<typeof EntitySchema>;
@@ -318,6 +331,10 @@ export type EntityMachine =
   | {
       type: 'session';
       machine: SessionMachine;
+    }
+  | {
+      type: 'strikers_game';
+      machine: StrikersGameMachine;
     };
 
 export type EntityMachineMap = IndexByType<EntityMachine>;
@@ -554,3 +571,50 @@ export type BananaTradersGameCommand = z.infer<
 export type BananaTradersGameStateValue = z.infer<
   typeof BananaTradersGameStateValueSchema
 >;
+
+export type StrikersGameEntity = z.infer<typeof StrikersGameEntitySchema>;
+export type StrikersGameStateValue = z.infer<
+  typeof StrikersGameStateValueSchema
+>;
+export type StrikersGameCommand = z.infer<typeof StrikersGameCommandSchema>;
+export type StrikersGameStateSchema =
+  StateSchemaFromStateValue<StrikersGameStateValue>;
+export type StrikersGameContext = z.infer<typeof StrikersGameContextSchema>;
+export type StrikersGameMachine = StateMachine<
+  StrikersGameContext,
+  StrikersGameStateSchema,
+  WithSenderId<StrikersGameCommand>
+>;
+
+export type StrikersPlayerEntity = z.infer<typeof StrikersPlayerEntitySchema>;
+export type StrikersPlayerStateValue = z.infer<
+  typeof StrikersPlayerStateValueSchema
+>;
+export type StrikersPlayerCommand = z.infer<typeof StrikersPlayerCommandSchema>;
+export type StrikersPlayerStateSchema =
+  StateSchemaFromStateValue<StrikersPlayerStateValue>;
+export type StrikersPlayerContext = z.infer<typeof StrikersPlayerContextSchema>;
+export type StrikersPlayerMachine = StateMachine<
+  StrikersPlayerContext,
+  StrikersPlayerStateSchema,
+  WithSenderId<StrikersPlayerCommand>
+>;
+
+export type StrikersTurnEntity = z.infer<typeof StrikersTurnEntitySchema>;
+export type StrikersTurnStateValue = z.infer<
+  typeof StrikersTurnStateValueSchema
+>;
+export type StrikersTurnCommand = z.infer<typeof StrikersTurnCommandSchema>;
+export type StrikersTurnStateSchema =
+  StateSchemaFromStateValue<StrikersTurnStateValue>;
+export type StrikersTurnContext = z.infer<typeof StrikersTurnContextSchema>;
+export type StrikersTurnMachine = StateMachine<
+  StrikersTurnContext,
+  StrikersTurnStateSchema,
+  WithSenderId<StrikersTurnCommand>
+>;
+
+type EntityCommand = z.infer<typeof EntityCommandSchema>;
+export type WithSenderId<TCommand extends EntityCommand> = TCommand & {
+  senderId: SnowflakeId;
+};

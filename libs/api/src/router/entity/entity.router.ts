@@ -15,19 +15,19 @@ import { world, entitiesById } from '../../server/state';
 import { z } from 'zod';
 
 const SendMutationSchema = z.object({
-  id: SnowflakeIdSchema,
-  event: EntityCommandSchema,
+  entityId: SnowflakeIdSchema,
+  command: EntityCommandSchema,
 });
 
 export const entityRouter = router({
   send: protectedProcedure
     .input(SendMutationSchema)
     .mutation(({ ctx, input }) => {
-      const entity = entitiesById.get(input.id);
+      const entity = entitiesById.get(input.entityId);
       if (!entity) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: `entity ${input.id} not found`,
+          message: `entity ${input.entityId} not found`,
         });
       }
 
@@ -39,7 +39,10 @@ export const entityRouter = router({
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      entity.send(input.event as any);
+      entity.send({
+        senderId: ctx.connectionEntity.sessionId,
+        ...(input.command as any),
+      });
     }),
   list: publicProcedure.subscription(({ ctx }) => {
     // Track if entities get removed

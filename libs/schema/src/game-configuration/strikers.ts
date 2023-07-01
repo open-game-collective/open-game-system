@@ -1,3 +1,4 @@
+import { SnowflakeIdSchema } from '@schema/common';
 import { z } from 'zod';
 
 const KeeperPositionLiteral = z.literal('keeper');
@@ -58,9 +59,23 @@ const StrikersDefenderPlayerCardSchema = z.object({
   shotChart: ShotChartSchema,
 });
 
-export const StrikersPlayerCardSchema = z.union([
+const StrikersPlayerCardSchema = z.union([
   StrikersDefenderPlayerCardSchema,
   StrikersKeeperPlayerCardSchema,
   StrikersMidfielderPlayerCardSchema,
   StrikersForwardPlayerCardSchema,
 ]);
+
+export const CardIdSchema = z.string();
+
+export const StrikersGameConfigDataSchema = z.object({
+  cards: StrikersPlayerCardSchema,
+  gameMode: z.enum(['quickplay', 'draft']).default('quickplay'),
+  turnsPerHalf: z.number().default(20),
+  p1PlayerId: SnowflakeIdSchema,
+  p2PlayerId: SnowflakeIdSchema,
+  extraTime: z.object({
+    minRounds: z.number().default(2),
+    maxRounds: z.number().default(6),
+  }),
+});

@@ -20,6 +20,7 @@ import { createSessionMachine } from './entities/session';
 // import { createTriggerMachine } from './entities/trigger';
 import { createTriggerMachine } from './entities/trigger';
 import { createUserMachine } from './entities/user';
+import { createStrikersGameMachine } from './entities/strikers-game';
 // import { createWorkflowMachine } from './entities/workflow';
 
 type EntityMachineCreators = {
@@ -46,6 +47,7 @@ export const machineMap: EntityMachineCreators = {
   banana_traders_player: createBananaTradersPlayerMachine,
   little_vigilante_game: createLittleVigilanteGameMachine,
   little_vigilante_player: createLittleVigilantePlayerMachine,
+  strikers_game: createStrikersGameMachine,
   trigger: createTriggerMachine,
 };
 

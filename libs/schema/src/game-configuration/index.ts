@@ -9,7 +9,6 @@
 // Examples: minPlayers, cardData, triviaQuestionSetId, characterNames
 import { z } from 'zod';
 import { SnowflakeIdSchema } from '../common';
-import { StrikersPlayerCardSchema } from './strikers';
 
 export const CodebreakersGameConfigDataSchema = z.object({
   numPlayers: z.number().min(4).max(4),
@@ -21,13 +20,4 @@ export const LittleVigilanteGameConfigDataSchema = z.object({
 
 export const BananTradersGameConfigDataSchema = z.object({
   numPlayers: z.number().min(4).max(4),
-});
-
-export const StrikersGameConfigDataSchema = z.object({
-  cards: StrikersPlayerCardSchema,
-  init: z.object({
-    gameMode: z.enum(['quickplay', 'draft']),
-    homePlayerSessionId: SnowflakeIdSchema,
-    awayPlayerSessionId: SnowflakeIdSchema,
-  }),
 });
