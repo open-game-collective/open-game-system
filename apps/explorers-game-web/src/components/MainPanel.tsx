@@ -75,28 +75,19 @@ const RoomPanel = () => {
   const connectionEntity = useStore(
     entityStoreRegistry.myInitializedConnectionEntity
   );
-  const currentRoomSlug = useEntityStoreSelector(
+  const currentChannelId = useEntityStoreSelector(
     entityStoreRegistry.myInitializedConnectionEntity,
-    (entity) => entity.currentRoomSlug
+    (entity) => entity.currentChannelId
   );
 
   const roomEntityStore = useCreateEntityStore<RoomEntity>(
     (entity) => {
-      return (currentRoomSlug &&
-        entity.schema === 'room' &&
-        entity.slug === currentRoomSlug) as boolean;
+      return (currentChannelId && entity.id === currentChannelId) as boolean;
     },
-    [currentRoomSlug]
+    [currentChannelId]
   );
 
   const roomEntity = useStore(roomEntityStore);
-  // console.log({
-  //   roomEntity,
-  //   connectionEntity,
-  //   currentRoomSlug,
-  //   roomEntityStore,
-  //   init: entityStoreRegistry.myInitializedConnectionEntity,
-  // });
 
   if (!roomEntity || !connectionEntity) {
     return <div>loading entities</div>;
