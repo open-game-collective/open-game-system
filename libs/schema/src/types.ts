@@ -622,7 +622,7 @@ export type StrikersTurnMachine = StateMachine<
   WithSenderId<StrikersTurnCommand>
 >;
 
-type EntityCommand = z.infer<typeof EntityCommandSchema>;
+export type EntityCommand = z.infer<typeof EntityCommandSchema>;
 export type WithSenderId<TCommand extends EntityCommand> = TCommand & {
   senderId: SnowflakeId;
 };

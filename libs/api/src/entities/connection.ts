@@ -183,6 +183,7 @@ export const createConnectionMachine = ({
                       slug: connectionEntity.currentRoomSlug,
                       hostConnectionEntityId: connectionEntity.id,
                       connectedEntityIds: [],
+                      gameId: 'strikers',
                     });
                     world.add(roomEntity);
                   }
@@ -201,12 +202,12 @@ export const createConnectionMachine = ({
                   });
 
                   // Join the game room if there is one
-                  if (roomEntity.gameId) {
-                    context.chatServiceRef.send({
-                      type: 'JOIN_CHANNEL',
-                      channelId: roomEntity.gameId,
-                    });
-                  }
+                  // if (roomEntity.gameId) {
+                  //   context.chatServiceRef.send({
+                  //     type: 'JOIN_CHANNEL',
+                  //     channelId: roomEntity.gameId,
+                  //   });
+                  // }
 
                   // todo clean up ref
                   // wasnt able to get assign on entry to be called so gave up

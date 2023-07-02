@@ -20,7 +20,7 @@ export const MainPanel = () => {
   const currentRoute = useStore(routeStore);
 
   return (
-    <Box css={{ p: '$3', background: 'black' }}>
+    <Box css={{ p: '$3' }}>
       {currentRoute.name === 'Home' && <HomePanel />}
       {currentRoute.name === 'NewRoom' && <NewRoomPanel />}
       {currentRoute.name === 'Login' && <LoginPanel />}

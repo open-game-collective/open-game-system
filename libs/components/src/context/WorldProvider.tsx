@@ -2,6 +2,7 @@ import { trpc } from '@explorers-club/api-client';
 import {
   ConnectionEntity,
   Entity,
+  EntityCommand,
   InitializedConnectionEntity,
   SnowflakeId,
   SyncedEntityProps,
@@ -80,7 +81,7 @@ export const WorldProvider: FC<{
         } as TEvent);
         await client.entity.send.mutate({
           entityId: id,
-          command,
+          command: command as EntityCommand,
         });
         next({
           type: 'SEND_COMPLETE',
