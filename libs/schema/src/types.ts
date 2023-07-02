@@ -150,7 +150,7 @@ export type ConnectionCommand = z.infer<typeof ConnectionCommandSchema>;
 export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
 export type InitializedConnectionEntity = MakeRequired<
   ConnectionEntity,
-  'sessionId' | 'authTokens' | 'deviceId'
+  'sessionId' | 'authTokens' | 'deviceId' | 'currentLocation'
 >;
 export type ConnectionMachine = StateMachine<
   ConnectionContext,

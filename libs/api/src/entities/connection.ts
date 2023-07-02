@@ -11,7 +11,12 @@ import {
   SessionEntity,
   UserEntity,
 } from '@explorers-club/schema';
-import { HomeRoutePropsSchema } from '@schema/lib/connection';
+import {
+  ConnectionInitializeCommandSchema,
+  ConnectionInitializeInputSchema,
+  ConnectionNavigateCommandSchema,
+  HomeRoutePropsSchema,
+} from '@schema/lib/connection';
 import { LoginRoutePropsSchema } from '@schema/lib/connection';
 import { NewRoomRoutePropsSchema } from '@schema/lib/connection';
 import { RoomRoutePropsSchema } from '@schema/lib/connection';
@@ -27,9 +32,17 @@ import { World } from 'miniplex';
 import { DoneInvokeEvent, assign, createMachine, spawn } from 'xstate';
 // import { createEntity } from '../ecs';
 import { generateSnowflakeId } from '../ids';
-import { roomsBySlug, sessionsByUserId, usersById } from '../server/indexes';
+import {
+  roomsBySlug,
+  sessionsByUserId,
+  usersById,
+  channelEntitiesById,
+} from '../server/indexes';
 import { newRoomMachine } from '../services';
 import { createChatMachine } from '../services/chat.service';
+import { entitiesById } from '../server/state';
+import { z } from 'zod';
+import { createEntity } from '../ecs';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -53,7 +66,11 @@ export const createConnectionMachine = ({
   world: World;
   entity: Entity;
 }) => {
-  const connectionEntity = entity as ConnectionEntity;
+  assert(
+    entity && entity.schema === 'connection',
+    'expected connection entity but found ' + entity.schema
+  );
+  const connectionEntity = entity;
   let sessionEntity: SessionEntity | undefined = undefined;
 
   const connectionMachine = createMachine<
@@ -78,21 +95,25 @@ export const createConnectionMachine = ({
                 target: 'Route.Home',
                 cond: (_, event) =>
                   HomeRoutePropsSchema.safeParse(event.route).success,
+                actions: ['setCurrentLocation'],
               },
               {
                 target: 'Route.NewRoom',
                 cond: (_, event) =>
                   NewRoomRoutePropsSchema.safeParse(event.route).success,
+                actions: ['setCurrentLocation'],
               },
               {
                 target: 'Route.Login',
                 cond: (_, event) =>
                   LoginRoutePropsSchema.safeParse(event.route).success,
+                actions: ['setCurrentLocation'],
               },
               {
                 target: 'Route.Room',
                 cond: (_, event) =>
                   RoomRoutePropsSchema.safeParse(event.route).success,
+                actions: ['setCurrentLocation'],
               },
             ],
           },
@@ -103,21 +124,24 @@ export const createConnectionMachine = ({
                   {
                     target: 'Home',
                     cond: (_, event) => event.initialRouteProps.name === 'Home',
+                    actions: ['setCurrentLocation'],
                   },
                   {
                     target: 'Login',
                     cond: (_, event) =>
                       event.initialRouteProps.name === 'Login',
+                    actions: ['setCurrentLocation'],
                   },
                   {
                     target: 'NewRoom',
                     cond: (_, event) =>
                       event.initialRouteProps.name === 'NewRoom',
+                    actions: ['setCurrentLocation'],
                   },
                   {
                     target: 'Room',
                     cond: (_, event) => event.initialRouteProps.name === 'Room',
-                    actions: ['initializeCurrentRoom'],
+                    actions: ['setCurrentLocation'],
                   },
                 ],
               },
@@ -152,76 +176,20 @@ export const createConnectionMachine = ({
                     });
                     world.add(entity);
 
+                    connectionEntity.currentChannelId = entity.id;
+
+                    // const channel = channelEntitiesById.get(
+                    //   connectionEntity.currentChannelId
+                    // );
+
                     // [??]: does this need to be addComponent
-                    connectionEntity.currentRoomSlug = roomSlug;
+                    // connectionEntity.currentRoomSlug = roomSlug;
                   },
                 },
               },
             },
             Room: {
-              entry: [
-                'spawnChatService',
-                async (context) => {
-                  const { createEntity } = await import('../ecs');
-                  assert(
-                    context.chatServiceRef,
-                    'expected chat service to be initialized'
-                  );
-                  assert(
-                    connectionEntity.currentRoomSlug,
-                    'expected current room slug'
-                  );
-
-                  let roomEntity = roomsBySlug.get(
-                    connectionEntity.currentRoomSlug
-                  );
-
-                  // Create the room if one doesnt already exist
-                  if (!roomEntity) {
-                    roomEntity = createEntity<RoomEntity>({
-                      schema: 'room',
-                      slug: connectionEntity.currentRoomSlug,
-                      hostConnectionEntityId: connectionEntity.id,
-                      connectedEntityIds: [],
-                      gameId: 'strikers',
-                    });
-                    world.add(roomEntity);
-                  }
-
-                  // Connect to it
-                  roomEntity.send({
-                    type: 'CONNECT',
-                    senderId: connectionEntity.id,
-                  } as any);
-                  // todo fix types on senderId, it doesnt konw it exists, only in machine
-                  // problem for sending commands outside entity router send mutation
-
-                  // Join the chat room
-                  // todo: is this still used? or just use message_channel entity now
-                  context.chatServiceRef.send({
-                    type: 'JOIN_CHANNEL',
-                    channelId: roomEntity.id,
-                  });
-
-                  // Join the game room if there is one
-                  // if (roomEntity.gameId) {
-                  //   context.chatServiceRef.send({
-                  //     type: 'JOIN_CHANNEL',
-                  //     channelId: roomEntity.gameId,
-                  //   });
-                  // }
-
-                  // todo clean up ref
-                  // wasnt able to get assign on entry to be called so gave up
-                  // spawn(
-                  //   chatMachine.withContext({
-                  //     roomSlug: connectionEntity.currentRoomSlug,
-                  //   }),
-                  //   'chatService'
-                  // );
-                  // chatService.join()
-                },
-              ],
+              entry: ['joinRoom', 'spawnChatService'],
             },
           },
         },
@@ -415,6 +383,58 @@ export const createConnectionMachine = ({
     },
     {
       actions: {
+        joinCurrentChannel: async (context) => {
+          const { createEntity } = await import('../ecs');
+          assert(
+            context.chatServiceRef,
+            'expected chat service to be initialized'
+          );
+          assert(
+            connectionEntity.currentChannelId,
+            'expected current channel id but not found'
+          );
+
+          let roomEntity = entitiesById.get(
+            connectionEntity.currentChannelId
+          ) as RoomEntity;
+
+          console.log('CREATRINGROOOM!', connectionEntity.currentLocation);
+
+          // Create the room if one doesnt already exist
+
+          // Connect to it
+          roomEntity.send({
+            type: 'CONNECT',
+            senderId: connectionEntity.id,
+          } as any);
+          // todo fix types on senderId, it doesnt konw it exists, only in machine
+          // problem for sending commands outside entity router send mutation
+
+          // Join the chat room
+          // todo: is this still used? or just use message_channel entity now
+          context.chatServiceRef.send({
+            type: 'JOIN_CHANNEL',
+            channelId: roomEntity.id,
+          });
+
+          // Join the game room if there is one
+          // if (roomEntity.gameId) {
+          //   context.chatServiceRef.send({
+          //     type: 'JOIN_CHANNEL',
+          //     channelId: roomEntity.gameId,
+          //   });
+          // }
+
+          // todo clean up ref
+          // wasnt able to get assign on entry to be called so gave up
+          // spawn(
+          //   chatMachine.withContext({
+          //     roomSlug: connectionEntity.currentRoomSlug,
+          //   }),
+          //   'chatService'
+          // );
+          // chatService.join()
+        },
         spawnChatService: assign({
           chatServiceRef: () =>
             spawn(
@@ -422,15 +442,80 @@ export const createConnectionMachine = ({
               'chatService'
             ) as ConnectionContext['chatServiceRef'],
         }),
-        initializeCurrentRoom: (_, event) => {
-          assertEventType(event, 'INITIALIZE');
 
-          if (event.initialRouteProps.name == 'Room') {
-            connectionEntity.currentRoomSlug = event.initialRouteProps.roomSlug;
+        joinRoom: () => {
+          const slug = connectionEntity.currentLocation?.split('/')[1];
+          assert(slug, 'error parsing slug from currentLocation');
+
+          let roomEntity = roomsBySlug.get(slug);
+          if (!roomEntity) {
+            roomEntity = createEntity<RoomEntity>({
+              schema: 'room',
+              slug,
+              hostConnectionEntityId: connectionEntity.id,
+              connectedEntityIds: [],
+              gameId: 'strikers',
+            });
+            world.add(roomEntity);
+          }
+
+          roomEntity.send({
+            type: 'CONNECT',
+            senderId: connectionEntity.id,
+          } as any);
+
+          connectionEntity.currentChannelId = roomEntity.id;
+        },
+
+        // this gets called when initiailziation or navigation happens
+        // updates the locatino on entity updates it the url in the browser.
+        setCurrentLocation: (_, event) => {
+          const parsedEvent = SetCurrentLocationEventSchema.parse(event);
+          const route =
+            parsedEvent.type === 'INITIALIZE'
+              ? parsedEvent.initialRouteProps
+              : parsedEvent.route;
+
+          switch (route.name) {
+            case 'Home':
+              connectionEntity.currentLocation = '/';
+              break;
+            case 'Login':
+              connectionEntity.currentLocation = '/login';
+              break;
+            case 'NewRoom':
+              connectionEntity.currentLocation = '/new';
+              break;
+            case 'Room':
+              connectionEntity.currentLocation = `/${route.roomSlug}`;
+              break;
+            default:
+              connectionEntity.currentLocation = '/not-found';
+              break;
           }
         },
+        // initializeCurrentRoom: (_, event) => {
+        //   assertEventType(event, 'INITIALIZE');
+
+        //   // if (event.initialRouteProps.name == 'Room') {
+        //   //   // connectionEntity.currentRoomSlug = event.initialRouteProps.roomSlug;
+        //   //   const roomEntity = roomsBySlug.get(
+        //   //     event.initialRouteProps.roomSlug
+        //   //   );
+        //   //   assert(
+        //   //     roomEntity && roomEntity.schema === 'room',
+        //   //     "expected room entity but couldn't find"
+        //   //   );
+        //   //   connectionEntity.currentChannelId = roomEntity.id;
+        //   // }
+        // },
       },
     }
   );
   return connectionMachine;
 };
+
+const SetCurrentLocationEventSchema = z.union([
+  ConnectionInitializeCommandSchema,
+  ConnectionNavigateCommandSchema,
+]);

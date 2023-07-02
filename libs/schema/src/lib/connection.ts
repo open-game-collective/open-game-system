@@ -74,12 +74,12 @@ export const ConnectionInitializeInputSchema = z.object({
   authTokens: AuthTokensSchema.optional().nullable(),
 });
 
-const ConnectionNavigateCommandSchema = z.object({
+export const ConnectionNavigateCommandSchema = z.object({
   type: z.literal('NAVIGATE'),
   route: RoutePropsSchema,
 });
 
-const ConnectionInitializeCommandSchema =
+export const ConnectionInitializeCommandSchema =
   ConnectionInitializeInputSchema.extend({
     type: z.literal('INITIALIZE'),
   });
@@ -174,9 +174,9 @@ const ConnectionEntityPropsSchema = z.object({
   sessionId: SnowflakeIdSchema.optional(),
   authTokens: AuthTokensSchema.optional(),
   deviceId: SnowflakeIdSchema.optional(),
-  currentRoomSlug: SlugSchema.optional(),
-  connectedRoomSlugs: z.array(SlugSchema),
-  activeRoomSlugs: z.array(SlugSchema),
+  currentLocation: z.string().url().optional(),
+  currentChannelId: SnowflakeIdSchema.optional(),
+  allChannelIds: z.array(SnowflakeIdSchema),
   currentGeolocation: z.custom<GeolocationPosition>().optional(),
   chatService: z
     .object({

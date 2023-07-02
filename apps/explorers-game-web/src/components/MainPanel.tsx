@@ -79,7 +79,7 @@ const RoomPanel = () => {
     entityStoreRegistry.myInitializedConnectionEntity,
     (entity) => entity.currentRoomSlug
   );
-  console.log({ connectionEntity, currentRoomSlug });
+
   const roomEntityStore = useCreateEntityStore<RoomEntity>(
     (entity) => {
       return (currentRoomSlug &&

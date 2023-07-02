@@ -30,7 +30,7 @@ type PlainMessageEvent = {
 type ChatEvent = PlainMessageEvent;
 
 export const Chat = () => {
-  const { roomEntity, connectionEntity } = useContext(ChatContext);
+  // const { createEntityStore } = useContext(WorldContext);
 
   return (
     <Flex direction="column" css={{ width: '100%', minHeight: '100%' }}>
@@ -55,14 +55,17 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
     (e) => {
       const text = textRef.current?.value || '';
       e.preventDefault();
+
       if (text !== '') {
-        roomEntity.send({
-          type: 'MESSAGE',
-          message: {
-            type: 'PLAIN_MESSAGE',
-            text,
-          },
-        });
+        // todo send
+        // roomEntity.send({
+        //   type: 'MESSAGE',
+        //   message: {
+        //     type: 'PLAIN_MESSAGE',
+        //     text,
+        //   },
+        // });
+
         // send({ type: 'MESSAGE', message: { text } });
 
         // clear input
@@ -100,6 +103,7 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
 };
 
 const ChatMessageList = () => {
+
   const scrollViewRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {

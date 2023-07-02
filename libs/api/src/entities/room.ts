@@ -9,6 +9,7 @@ import {
   RoomEntity,
   RoomEvent,
   StrikersGameEntity,
+  StrikersPlayerEntity,
 } from '@explorers-club/schema';
 import type { WithSenderId } from '@explorers-club/schema';
 import { assert } from '@explorers-club/utils';
@@ -30,7 +31,8 @@ export const createRoomMachine = ({
   entity: Entity;
   channel: ReplaySubject<any>;
 }) => {
-  const roomEntity = entity as RoomEntity;
+  assert(entity.schema === 'room', 'expected room schema when creating room');
+  const roomEntity = entity;
   const roomChannel = channel as ReplaySubject<CreateEventProps<RoomEvent>>;
 
   return createMachine({
@@ -201,6 +203,20 @@ export const createRoomMachine = ({
               START: {
                 target: 'Started',
                 actions: async (context, event) => {
+                  // how do I get who is p1 and who is p2
+                  // const p1 = createEntity<StrikersPlayerEntity>({
+                  //   schema: 'strikers_player',
+                  //   userId: '',
+                  //   gameEntityId: '',
+                  //   channel: undefined
+                  // });
+                  // const p2 = createEntity<StrikersPlayerEntity>({
+                  //   schema: 'strikers_player',
+                  //   userId: '',
+                  //   gameEntityId: '',
+                  //   channel: undefined
+                  // });
+
                   const gameEntity = createEntity<StrikersGameEntity>({
                     schema: 'strikers_game',
                     gameId: 'strikers',
@@ -208,6 +224,8 @@ export const createRoomMachine = ({
                       cards: [],
                       gameMode: 'quickplay',
                       turnsPerHalf: 0,
+                      // p1PlayerId: p1.id,
+                      // p2PlayerId: p2.id,
                       p1PlayerId: '',
                       p2PlayerId: '',
                       extraTime: {
@@ -218,6 +236,8 @@ export const createRoomMachine = ({
                     channelId: entity.id,
                     turnsIds: [],
                   });
+                  // world.add(p1);
+                  // world.add(p2);
                   world.add(gameEntity);
                 },
               },
