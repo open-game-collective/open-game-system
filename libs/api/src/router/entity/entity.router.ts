@@ -318,8 +318,10 @@ const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
 };
 
 const hasWriteAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
-  // Only conneciton entities can be sent to and it must match the sender
-  return entity.id === connectionEntity.id;
+  // For now all entities can send events to everybody...
+  return true;
+  // // Only conneciton entities can be sent to and it must match the sender
+  // return entity.id === connectionEntity.id;
 };
 
 // // const [baseEntityIndex, baseEntityIndex$] = createArchetypeIndex(

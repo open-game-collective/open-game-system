@@ -191,8 +191,10 @@ export const createConnectionMachine = ({
                   // Connect to it
                   roomEntity.send({
                     type: 'CONNECT',
-                    connectionEntityId: connectionEntity.id,
-                  });
+                    senderId: connectionEntity.id,
+                  } as any);
+                  // todo fix types on senderId, it doesnt konw it exists, only in machine
+                  // problem for sending commands outside entity router send mutation
 
                   // Join the chat room
                   // todo: is this still used? or just use message_channel entity now

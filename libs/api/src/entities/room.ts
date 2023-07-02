@@ -8,7 +8,9 @@ import {
   RoomContext,
   RoomEntity,
   RoomEvent,
+  StrikersGameEntity,
 } from '@explorers-club/schema';
+import type { WithSenderId } from '@explorers-club/schema';
 import { assert } from '@explorers-club/utils';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
@@ -16,6 +18,7 @@ import { createMachine } from 'xstate';
 import { sessionsById } from '../server/indexes';
 import { entitiesById } from '../server/state';
 import { waitForCondition } from '../world';
+import { createEntity } from '../ecs';
 // import { generateSnowflakeId } from '../ids';
 
 export const createRoomMachine = ({
@@ -33,20 +36,21 @@ export const createRoomMachine = ({
   return createMachine({
     id: 'RoomMachine',
     type: 'parallel',
-    context: {
-      workflows: new Map(),
-    },
+    // context: {
+    //   workflows: new Map(),
+    // },
     schema: {
       context: {} as RoomContext,
-      events: {} as RoomCommand,
+      events: {} as WithSenderId<RoomCommand>,
     },
     on: {
       CONNECT: {
         actions: async (_, event) => {
+          // event.senderId
           const connectionEntity = (await waitForCondition<ConnectionEntity>(
             world,
             entitiesById,
-            event.connectionEntityId,
+            event.senderId,
             (entity) => entity.states.Initialized === 'True'
           )) as InitializedConnectionEntity;
           const sessionEntity = sessionsById.get(connectionEntity.sessionId);
@@ -56,12 +60,10 @@ export const createRoomMachine = ({
               connectionEntity.sessionId
           );
 
-          if (
-            !roomEntity.connectedEntityIds.includes(event.connectionEntityId)
-          ) {
+          if (!roomEntity.connectedEntityIds.includes(event.senderId)) {
             roomEntity.connectedEntityIds = [
               ...roomEntity.connectedEntityIds,
-              event.connectionEntityId,
+              event.senderId,
             ];
 
             const joinEvent = {
@@ -189,6 +191,39 @@ export const createRoomMachine = ({
           Lobby: {},
           Loading: {},
           Game: {},
+        },
+      },
+      Game: {
+        initial: 'WaitingToStart',
+        states: {
+          WaitingToStart: {
+            on: {
+              START: {
+                target: 'Started',
+                actions: async (context, event) => {
+                  const gameEntity = createEntity<StrikersGameEntity>({
+                    schema: 'strikers_game',
+                    gameId: 'strikers',
+                    config: {
+                      cards: [],
+                      gameMode: 'quickplay',
+                      turnsPerHalf: 0,
+                      p1PlayerId: '',
+                      p2PlayerId: '',
+                      extraTime: {
+                        minRounds: 2,
+                        maxRounds: 5,
+                      },
+                    },
+                    channelId: entity.id,
+                    turnsIds: [],
+                  });
+                  world.add(gameEntity);
+                },
+              },
+            },
+          },
+          Started: {},
         },
       },
       Active: {

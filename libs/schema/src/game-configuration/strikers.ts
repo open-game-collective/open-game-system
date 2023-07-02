@@ -69,7 +69,7 @@ const StrikersPlayerCardSchema = z.union([
 export const CardIdSchema = z.string();
 
 export const StrikersGameConfigDataSchema = z.object({
-  cards: StrikersPlayerCardSchema,
+  cards: z.array(StrikersPlayerCardSchema),
   gameMode: z.enum(['quickplay', 'draft']).default('quickplay'),
   turnsPerHalf: z.number().default(20),
   p1PlayerId: SnowflakeIdSchema,

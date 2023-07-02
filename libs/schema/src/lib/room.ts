@@ -25,22 +25,18 @@ export const RoomContextSchema = z.object({
 
 const StartCommandSchema = z.object({
   type: z.literal('START'),
-  connectionEntityId: SnowflakeIdSchema,
 });
 
 const ConnectCommandSchema = z.object({
   type: z.literal('CONNECT'),
-  connectionEntityId: SnowflakeIdSchema,
 });
 
 const JoinCommandSchema = z.object({
   type: z.literal('JOIN'),
-  connectionEntityId: SnowflakeIdSchema,
 });
 
 const LeaveCommandSchema = z.object({
   type: z.literal('LEAVE'),
-  connectionEntityId: SnowflakeIdSchema,
 });
 
 export const RoomCommandSchema = z.union([

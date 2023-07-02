@@ -194,7 +194,7 @@ export type RoomStateSchema = StateSchemaFromStateValue<RoomStateValue>;
 export type RoomMachine = StateMachine<
   RoomContext,
   RoomStateSchema,
-  RoomCommand
+  WithSenderId<RoomCommand>
 >;
 
 export type MessageChannelStateSchema =

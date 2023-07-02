@@ -26,8 +26,7 @@ export const createStrikersGameMachine = ({
   world: World;
   entity: Entity;
 }) => {
-  const strikersGame = entity as StrikersGameEntity;
-  // strikersGame.config.
+  assert(entity.schema === 'strikers_game', 'expected strikers_game entity');
 
   const getPlayer = (senderId: SnowflakeId) => {
     const sessionEntity = entitiesById.get(senderId);
@@ -56,11 +55,16 @@ export const createStrikersGameMachine = ({
         states: {
           Lineups: {
             invoke: {
-              id: 'lineup',
+              id: 'lineups',
               src: LineupMachine,
             },
+            onDone: 'Complete',
+          },
+          Complete: {
+            type: 'final',
           },
         },
+        onDone: 'Playing',
       },
       Playing: {
         initial: 'FirstHalf',
