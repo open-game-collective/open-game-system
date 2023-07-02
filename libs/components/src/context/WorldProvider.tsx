@@ -59,7 +59,7 @@ export const WorldProvider: FC<{
 }> = ({ children, world }) => {
   const { client } = trpc.useContext();
   type Callback = Parameters<Entity['subscribe']>[0];
-  const entitiesById = createIndex(world);
+  const [entitiesById] = useState(createIndex(world));
   // window.$WORLD = world;
   // const [subscribersById] = useState(new Map<SnowflakeId, Set<() => void>>());
   const [nextFnById] = useState(new Map<SnowflakeId, Callback>());
@@ -179,85 +179,87 @@ export const WorldProvider: FC<{
     return sub.unsubscribe;
   }, [client, createEntity, nextFnById, world]);
 
-  const useEntitySelector = <T extends Entity, R>(
-    id: SnowflakeId,
-    selector: Selector<T, R>
-  ) => {
-    const getSnapshot = () => {
-      const entity = entitiesById.get(id) as T | undefined;
-      if (!entity) {
-        throw new Error('entity missing: ' + entity);
-      }
-
-      return entity;
-    };
-
-    const subscribe = (onStoreChange: () => void) => {
-      const entity = entitiesById.get(id);
-      if (!entity) {
-        throw new Error('entity missing: ' + entity);
-      }
-
-      const unsub = entity.subscribe(onStoreChange);
-
-      return () => {
-        unsub();
-      };
-    };
-
-    return useSyncExternalStoreWithSelector(
-      subscribe,
-      getSnapshot,
-      getSnapshot,
-      selector
-    );
-  };
-
-  const createEntityStore = <TEntity extends Entity>(
-    query: (entity: Entity) => boolean
-  ) => {
-    const store = atom<TEntity | null>(null);
-    for (const entity of world.entities) {
-      if (query(entity)) {
-        store.set(entity as TEntity);
-      }
-    }
-
-    // todo fix mem leak
-    world.onEntityAdded.add((entity) => {
-      if (query(entity as TEntity)) {
-        store.set(entity as TEntity);
-      }
-
-      entity.subscribe(() => {
-        if (!store.get() && query(entity as TEntity)) {
-          store.set(entity as TEntity);
+  const useEntitySelector = useCallback(
+    <T extends Entity, R>(id: SnowflakeId, selector: Selector<T, R>) => {
+      const getSnapshot = () => {
+        const entity = entitiesById.get(id) as T | undefined;
+        if (!entity) {
+          throw new Error('entity missing: ' + entity);
         }
 
-        if (store.get() && !query(entity as TEntity)) {
+        return entity;
+      };
+
+      const subscribe = (onStoreChange: () => void) => {
+        const entity = entitiesById.get(id);
+        if (!entity) {
+          throw new Error('entity missing: ' + entity);
+        }
+
+        const unsub = entity.subscribe(onStoreChange);
+
+        return () => {
+          unsub();
+        };
+      };
+
+      return useSyncExternalStoreWithSelector(
+        subscribe,
+        getSnapshot,
+        getSnapshot,
+        selector
+      );
+    },
+    []
+  );
+
+  const createEntityStore = useCallback(
+    <TEntity extends Entity>(query: (entity: Entity) => boolean) => {
+      const store = atom<TEntity | null>(null);
+      for (const entity of world.entities) {
+        if (query(entity)) {
+          store.set(entity as TEntity);
+        }
+      }
+
+      // todo fix mem leak
+      world.onEntityAdded.add((addedEntity) => {
+        if (query(addedEntity as TEntity)) {
+          store.set(addedEntity as TEntity);
+        }
+
+        addedEntity.subscribe(() => {
+          if (!store.get() && query(addedEntity as TEntity)) {
+            store.set(addedEntity as TEntity);
+          }
+
+          if (addedEntity === store.get() && !query(addedEntity as TEntity)) {
+            store.set(null);
+          }
+        });
+      });
+
+      world.onEntityRemoved.add((entity) => {
+        if (store.get() === entity) {
           store.set(null);
         }
       });
-    });
 
-    world.onEntityRemoved.add((entity) => {
-      if (store.get() === entity) {
-        store.set(null);
-      }
-    });
-
-    return store;
-  };
-  const entityStoreRegistry = {
+      return store;
+    },
+    []
+  );
+  const [entityStoreRegistry] = useState({
     myConnectionEntity: createEntityStore<ConnectionEntity>(
       (entity) => entity.schema === 'connection'
     ),
     myInitializedConnectionEntity:
-      createEntityStore<InitializedConnectionEntity>(
-        (entity) =>
+      createEntityStore<InitializedConnectionEntity>((entity) => {
+        return (
           entity.schema === 'connection' && entity.states.Initialized === 'True'
-      ),
-  } satisfies EntityStoreRegistry;
+        );
+      }),
+  } satisfies EntityStoreRegistry);
 
   return (
     <WorldContext.Provider

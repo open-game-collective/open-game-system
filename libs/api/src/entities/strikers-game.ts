@@ -54,7 +54,12 @@ export const createStrikersGameMachine = ({
       Setup: {
         initial: 'Lineups',
         states: {
-          Lineups: {},
+          Lineups: {
+            invoke: {
+              id: 'lineup',
+              src: LineupMachine,
+            },
+          },
         },
       },
       Playing: {
@@ -70,7 +75,7 @@ export const createStrikersGameMachine = ({
   });
 };
 
-const LineupSetupMachine = createMachine({
+const LineupMachine = createMachine({
   id: 'LineupSetupMachine',
   initial: 'ChoosingPlayers',
   states: {

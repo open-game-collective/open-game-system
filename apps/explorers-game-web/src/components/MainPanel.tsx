@@ -72,10 +72,14 @@ const NewRoomPanel = () => {
 
 const RoomPanel = () => {
   const { entityStoreRegistry } = useContext(WorldContext);
+  const connectionEntity = useStore(
+    entityStoreRegistry.myInitializedConnectionEntity
+  );
   const currentRoomSlug = useEntityStoreSelector(
     entityStoreRegistry.myInitializedConnectionEntity,
     (entity) => entity.currentRoomSlug
   );
+  console.log({ connectionEntity, currentRoomSlug });
   const roomEntityStore = useCreateEntityStore<RoomEntity>(
     (entity) => {
       return (currentRoomSlug &&
@@ -86,9 +90,13 @@ const RoomPanel = () => {
   );
 
   const roomEntity = useStore(roomEntityStore);
-  const connectionEntity = useStore(
-    entityStoreRegistry.myInitializedConnectionEntity
-  );
+  // console.log({
+  //   roomEntity,
+  //   connectionEntity,
+  //   currentRoomSlug,
+  //   roomEntityStore,
+  //   init: entityStoreRegistry.myInitializedConnectionEntity,
+  // });
 
   if (!roomEntity || !connectionEntity) {
     return <div>loading entities</div>;

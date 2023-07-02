@@ -2,7 +2,7 @@
 import { Box } from '@atoms/Box';
 import { OrbitControls, useContextBridge } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { GoogleMaps } from './GoogleMaps';
+// import { GoogleMaps } from './GoogleMaps';
 import { WorldContext } from '@context/WorldProvider';
 import { ConnectionContext } from './ApplicationProvider';
 import { TopNav } from './TopNav';
@@ -46,7 +46,7 @@ export const MainScene = () => {
         camera={{ far: 2000000000 }}
       >
         <ContextBridge>
-          <GoogleMaps />
+          {/* <GoogleMaps /> */}
           {/* <CafeModel /> */}
           {/* <OrbitControls />
         <CafeModel /> */}

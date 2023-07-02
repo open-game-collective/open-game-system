@@ -29,7 +29,7 @@ import { machineMap } from './machines';
 import { channelsById, entitiesById, world } from './server/state';
 // import { eventTriggerDispatchMachine } from './services/event-trigger-dispatch.service';
 import { World } from 'miniplex';
-import { greetOnJoinTrigger } from './configs/triggers';
+// import { greetOnJoinTrigger } from './configs/triggers';
 import { ChangeEvent } from 'react';
 
 enablePatches();
@@ -252,7 +252,7 @@ const eventTriggerDispatchService = interpret(
       world,
       triggerEntities: {},
       entitiesById,
-      configs: [greetOnJoinTrigger],
+      configs: [],
     })
     .withConfig({
       actions: {
