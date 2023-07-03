@@ -85,11 +85,21 @@ const ConnectionHeartbeatCommandSchema = z.object({
   type: z.literal('HEARTBEAT'),
 });
 
+const ConnectionConnectCommandSchema = z.object({
+  type: z.literal('CONNECT'),
+});
+
+const ConnectionDisconnectCommandSchema = z.object({
+  type: z.literal('DISCONNECT'),
+});
+
 const BaseConnectionCommandSchema = z.union([
   ConnectionInitializeCommandSchema,
   ConnectionHeartbeatCommandSchema,
   ConnectionNavigateCommandSchema,
   UpdateGeolocationPositionCommandSchema,
+  ConnectionConnectCommandSchema,
+  ConnectionDisconnectCommandSchema,
 ]);
 
 const ConfigureCommandSchema = z.object({

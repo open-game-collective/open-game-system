@@ -69,7 +69,20 @@ export const createConnectionMachine = ({
       },
       context: {
         // supabaseClient: undefined,
+        reconnectCount: -1,
         chatServiceRef: undefined,
+      },
+      on: {
+        CONNECT: {
+          actions: assign({
+            reconnectCount: ({ reconnectCount }) => reconnectCount + 1,
+          }),
+        },
+        DISCONNECT: {
+          actions: ({ reconnectCount }) => {
+            console.log('DISCONNECT!', reconnectCount);
+          },
+        },
       },
       states: {
         Route: {
@@ -171,7 +184,7 @@ export const createConnectionMachine = ({
               },
             },
             Room: {
-              entry: ['joinRoom', 'spawnChatService'],
+              entry: ['connectToRoom', 'spawnChatService'],
             },
           },
         },
@@ -206,13 +219,8 @@ export const createConnectionMachine = ({
                   // }),
                 },
                 src: async (context, event) => {
-                  console.log('INITIALIZING!');
-                  const { createEntity } = await import('../ecs');
-                  console.log('HI1');
                   assertEventType(event, 'INITIALIZE');
-                  console.log('HI2');
 
-                  console.log(event.accessToken);
                   const decoded = jwt.verify(
                     event.accessToken,
                     'my_private_key',
@@ -220,19 +228,16 @@ export const createConnectionMachine = ({
                       jwtid: 'ACCESS_TOKEN',
                     }
                   );
-                  console.log('DECODED!', decoded.sub);
                   assert(
                     typeof decoded === 'object' && decoded.sub,
                     'expected to find subject on acessToken'
                   );
 
-                  console.log('updating!');
                   world.update(connectionEntity, {
                     accessToken: event.accessToken,
                     sessionId: decoded.sub,
                     deviceId: event.deviceId,
                   });
-                  console.log('UDPATED!', connectionEntity);
 
                   // const { accessToken } = event;
                   // const userId = getUserId(refreshToken);
@@ -423,58 +428,59 @@ export const createConnectionMachine = ({
     },
     {
       actions: {
-        joinCurrentChannel: async (context) => {
-          const { createEntity } = await import('../ecs');
-          assert(
-            context.chatServiceRef,
-            'expected chat service to be initialized'
-          );
-          assert(
-            connectionEntity.currentChannelId,
-            'expected current channel id but not found'
-          );
+        // joinCurrentChannel: async (context) => {
+        //   const { createEntity } = await import('../ecs');
+        //   assert(
+        //     context.chatServiceRef,
+        //     'expected chat service to be initialized'
+        //   );
+        //   assert(
+        //     connectionEntity.currentChannelId,
+        //     'expected current channel id but not found'
+        //   );
 
-          let roomEntity = entitiesById.get(
-            connectionEntity.currentChannelId
-          ) as RoomEntity;
+        //   let roomEntity = entitiesById.get(
+        //     connectionEntity.currentChannelId
+        //   ) as RoomEntity;
 
-          console.log('CREATRINGROOOM!', connectionEntity.currentLocation);
+        //   console.log('CREATRINGROOOM!', connectionEntity.currentLocation);
 
-          // Create the room if one doesnt already exist
+        //   // Create the room if one doesnt already exist
 
-          // Connect to it
-          roomEntity.send({
-            type: 'CONNECT',
-            senderId: connectionEntity.id,
-          } as any);
-          // todo fix types on senderId, it doesnt konw it exists, only in machine
-          // problem for sending commands outside entity router send mutation
+        //   // Connect to it
+        //   roomEntity.send({
+        //     type: 'CONNECT',
+        //     senderId: connectionEntity.id,
+        //   } as any);
 
-          // Join the chat room
-          // todo: is this still used? or just use message_channel entity now
-          context.chatServiceRef.send({
-            type: 'JOIN_CHANNEL',
-            channelId: roomEntity.id,
-          });
+        //   // todo fix types on senderId, it doesnt konw it exists, only in machine
+        //   // problem for sending commands outside entity router send mutation
 
-          // Join the game room if there is one
-          // if (roomEntity.gameId) {
-          //   context.chatServiceRef.send({
-          //     type: 'JOIN_CHANNEL',
-          //     channelId: roomEntity.gameId,
-          //   });
-          // }
+        //   // Join the chat room
+        //   // todo: is this still used? or just use message_channel entity now
+        //   context.chatServiceRef.send({
+        //     type: 'JOIN_CHANNEL',
+        //     channelId: roomEntity.id,
+        //   });
 
-          // todo clean up ref
-          // wasnt able to get assign on entry to be called so gave up
-          // spawn(
-          //   chatMachine.withContext({
-          //     roomSlug: connectionEntity.currentRoomSlug,
-          //   }),
-          //   'chatService'
-          // );
-          // chatService.join()
-        },
+        //   // Join the game room if there is one
+        //   // if (roomEntity.gameId) {
+        //   //   context.chatServiceRef.send({
+        //   //     type: 'JOIN_CHANNEL',
+        //   //     channelId: roomEntity.gameId,
+        //   //   });
+        //   // }
+
+        //   // todo clean up ref
+        //   // wasnt able to get assign on entry to be called so gave up
+        //   // spawn(
+        //   //   chatMachine.withContext({
+        //   //     roomSlug: connectionEntity.currentRoomSlug,
+        //   //   }),
+        //   //   'chatService'
+        //   // );
+        //   // chatService.join()
+        // },
         spawnChatService: assign({
           chatServiceRef: () =>
             spawn(
@@ -483,7 +489,7 @@ export const createConnectionMachine = ({
             ) as ConnectionContext['chatServiceRef'],
         }),
 
-        joinRoom: () => {
+        connectToRoom: () => {
           const slug = connectionEntity.currentLocation?.split('/')[1];
           assert(slug, 'error parsing slug from currentLocation');
 

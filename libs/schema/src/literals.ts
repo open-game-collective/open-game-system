@@ -61,6 +61,8 @@ export type GameId = z.infer<typeof GameIdLiteralSchema>;
 export const LogEventTypeLiteral = z.literal('LOG');
 export const MessageEventTypeLiteral = z.literal('MESSAGE');
 export const JoinEventTypeLiteral = z.literal('JOIN');
+export const ConnectEventTypeLiteral = z.literal('CONNECT');
+export const DisconnectEventTypeLiteral = z.literal('DISCONNECT');
 export const LeaveEventTypeLiteral = z.literal('LEAVE');
 export const DebugEventTypeLiteral = z.literal('DEBUG');
 

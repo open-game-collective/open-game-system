@@ -8,6 +8,7 @@ import {
   MessageEventTypeLiteral,
 } from '../literals';
 import { EventBaseSchema } from './base';
+import { ConnectEventSchema, DisconnectEventSchema } from '@schema/lib/room';
 
 export const MessageEventSchema = EventBaseSchema(
   MessageEventTypeLiteral,
@@ -52,4 +53,6 @@ export const ChannelEventSchema = z.union([
   JoinEventSchema,
   LeaveEventSchema,
   DebugEventSchema,
+  ConnectEventSchema,
+  DisconnectEventSchema,
 ]);

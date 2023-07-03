@@ -11,7 +11,12 @@ import {
   StrikersGameEntity,
   StrikersPlayerEntity,
 } from '@explorers-club/schema';
-import type { WithSenderId } from '@explorers-club/schema';
+import type {
+  ChannelEvent,
+  ConnectEvent,
+  DisconnectEvent,
+  WithSenderId,
+} from '@explorers-club/schema';
 import { assert } from '@explorers-club/utils';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
@@ -20,6 +25,8 @@ import { sessionsById } from '../server/indexes';
 import { entitiesById } from '../server/state';
 import { waitForCondition } from '../world';
 import { createEntity } from '../ecs';
+import { ConnectEventSchema, RoomEventSchema } from '@schema/lib/room';
+import { z } from 'zod';
 // import { generateSnowflakeId } from '../ids';
 
 export const createRoomMachine = ({
@@ -48,143 +55,40 @@ export const createRoomMachine = ({
     on: {
       CONNECT: {
         actions: async (_, event) => {
-          // event.senderId
-          const connectionEntity = (await waitForCondition<ConnectionEntity>(
-            world,
-            entitiesById,
-            event.senderId,
-            (entity) => entity.states.Initialized === 'True'
-          )) as InitializedConnectionEntity;
-
-          // const sessionEntity = sessionsById.get(connectionEntity.sessionId);
-          // assert(
-          //   sessionEntity,
-          //   'expected sessionEntity but not found for sessionId ' +
-          //     connectionEntity.sessionId
-          // );
-          console.log(event.senderId);
-
+          console.log('CONNECTING!', event);
+          // const connectionEntity = (await waitForCondition<ConnectionEntity>(
+          //   world,
+          //   entitiesById,
+          //   event.senderId,
+          //   (entity) => entity.states.Initialized === 'True'
+          // )) as InitializedConnectionEntity;
           if (!roomEntity.connectedEntityIds.includes(event.senderId)) {
             roomEntity.connectedEntityIds = [
               ...roomEntity.connectedEntityIds,
               event.senderId,
             ];
 
-            const joinEvent = {
-              type: 'JOIN',
+            roomChannel.next({
+              type: 'CONNECT',
               subjectId: event.senderId,
-            } as CreateEventProps<JoinEvent>;
-            roomChannel.next(joinEvent);
-
-            // If this is the first time this user has been in this channel,
-            // run the workflow
-            // const newMemberWorkflow = createMachine({
-            //   id: 'NewMachineWorkflow',
-            //   initial: 'FirstMessage',
-            //   schema: {
-            //     context: {} as ChannelWorkflowContext,
-            //     events: {} as { type: 'SUBMIT_NAME'; form: { name: string } },
-            //   },
-            //   // this is customizable
-            //   states: {
-            //     FirstMessage: {
-            //       always: [
-            //         {
-            //           target: 'Done',
-            //           cond: 'hasNameSet',
-            //         },
-            //       ],
-            //       invoke: {
-            //         src: 'sendMessage',
-            //         onDone: 'WaitingForResponse',
-            //       },
-            //     },
-            //     WaitingForResponse: {
-            //       on: {
-            //         SUBMIT_NAME: {
-            //           target: 'ThirdMessage',
-            //           actions: (context, event) => {
-            //             console.log('SUBMIT_NAME', context, event);
-            //           },
-            //         },
-            //       },
-            //     },
-            //     ThirdMessage: {
-            //       invoke: {
-            //         src: 'sendMessage',
-            //         onDone: 'WaitingForName',
-            //       },
-            //     },
-            //     WaitingForName: {
-            //       on: {
-            //         // INPUT_NAME: {
-            //         //   target: 'Done',
-            //         // },
-            //       },
-            //     },
-            //     Done: {
-            //       type: 'final',
-            //     },
-            //   },
-            // })
-            //   .withContext({
-            //     workflowId: generateUUID(),
-            //     entityIds: {
-            //       session: sessionEntity.id,
-            //       room: roomEntity.id,
-            //     },
-            //   })
-            //   .withConfig({
-            //     actions: {},
-            //     guards: {
-            //       hasNameSet: (context, event) => {
-            //         return false;
-            //       },
-            //     },
-            //     services: {
-            //       sendMessage: async (context, event, invokeMeta) => {
-            //         // const channelEntity = channelEntitiesById.get(
-            //         //   context.entities.channel
-            //         // );
-            //         // const user = usersById.get(context.entities.user);
-            //         // console.log({
-            //         //   channelEntity,
-            //         //   user,
-            //         //   entities: context.entities,
-            //         // });
-
-            //         const entityMap = {
-            //           session: sessionsById.get(context.entityIds.session),
-            //           room: channelEntitiesById.get(context.entityIds.room),
-            //         };
-            //         type EntityKey = keyof typeof entityMap;
-            //         assert(
-            //           entityMap.session,
-            //           'expected user entity when sending message'
-            //         );
-            //         assert(
-            //           entityMap.room,
-            //           'expected room entity when sending message'
-            //         );
-
-            //         const vars = sendMessageParams.variables;
-            //         type Key = keyof typeof vars;
-
-            //         const bindings = {} as Record<>;
-            //         for (const key in vars) {
-            //           const variable = vars[key as Key];
-            //           const entity = entityMap[variable.entity as EntityKey];
-            //           const value = getValueFromPath(entity, variable.path);
-            //         }
-
-            //         return '';
-            //       },
-            //     },
-            //   });
-
-            // const service = interpret(newMemberWorkflow);
-            // service.start();
+            } as CreateEventProps<ConnectEvent>);
+            console.log('CONNECTED!');
           }
+        },
+      },
+      DISCONNECT: {
+        actions: async (_, event) => {
+          console.log('DISCONNECTING!', event);
+          roomEntity.connectedEntityIds = [
+            ...roomEntity.connectedEntityIds.filter(
+              (id) => id !== event.senderId
+            ),
+          ];
+
+          roomChannel.next({
+            type: 'DISCONNECT',
+            subjectId: event.senderId,
+          } as CreateEventProps<DisconnectEvent>);
         },
       },
     },

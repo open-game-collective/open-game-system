@@ -3,8 +3,10 @@ import * as cors from 'cors';
 import {
   ApiRouter,
   apiRouter,
+  connectionsByAccessToken,
   createContextHTTP,
   createContextWebsocket,
+  entitiesById,
 } from '@explorers-club/api';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import * as trpcExpress from '@trpc/server/adapters/express';
@@ -12,6 +14,7 @@ import * as http from 'http';
 import * as ws from 'ws';
 
 import * as express from 'express';
+import { assert } from '@explorers-club/utils';
 
 const app = express();
 const server = http.createServer(app);
@@ -22,6 +25,28 @@ const wsHandler = applyWSSHandler({
   wss,
   router: apiRouter,
   createContext: createContextWebsocket,
+});
+
+// Get the world
+// Send connect and disconnect events on the entity
+wss.on('connection', (ws, req) => {
+  assert(req.url, 'expected url to be able to parse for accessToken');
+
+  const url = new URL(req.url, `ws://${req.headers.host}`);
+  const accessToken = url.searchParams.get('accessToken');
+  assert(accessToken, 'failed to parse for accessToken');
+
+  ws.once('close', () => {
+    const connectionEntity = connectionsByAccessToken.get(accessToken);
+    if (!connectionEntity) {
+      console.warn('failed to find connectionEntity for accessToken');
+      return;
+    }
+
+    connectionEntity.send({
+      type: 'DISCONNECT',
+    });
+  });
 });
 
 app.use(cors()); // todo might not need

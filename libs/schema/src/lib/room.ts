@@ -9,6 +9,8 @@ import { GameConfigurationSchema } from '../configuration';
 import { EntityBaseSchema } from '../entity/base';
 import { EventBaseSchema } from '../events/base';
 import {
+  ConnectEventTypeLiteral,
+  DisconnectEventTypeLiteral,
   DebugEventTypeLiteral,
   GameIdLiteralSchema,
   JoinEventTypeLiteral,
@@ -31,6 +33,10 @@ const ConnectCommandSchema = z.object({
   type: z.literal('CONNECT'),
 });
 
+const DisconnectCommandSchema = z.object({
+  type: z.literal('DISCONNECT'),
+});
+
 const JoinCommandSchema = z.object({
   type: z.literal('JOIN'),
 });
@@ -41,6 +47,7 @@ const LeaveCommandSchema = z.object({
 
 export const RoomCommandSchema = z.union([
   ConnectCommandSchema,
+  DisconnectCommandSchema,
   JoinCommandSchema,
   StartCommandSchema,
   LeaveCommandSchema,
@@ -107,6 +114,20 @@ export const JoinEventSchema = EventBaseSchema(
   })
 );
 
+export const ConnectEventSchema = EventBaseSchema(
+  ConnectEventTypeLiteral,
+  z.object({
+    subjectId: SnowflakeIdSchema,
+  })
+);
+
+export const DisconnectEventSchema = EventBaseSchema(
+  DisconnectEventTypeLiteral,
+  z.object({
+    subjectId: SnowflakeIdSchema,
+  })
+);
+
 export const LeaveEventSchema = EventBaseSchema(
   LeaveEventTypeLiteral,
   z.object({
@@ -118,14 +139,6 @@ export const RoomEventSchema = z.discriminatedUnion('type', [
   MessageEventSchema,
   JoinEventSchema,
   LeaveEventSchema,
-]);
-
-// todo this should be a union with dm, group, other types of channels
-// for now just sit with room schemas
-export const ChannelEventSchema = z.union([
-  LogEventSchema,
-  MessageEventSchema,
-  JoinEventSchema,
-  LeaveEventSchema,
-  DebugEventSchema,
+  ConnectEventSchema,
+  DisconnectEventSchema,
 ]);

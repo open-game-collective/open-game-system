@@ -121,6 +121,9 @@ export const createContextWebsocket = async (opts: {
 
   // todo add timeout
   const connectionEntity = await getConnectionEntity(accessToken);
+  connectionEntity.send({
+    type: 'CONNECT',
+  });
   const socket = opts.res;
 
   const contextInner = await createContextInner({

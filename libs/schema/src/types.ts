@@ -6,7 +6,7 @@ import { IndexByType, InterpreterFrom, StateMachine } from 'xstate';
 import { z } from 'zod';
 import { SnowflakeIdSchema, StateSchemaFromStateValue } from './common';
 import { EntityCommandSchema, EntitySchema, EntitySchemas } from './entity';
-import { MessageEventSchema } from './events/channel';
+import { ChannelEventSchema, MessageEventSchema } from './events/channel';
 import { ClientEventSchema } from './events/client';
 import {
   CodebreakersGameCommandSchema,
@@ -53,8 +53,9 @@ import {
   MessageTemplateSchema,
 } from './lib/message-channel';
 import {
-  ChannelEventSchema,
+  ConnectEventSchema,
   DebugEventSchema,
+  DisconnectEventSchema,
   JoinEventSchema,
   LeaveEventSchema,
   LogEventSchema,
@@ -132,7 +133,7 @@ export type ChatMachine = StateMachine<
 export type ChatInterpreter = InterpreterFrom<ChatMachine>;
 
 export type ConnectionContext = {
-  // supabaseClient?: SupabaseClient<Database>;
+  reconnectCount: number;
   chatServiceRef?: ChatInterpreter;
 };
 // export type InitializedConnectionContext = MakeRequired<
@@ -246,6 +247,8 @@ export type TriggerMachine = StateMachine<
 
 export type LeaveEvent = z.infer<typeof LeaveEventSchema>;
 export type JoinEvent = z.infer<typeof JoinEventSchema>;
+export type ConnectEvent = z.infer<typeof ConnectEventSchema>;
+export type DisconnectEvent = z.infer<typeof DisconnectEventSchema>;
 export type MessageEvent = z.infer<typeof MessageEventSchema>;
 export type LogEvent = z.infer<typeof LogEventSchema>;
 export type DebugEvent = z.infer<typeof DebugEventSchema>;

@@ -69,20 +69,20 @@ export const initAccessToken = (
     cookies.set('accessToken', accessToken, {
       maxAge: 24 * 60 * 60,
     });
-  }
 
-  client.connection.initialize
-    .mutate({
-      deviceId,
-      initialRouteProps: routeProps,
-      accessToken,
-    })
-    .then(() => {
-      // no-op for now
-    })
-    .catch((ex) => {
-      console.error(ex);
-    });
+    client.connection.initialize
+      .mutate({
+        deviceId,
+        initialRouteProps: routeProps,
+        accessToken,
+      })
+      .then(() => {
+        // no-op for now
+      })
+      .catch((ex) => {
+        console.error(ex);
+      });
+  }
 
   return accessToken;
 };
