@@ -6,3 +6,7 @@ import { Observable } from 'rxjs';
 export const world = new World<Entity>();
 export const entitiesById = createIndex(world);
 export const channelsById = new Map<SnowflakeId, Observable<ChannelEvent>>();
+
+// todo make persistence
+// pretend this is a database table
+export const refreshTokensByUserId = new Map<SnowflakeId, string>();

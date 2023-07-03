@@ -1,10 +1,17 @@
 ---
+import { assert } from '@explorers-club/utils';
+import { initAccessToken } from '../auth';
 import Layout from '../layouts/Layout.astro';
+import type { RouteProps } from '@schema/types';
 
 const { roomSlug } = Astro.params;
+assert(roomSlug, 'expected roomSlug but not found');
+const routeProps = { name: 'Room', roomSlug: roomSlug } satisfies RouteProps;
+const accessToken = initAccessToken(Astro.cookies, routeProps);
 ---
 
 <Layout
   title={`#${roomSlug} @ explorers cafe & market`}
-  routeProps={{ name: 'Room', roomSlug: roomSlug! }}
+  routeProps={routeProps}
+  accessToken={accessToken}
 />

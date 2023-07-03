@@ -37,9 +37,8 @@ export const RoutePropsSchema = z.union([
   RoomRoutePropsSchema,
   LoginRoutePropsSchema,
 ]);
-export type RouteProps = z.infer<typeof RoutePropsSchema>;
 
-const RouteNameSchema = z.enum([
+export const RouteNameSchema = z.enum([
   'Home',
   'NewRoom',
   'Room',
@@ -48,8 +47,6 @@ const RouteNameSchema = z.enum([
   'Uninitialized',
 ]);
 
-export type RouteName = z.infer<typeof RouteNameSchema>;
-
 export const GeolocationStateSchema = z.enum([
   'Initialized',
   'Uninitialized',
@@ -57,21 +54,16 @@ export const GeolocationStateSchema = z.enum([
   'Denied',
 ]);
 
-const ConnectionStateValueSchema = z.object({
+export const ConnectionStateValueSchema = z.object({
   Initialized: z.enum(['True', 'False', 'Initializing', 'Error']),
   Route: RouteNameSchema,
   Geolocation: GeolocationStateSchema,
 });
 
-type ConnectionStateValue = z.infer<typeof ConnectionStateValueSchema>;
-
-export type ConnectionStateSchema =
-  StateSchemaFromStateValue<ConnectionStateValue>;
-
 export const ConnectionInitializeInputSchema = z.object({
-  deviceId: SnowflakeIdSchema.optional().nullable(),
   initialRouteProps: RoutePropsSchema,
-  authTokens: AuthTokensSchema.optional().nullable(),
+  deviceId: z.string().uuid(),
+  accessToken: z.string(),
 });
 
 export const ConnectionNavigateCommandSchema = z.object({
@@ -172,7 +164,7 @@ const JoinChannelCommandSchema = z.object({
 const ConnectionEntityPropsSchema = z.object({
   schema: ConnectionSchemaTypeLiteral,
   sessionId: SnowflakeIdSchema.optional(),
-  authTokens: AuthTokensSchema.optional(),
+  accessToken: z.string().optional(),
   deviceId: SnowflakeIdSchema.optional(),
   currentLocation: z.string().url().optional(),
   currentChannelId: SnowflakeIdSchema.optional(),

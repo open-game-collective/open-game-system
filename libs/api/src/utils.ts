@@ -13,3 +13,14 @@ export const getSessionId = (accessToken: string) => {
   }
   return null;
 };
+
+export const getUserId = (refreshToken: string) => {
+  const parsedAccessToken = JWT.verify(refreshToken, 'my_private_key');
+  if (
+    typeof parsedAccessToken === 'object' &&
+    parsedAccessToken
+  ) {
+    return parsedAccessToken.sub;
+  }
+  return null;
+};

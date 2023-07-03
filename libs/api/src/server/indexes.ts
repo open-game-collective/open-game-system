@@ -13,6 +13,9 @@ export const [connectionsById] = createSchemaIndex<ConnectionEntity>(
   'connection',
   'id'
 );
+export const [connectionsByAccessToken, connectionsByAccessToken$] =
+  createSchemaIndex<ConnectionEntity>(world, 'connection', 'accessToken');
+
 export const [sessionsById] = createSchemaIndex<SessionEntity>(
   world,
   'session',

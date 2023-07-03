@@ -2,18 +2,129 @@
 export interface Props {
   title: string;
   routeProps: RouteProps;
+  accessToken: string;
 }
 import { GlobalStyles } from '@context/GlobalStyles';
 import type { RouteProps } from '@explorers-club/schema';
 import { ApplicationProvider } from '../components/ApplicationProvider';
 
-const { title, routeProps } = Astro.props;
+const { title, routeProps, accessToken } = Astro.props;
 
-let deviceId = Astro.cookies.get('deviceId').value;
-let accessToken = Astro.cookies.get('accessToken').value;
-let refreshToken = Astro.cookies.get('refreshToken').value;
+// let deviceId = Astro.cookies.get('deviceId').value;
+// let refreshToken = Astro.cookies.get('refreshToken').value;
+// let accessToken = Astro.cookies.get('accessToken').value;
 
-const initialPersistentProps = { deviceId, accessToken, refreshToken };
+// console.log([deviceId, refreshToken, accessToken])
+
+// if (!deviceId) {
+//   deviceId = randomUUID();
+//   Astro.cookies.set("deviceId", deviceId, {
+//     maxAge: 9999999999999
+//   });
+// }
+
+// if (!refreshToken) {
+//   refreshToken = JWT.sign({
+//     deviceId
+//   }, "my_private_key", {
+//     subject: randomUUID(),
+//     expiresIn: "30d"
+//   })
+//   Astro.cookies.set("refreshToken", refreshToken, {
+//     maxAge: 30 * 24 * 60 * 60
+//   });
+// }
+
+// if (!accessToken) {
+//   accessToken = JWT.sign({
+//     deviceId
+//   }, "my_private_key", {
+//     subject: randomUUID(),
+//     expiresIn: "1d"
+//   })
+//   Astro.cookies.set("accessToken", accessToken, {
+//     maxAge: 24 * 60 * 60
+//   });
+// }
+
+// const client = createTRPCProxyClient<ApiRouter>({
+//   transformer,
+//   links: [
+//     httpBatchLink({
+//       url: import.meta.env.PUBLIC_API_HTTP_SERVER_URL,
+//       // You can pass any HTTP headers you wish here
+//       async headers() {
+//         return {
+//           authorization: `Bearer ${refreshToken}`,
+//         };
+//       },
+//     }),
+//   ],
+// });
+
+// client.connection.initialize.mutate({
+//   deviceId,
+//   initialRouteProps: routeProps,
+//   accessToken,
+// });
+
+// if (!accessToken) {
+//   let refreshToken = Astro.cookies.get('refreshToken').value;
+//   const client = createTRPCProxyClient<ApiRouter>({
+//     transformer,
+//     links: [
+//       httpBatchLink({
+//         url: import.meta.env.PUBLIC_API_HTTP_SERVER_URL,
+//         // You can pass any HTTP headers you wish here
+//         async headers() {
+//           return {
+//             authorization: `Bearer ${refreshToken}`,
+//           };
+//         },
+//       }),
+//     ],
+//   });
+
+// try {
+//   console.log("requesting")
+//   const result = await client.connection.initialize.mutate({
+//     deviceId,
+//     initialRouteProps: routeProps,
+//     refreshToken,
+//   });
+
+
+//   accessToken = result.accessToken;
+//   deviceId = result.deviceId;
+//   refreshToken = result.refreshToken;
+
+//   Astro.cookies.set("accessToken", accessToken);
+//   Astro.cookies.set("deviceId", deviceId);
+//   Astro.cookies.set("refreshToken", deviceId);
+
+// } catch (ex) {
+//     // todo handle this better
+//     console.error(ex);
+//   }
+// }
+
+// const initializeProps = {
+//   initialRouteProps: routeProps,
+//   deviceId,
+//   authTokens
+// }
+
+// try {
+//   console.log("requesting")
+//   const result = await client.connection.initialize.mutate(initializeProps);
+//   console.log("res", result);
+// } catch (ex) {
+//   // todo handle this better
+//   console.error(ex);
+// }
+
+// const initialPersistentProps = { deviceId, accessToken, refreshToken };
+// const accessToken = "";
 ---
 
 <!DOCTYPE html>
@@ -33,8 +144,7 @@ const initialPersistentProps = { deviceId, accessToken, refreshToken };
   <body style={{ height: '100%', boxSizing: 'border-box' }}>
     <ApplicationProvider
       client:only
-      trpcUrl={import.meta.env.PUBLIC_API_SERVER_URL}
-      initialPersistentProps={initialPersistentProps}
+      trpcUrl={`${import.meta.env.PUBLIC_API_WS_SERVER_URL}/?accessToken=${accessToken}`}
       initialRouteProps={routeProps}
     />
     <style is:global>

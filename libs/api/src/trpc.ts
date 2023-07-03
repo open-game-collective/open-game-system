@@ -1,9 +1,9 @@
 import { InitializedConnectionEntity } from '@explorers-club/schema';
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
-import { type Context } from './context';
+import { type TRPCContext } from './context';
 
-const t = initTRPC.context<Context>().create({
+const t = initTRPC.context<TRPCContext>().create({
   transformer: superjson,
   errorFormatter({ shape }) {
     return shape;

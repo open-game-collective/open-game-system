@@ -41,7 +41,9 @@ import {
 import {
   ConnectionCommandSchema,
   ConnectionEntitySchema,
-  ConnectionStateSchema,
+  ConnectionStateValueSchema,
+  RouteNameSchema,
+  RoutePropsSchema,
 } from './lib/connection';
 import {
   MessageChannelCommandSchema,
@@ -130,32 +132,35 @@ export type ChatMachine = StateMachine<
 export type ChatInterpreter = InterpreterFrom<ChatMachine>;
 
 export type ConnectionContext = {
-  supabaseClient?: SupabaseClient<Database>;
+  // supabaseClient?: SupabaseClient<Database>;
   chatServiceRef?: ChatInterpreter;
 };
-export type InitializedConnectionContext = MakeRequired<
-  ConnectionContext,
-  'supabaseClient'
->;
-export type ConnectionTypeState =
-  | {
-      value: 'Initialized';
-      context: InitializedConnectionContext;
-    }
-  | {
-      value: 'Unitialized';
-      context: ConnectionContext;
-    };
+// export type InitializedConnectionContext = MakeRequired<
+//   ConnectionContext,
+//   'chatServiceRef'
+// >;
+// export type ConnectionTypeState =
+//   | {
+//       value: 'Initialized';
+//       context: InitializedConnectionContext;
+//     }
+//   | {
+//       value: 'Unitialized';
+//       context: ConnectionContext;
+//     };
 export type ConnectionCommand = z.infer<typeof ConnectionCommandSchema>;
 export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
 export type InitializedConnectionEntity = MakeRequired<
   ConnectionEntity,
-  'sessionId' | 'authTokens' | 'deviceId' | 'currentLocation'
+  'sessionId' | 'accessToken' | 'deviceId' | 'currentLocation'
 >;
+export type ConnectionStateValue = z.infer<typeof ConnectionStateValueSchema>;
+export type ConnectionStateSchema =
+  StateSchemaFromStateValue<ConnectionStateValue>;
 export type ConnectionMachine = StateMachine<
   ConnectionContext,
   ConnectionStateSchema,
-  ConnectionCommand
+  WithSenderId<ConnectionCommand>
 >;
 
 export type UserEntity = z.infer<typeof UserEntitySchema>;
@@ -361,16 +366,16 @@ export type EventFromEntity<TEntity extends Entity> = Parameters<
   CallbackFromEntity<TEntity>
 >[0];
 
-type EntityChangeDelta<TEntity extends Entity> = {
-  property: keyof TEntity;
-  value: TEntity[keyof TEntity];
-  prevValue: TEntity[keyof TEntity];
-};
+// type EntityChangeDelta<TEntity extends Entity> = {
+//   property: keyof TEntity;
+//   value: TEntity[keyof TEntity];
+//   prevValue: TEntity[keyof TEntity];
+// };
 
-interface EntityPropChangeEvent<TEntity extends Entity> {
+interface EntityChangeEvent<TEntity extends Entity> {
   type: 'CHANGE';
   data: TEntity;
-  delta: EntityChangeDelta<TEntity>;
+  patches: Operation[];
 }
 
 type EntityIndexInitEvent<TEntity extends Entity> = {
@@ -389,7 +394,7 @@ type EntityIndexRemoveEvent<TEntity extends Entity> = {
 };
 
 export type EntityIndexEvent<TEntity extends Entity> =
-  | EntityPropChangeEvent<TEntity>
+  | EntityChangeEvent<TEntity>
   | EntityIndexInitEvent<TEntity>
   | EntityIndexAddEvent<TEntity>
   | EntityIndexRemoveEvent<TEntity>;
@@ -626,3 +631,6 @@ export type EntityCommand = z.infer<typeof EntityCommandSchema>;
 export type WithSenderId<TCommand extends EntityCommand> = TCommand & {
   senderId: SnowflakeId;
 };
+
+export type RouteProps = z.infer<typeof RoutePropsSchema>;
+export type RouteName = z.infer<typeof RouteNameSchema>;

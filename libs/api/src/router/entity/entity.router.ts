@@ -40,7 +40,7 @@ export const entityRouter = router({
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       entity.send({
-        senderId: ctx.connectionEntity.sessionId,
+        senderId: ctx.connectionEntity.id,
         ...(input.command as any),
       });
     }),

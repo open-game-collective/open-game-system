@@ -1,48 +1,33 @@
-import { Database } from '@explorers-club/database';
 import {
   ConnectionCommand,
   ConnectionContext,
-  ConnectionEntity,
-  ConnectionTypeState,
   Entity,
-  InitializedConnectionContext,
+  // InitializedConnectionContext,
   NewRoomContext,
   RoomEntity,
   SessionEntity,
-  UserEntity,
+  WithSenderId,
 } from '@explorers-club/schema';
+import { assert, assertEventType } from '@explorers-club/utils';
 import {
   ConnectionInitializeCommandSchema,
-  ConnectionInitializeInputSchema,
   ConnectionNavigateCommandSchema,
   HomeRoutePropsSchema,
+  LoginRoutePropsSchema,
+  NewRoomRoutePropsSchema,
+  RoomRoutePropsSchema,
 } from '@schema/lib/connection';
-import { LoginRoutePropsSchema } from '@schema/lib/connection';
-import { NewRoomRoutePropsSchema } from '@schema/lib/connection';
-import { RoomRoutePropsSchema } from '@schema/lib/connection';
-import {
-  assert,
-  assertEventType,
-  generateRandomString,
-} from '@explorers-club/utils';
-import { Session, createClient } from '@supabase/supabase-js';
-import { TRPCError } from '@trpc/server';
-import { assign as assignImmer } from '@xstate/immer';
+import * as jwt from 'jsonwebtoken';
 import { World } from 'miniplex';
 import { DoneInvokeEvent, assign, createMachine, spawn } from 'xstate';
 // import { createEntity } from '../ecs';
-import { generateSnowflakeId } from '../ids';
-import {
-  roomsBySlug,
-  sessionsByUserId,
-  usersById,
-  channelEntitiesById,
-} from '../server/indexes';
-import { newRoomMachine } from '../services';
-import { createChatMachine } from '../services/chat.service';
-import { entitiesById } from '../server/state';
 import { z } from 'zod';
 import { createEntity } from '../ecs';
+import { roomsBySlug, sessionsByUserId } from '../server/indexes';
+import { entitiesById } from '../server/state';
+import { newRoomMachine } from '../services';
+import { createChatMachine } from '../services/chat.service';
+import { getSessionId, getUserId } from '../utils';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -73,17 +58,17 @@ export const createConnectionMachine = ({
   const connectionEntity = entity;
   let sessionEntity: SessionEntity | undefined = undefined;
 
-  const connectionMachine = createMachine<
-    ConnectionContext,
-    ConnectionCommand,
-    ConnectionTypeState
-  >(
+  const connectionMachine = createMachine(
     {
       // /** @xstate-layout N4IgpgJg5mDOIC5QGED2A7dYDGAXAlhgLICG2AFvlgHQCS6+BJANvgF6TUBiLsYAxLQBytACq0AggBlaALQCiAbQAMAXUSgADqliNC6DSAAeiAIwBWAMzUAHADYA7KZsPzAGhABPM-eqm7pgAs5jaWYeGWpgC+UR5omDgExGSUNPR6LOyc6UysbFRQ-BAYYNRUAG6oANal8Vh4+qQUVKU5+JkcEHQMuewFCBWo2CRJ6Cqq44bauqOGJgjBAJy2js6uHt4IppG25hZ2AEzmMXEY9aNNqa097XnZNx0F-GAATi+oL9SazCMAZh8AW2odUSjRSLW6GTuXTaj3QUAG6Eqw1G40mSBA0z0GDmZisKycLncXjMlhs1DsAWCoQiYWiJxA6FQEDghhBDWSzSwUx02IMGPmAFpLMtzMoHDZTEcNohBYFAtRFgc1sdYiB2RdwWkHtCeTN9LiEOTAkqVTKFgdqOYJVLVacEhz0JcIbDodxeGA9XzDeY7NQTcqieagtYDvKHIt-JTo3ZFgyNWCudcoVkYTq+vCvbMBYgDotzNQJYtlIdiZttspqOLJUd42dQZyrpDep1qKIXgBXT0YrHZ0DzOzKazbA41st46zWscxGJAA */
       id: 'ConnectionMachine',
       type: 'parallel',
+      schema: {
+        context: {} as ConnectionContext,
+        events: {} as WithSenderId<ConnectionCommand>, // warning sendinerId not present for initialize
+      },
       context: {
-        supabaseClient: undefined,
+        // supabaseClient: undefined,
         chatServiceRef: undefined,
       },
       states: {
@@ -119,29 +104,26 @@ export const createConnectionMachine = ({
           },
           states: {
             Uninitialized: {
+              exit: ['setCurrentLocation'],
               on: {
                 INITIALIZE: [
                   {
                     target: 'Home',
                     cond: (_, event) => event.initialRouteProps.name === 'Home',
-                    actions: ['setCurrentLocation'],
                   },
                   {
                     target: 'Login',
                     cond: (_, event) =>
                       event.initialRouteProps.name === 'Login',
-                    actions: ['setCurrentLocation'],
                   },
                   {
                     target: 'NewRoom',
                     cond: (_, event) =>
                       event.initialRouteProps.name === 'NewRoom',
-                    actions: ['setCurrentLocation'],
                   },
                   {
                     target: 'Room',
                     cond: (_, event) => event.initialRouteProps.name === 'Room',
-                    actions: ['setCurrentLocation'],
                   },
                 ],
               },
@@ -206,139 +188,197 @@ export const createConnectionMachine = ({
             Error: {},
             Initializing: {
               invoke: {
-                onError: 'Error',
+                onError: {
+                  target: 'Error',
+                  actions: (_, event) => {
+                    console.warn(event);
+                  },
+                },
                 onDone: {
                   target: 'True',
-                  actions: assignImmer<
-                    ConnectionContext,
-                    DoneInvokeEvent<InitializedConnectionContext>
-                  >((context, { data }) => {
-                    // context.location = data.location;
-                    // context.deviceId = data.deviceId;
-                    context.supabaseClient = data.supabaseClient;
-                  }),
+                  // actions: assignImmer<
+                  //   ConnectionContext,
+                  //   DoneInvokeEvent<InitializedConnectionContext>
+                  // >((context, { data }) => {
+                  //   // context.location = data.location;
+                  //   // context.deviceId = data.deviceId;
+                  //   context.supabaseClient = data.supabaseClient;
+                  // }),
                 },
                 src: async (context, event) => {
+                  console.log('INITIALIZING!');
                   const { createEntity } = await import('../ecs');
+                  console.log('HI1');
                   assertEventType(event, 'INITIALIZE');
+                  console.log('HI2');
 
-                  const { authTokens } = event;
-
-                  const supabaseClient = createClient<Database>(
-                    supabaseUrl,
-                    supabaseAnonKey,
+                  console.log(event.accessToken);
+                  const decoded = jwt.verify(
+                    event.accessToken,
+                    'my_private_key',
                     {
-                      auth: {
-                        persistSession: false,
-                      },
+                      jwtid: 'ACCESS_TOKEN',
                     }
                   );
+                  console.log('DECODED!', decoded.sub);
+                  assert(
+                    typeof decoded === 'object' && decoded.sub,
+                    'expected to find subject on acessToken'
+                  );
 
-                  let supabaseSession: Session;
-                  // If returning user, get session
-                  if (authTokens) {
-                    const { data, error } =
-                      await supabaseClient.auth.setSession({
-                        access_token: authTokens.accessToken,
-                        refresh_token: authTokens.refreshToken,
-                      });
+                  console.log('updating!');
+                  world.update(connectionEntity, {
+                    accessToken: event.accessToken,
+                    sessionId: decoded.sub,
+                    deviceId: event.deviceId,
+                  });
+                  console.log('UDPATED!', connectionEntity);
 
-                    if (error) {
-                      throw new TRPCError({
-                        code: 'INTERNAL_SERVER_ERROR',
-                        message: error.message,
-                        cause: error,
-                      });
-                    }
-                    if (!data.session) {
-                      throw new TRPCError({
-                        code: 'UNAUTHORIZED',
-                        message:
-                          'Not able to get supabase session with authTokens',
-                      });
-                    }
-                    supabaseSession = data.session;
-                  } else {
-                    // Create the user if not exists
-                    const { data, error } = await supabaseClient.auth.signUp({
-                      email: `anon-${generateRandomString()}@explorers.club`,
-                      password: `${generateRandomString()}33330`,
-                    });
-                    if (error) {
-                      throw new TRPCError({
-                        code: 'INTERNAL_SERVER_ERROR',
-                        message: error.message,
-                        cause: error,
-                      });
-                    }
+                  // const { accessToken } = event;
+                  // const userId = getUserId(refreshToken);
+                  // console.log({ userId });
+                  // assert(
+                  //   userId,
+                  //   'expected to get userId from refreshToken but not found'
+                  // );
 
-                    if (!data.session) {
-                      throw new TRPCError({
-                        code: 'INTERNAL_SERVER_ERROR',
-                        message: 'Expected session but was missing',
-                      });
-                    }
-                    supabaseSession = data.session;
-                    await supabaseClient.auth.setSession({
-                      access_token: data.session.access_token,
-                      refresh_token: data.session.refresh_token,
-                    });
+                  // let sessionEntity = sessionsByUserId.get(userId);
+                  // if (!sessionEntity) {
+                  //   sessionEntity = createEntity<SessionEntity>({
+                  //     schema: 'session',
+                  //     userId,
+                  //   });
+                  //   world.add(sessionEntity);
+                  // }
+                  // console.log({ sessionEntity });
 
-                    // Create user entity if doesn't already exist
-                    const userEntity = usersById.get(supabaseSession.user.id);
-                    if (!userEntity) {
-                      const START_NUMBER = 1000; // fake for now, use real db number later
-                      const serialNumber = START_NUMBER + usersById.size + 1;
-                      const userEntity = createEntity<UserEntity>({
-                        serialNumber,
-                        schema: 'user',
-                        discriminator: serialNumber,
-                        name: 'Miner',
-                      });
-                      world.add(userEntity);
-                      // sessionEntity.userId = userEntity.id;
-                    }
-                  }
+                  // const accessToken = jwt.sign({}, 'my_private_key', {
+                  //   subject: sessionEntity.id,
+                  // });
+                  // console.log({ accessToken });
 
-                  const userId = supabaseSession.user.id;
-                  sessionEntity = sessionsByUserId.get(userId) as
-                    | SessionEntity
-                    | undefined;
-                  // If session exists set it on the connection
-                  if (sessionEntity) {
-                    world.addComponent(
-                      connectionEntity,
-                      'sessionId',
-                      sessionEntity.id
-                    );
-                  } else {
-                    // Otherwise make a new session
-                    sessionEntity = createEntity<SessionEntity>({
-                      schema: 'session',
-                      userId,
-                      name: 'Miner #48572',
-                    });
-                    // add the session Id to the connection
-                    world.addComponent(
-                      connectionEntity,
-                      'sessionId',
-                      sessionEntity.id
-                    );
-                    world.add(sessionEntity);
-                  }
+                  // connectionEntity.sessionId = sessionEntity.id;
+                  // connectionEntity.accessToken = accessToken;
+                  // connectionEntity.deviceId = event.deviceId;
 
-                  const deviceId = event.deviceId || generateSnowflakeId();
+                  // const result = jwt.verify(refreshToken, "my_private_key")
+
+                  // const supabaseClient = createClient<Database>(
+                  //   supabaseUrl,
+                  //   supabaseAnonKey,
+                  //   {
+                  //     auth: {
+                  //       persistSession: false,
+                  //     },
+                  //   }
+                  // );
+
+                  // let supabaseSession: Session;
+                  // // If returning user, get session
+                  // if (authTokens) {
+                  //   const { data, error } =
+                  //     await supabaseClient.auth.setSession({
+                  //       access_token: authTokens.accessToken,
+                  //       refresh_token: authTokens.refreshToken,
+                  //     });
+
+                  //   if (error) {
+                  //     throw new TRPCError({
+                  //       code: 'INTERNAL_SERVER_ERROR',
+                  //       message: error.message,
+                  //       cause: error,
+                  //     });
+                  //   }
+                  //   if (!data.session) {
+                  //     throw new TRPCError({
+                  //       code: 'UNAUTHORIZED',
+                  //       message:
+                  //         'Not able to get supabase session with authTokens',
+                  //     });
+                  //   }
+                  //   supabaseSession = data.session;
+                  // } else {
+                  //   // Create the user if not exists
+                  //   const { data, error } = await supabaseClient.auth.signUp({
+                  //     email: `anon-${generateRandomString()}@explorers.club`,
+                  //     password: `${generateRandomString()}33330`,
+                  //   });
+                  //   if (error) {
+                  //     throw new TRPCError({
+                  //       code: 'INTERNAL_SERVER_ERROR',
+                  //       message: error.message,
+                  //       cause: error,
+                  //     });
+                  //   }
+
+                  //   if (!data.session) {
+                  //     throw new TRPCError({
+                  //       code: 'INTERNAL_SERVER_ERROR',
+                  //       message: 'Expected session but was missing',
+                  //     });
+                  //   }
+                  //   supabaseSession = data.session;
+                  //   await supabaseClient.auth.setSession({
+                  //     access_token: data.session.access_token,
+                  //     refresh_token: data.session.refresh_token,
+                  //   });
+
+                  //   // Create user entity if doesn't already exist
+                  //   const userEntity = usersById.get(supabaseSession.user.id);
+                  //   if (!userEntity) {
+                  //     const START_NUMBER = 1000; // fake for now, use real db number later
+                  //     const serialNumber = START_NUMBER + usersById.size + 1;
+                  //     const userEntity = createEntity<UserEntity>({
+                  //       serialNumber,
+                  //       schema: 'user',
+                  //       discriminator: serialNumber,
+                  //       name: 'Miner',
+                  //     });
+                  //     world.add(userEntity);
+                  //     // sessionEntity.userId = userEntity.id;
+                  //   }
+                  // }
+
+                  // const userId = supabaseSession.user.id;
+                  // sessionEntity = sessionsByUserId.get(userId) as
+                  //   | SessionEntity
+                  //   | undefined;
+                  // // If session exists set it on the connection
+                  // if (sessionEntity) {
+                  //   world.addComponent(
+                  //     connectionEntity,
+                  //     'sessionId',
+                  //     sessionEntity.id
+                  //   );
+                  // } else {
+                  //   // Otherwise make a new session
+                  //   sessionEntity = createEntity<SessionEntity>({
+                  //     schema: 'session',
+                  //     userId,
+                  //     name: 'Miner #48572',
+                  //   });
+                  //   // add the session Id to the connection
+                  //   world.addComponent(
+                  //     connectionEntity,
+                  //     'sessionId',
+                  //     sessionEntity.id
+                  //   );
+                  //   world.add(sessionEntity);
+                  // }
+
+                  // const deviceId = event.deviceId || generateSnowflakeId();
 
                   // Do I need to use addComponent
-                  connectionEntity.deviceId = deviceId;
-                  connectionEntity.authTokens = {
-                    accessToken: supabaseSession.access_token,
-                    refreshToken: supabaseSession.refresh_token,
-                  };
+                  // connectionEntity.deviceId = deviceId;
+                  // connectionEntity.accessToken = accessToken
+                  // connectionEntity.authTokens = {
+                  //   accessToken: supabaseSession.access_token,
+                  //   refreshToken: supabaseSession.refresh_token,
+                  // };
 
-                  return {
-                    supabaseClient,
-                  } satisfies InitializedConnectionContext;
+                  // return {
+                  //   chatServiceRef
+                  // } satisfies InitializedConnectionContext;
                 },
               },
             },
@@ -467,8 +507,6 @@ export const createConnectionMachine = ({
           connectionEntity.currentChannelId = roomEntity.id;
         },
 
-        // this gets called when initiailziation or navigation happens
-        // updates the locatino on entity updates it the url in the browser.
         setCurrentLocation: (_, event) => {
           const parsedEvent = SetCurrentLocationEventSchema.parse(event);
           const route =

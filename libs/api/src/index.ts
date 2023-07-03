@@ -1,7 +1,7 @@
 export type { ApiRouter } from './router';
 export { apiRouter } from './router';
 
-export { createContext } from './context';
-export type { Context } from './context';
+export { createContextWebsocket, createContextHTTP } from './context';
+export type { TRPCContext } from './context';
 
 export * from './server/state';

@@ -52,6 +52,7 @@ export const RoomEntityPropsSchema = z.object({
   connectedEntityIds: z.array(SnowflakeIdSchema),
   slug: SlugSchema,
   gameId: GameIdLiteralSchema.optional(),
+  currentGameInstanceId: SnowflakeIdSchema.optional(),
   configuration: GameConfigurationSchema.optional(),
 });
 

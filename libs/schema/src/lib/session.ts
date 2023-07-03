@@ -12,7 +12,7 @@ export const SessionContextSchema = z.object({
 export const SessionEntityPropsSchema = z.object({
   schema: SessionSchemaTypeLiteral,
   userId: SnowflakeIdSchema,
-  name: z.string(),
+  // name: z.string(),
 });
 
 export const SessionCommandSchema = z.discriminatedUnion("type", [

@@ -1,5 +1,12 @@
 ---
+import { initAccessToken } from '../auth';
 import Layout from '../layouts/Layout.astro';
+
+const accessToken = initAccessToken(Astro.cookies);
 ---
 
-<Layout title="Explorers Game" routeProps={{ name: 'NewRoom' }} />
+<Layout
+  title="Explorers Game"
+  routeProps={{ name: 'NewRoom' }}
+  accessToken={accessToken}
+/>

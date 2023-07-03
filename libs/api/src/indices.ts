@@ -1,8 +1,4 @@
-import {
-  Entity,
-  EntitySchemaType,
-  SnowflakeId,
-} from '@explorers-club/schema';
+import { Entity, EntitySchemaType, SnowflakeId } from '@explorers-club/schema';
 import { EntitySchemas } from '@schema/entity';
 import { assert, FromArchetype, FromSubject } from '@explorers-club/utils';
 import { ArchetypeBucket, World } from 'miniplex';
@@ -38,33 +34,76 @@ export const createSchemaIndex = <TEntity extends Entity>(
   };
 
   const entitySubscriptionsMap = new Map<SnowflakeId, AnyFunction>();
+  const addToIndex = (indexKey: string, entity: TEntity) => {
+    if (index.has(indexKey)) {
+      console.warn('index received duplicate key igorning', key);
+      return;
+    }
+
+    index.set(indexKey, entity as TEntity);
+    subject.next({
+      type: 'ADD',
+      data: entity as TEntity,
+    });
+  };
+
+  const updateIndex = (prevKey: string, nextKey: string, entity: TEntity) => {
+    if (!index.has(prevKey)) {
+      console.warn(
+        'key doesnt exist when trying to update from index for key: ' + key
+      );
+    }
+    index.delete(prevKey);
+    index.set(nextKey, entity);
+  };
+
+  const removeFromIndex = (indexKey: string) => {
+    if (!index.has(indexKey)) {
+      console.warn(
+        'key doesnt exist when trying to remove from index for key: ' + key
+      );
+      return;
+    }
+
+    index.delete(indexKey);
+    // index.set(key, entity as TEntity);
+  };
 
   world.onEntityAdded.add((entity) => {
     if (entity.schema !== schemaType) {
       return;
     }
 
-    const key = getIndexKey(entity as TEntity) as string;
-    if (index.has(key)) {
-      console.warn('index received duplicate key igorning', key);
-      return;
+    let currentKey = getIndexKey(entity as TEntity) as string;
+    if (currentKey) {
+      addToIndex(currentKey, entity as TEntity);
     }
-
-    index.set(key, entity as TEntity);
-    subject.next({
-      type: 'ADD',
-      data: entity as TEntity,
-    });
 
     const entitySubscription = entity.subscribe((event) => {
       // TODO handle change
-      // if (event.type === 'CHANGE') {
-      //   subject.next({
-      //     type: 'CHANGE',
-      //     data: entity,
-      //     delta: event.delta as EntityChangeDelta<TEntity>,
-      //   });
-      // }
+      if (event.type === 'CHANGE') {
+        const nextKey = getIndexKey(entity as TEntity) as string;
+        if (!currentKey && currentKey !== nextKey) {
+          currentKey = nextKey;
+          addToIndex(currentKey, entity as TEntity);
+        }
+
+        if (currentKey && currentKey !== nextKey) {
+          updateIndex(currentKey, nextKey, entity as TEntity);
+          currentKey = nextKey;
+        }
+
+        if (currentKey && !nextKey) {
+          currentKey = nextKey;
+          removeFromIndex(currentKey);
+        }
+
+        subject.next({
+          type: 'CHANGE',
+          data: entity as TEntity,
+          patches: event.patches,
+        });
+      }
     });
 
     entitySubscriptionsMap.set(entity.id, entitySubscription);
@@ -76,7 +115,14 @@ export const createSchemaIndex = <TEntity extends Entity>(
     }
 
     const key = getIndexKey(entity as TEntity) as string;
-    index.delete(key);
+    if (key) {
+      index.delete(key);
+
+      subject.next({
+        type: 'REMOVE',
+        data: entity as TEntity,
+      });
+    }
 
     const entitySubscription = entitySubscriptionsMap.get(entity.id);
     if (entitySubscription) {
@@ -87,11 +133,6 @@ export const createSchemaIndex = <TEntity extends Entity>(
         entity.id
       );
     }
-
-    subject.next({
-      type: 'REMOVE',
-      data: entity as TEntity,
-    });
   });
 
   subject.next({

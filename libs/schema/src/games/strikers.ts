@@ -136,7 +136,6 @@ const StrikersGameEntityPropSchema = z.object({
   schema: StrikersGameSchemaTypeLiteral,
   gameId: StrikersGameIdLiteral,
   config: StrikersGameConfigDataSchema,
-  channelId: SnowflakeIdSchema,
   turnsIds: z.array(SnowflakeIdSchema),
 });
 

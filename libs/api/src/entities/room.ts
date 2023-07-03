@@ -55,12 +55,14 @@ export const createRoomMachine = ({
             event.senderId,
             (entity) => entity.states.Initialized === 'True'
           )) as InitializedConnectionEntity;
-          const sessionEntity = sessionsById.get(connectionEntity.sessionId);
-          assert(
-            sessionEntity,
-            'expected sessionEntity but not found for sessionId' +
-              connectionEntity.sessionId
-          );
+
+          // const sessionEntity = sessionsById.get(connectionEntity.sessionId);
+          // assert(
+          //   sessionEntity,
+          //   'expected sessionEntity but not found for sessionId ' +
+          //     connectionEntity.sessionId
+          // );
+          console.log(event.senderId);
 
           if (!roomEntity.connectedEntityIds.includes(event.senderId)) {
             roomEntity.connectedEntityIds = [
@@ -70,7 +72,7 @@ export const createRoomMachine = ({
 
             const joinEvent = {
               type: 'JOIN',
-              subjectId: sessionEntity.id,
+              subjectId: event.senderId,
             } as CreateEventProps<JoinEvent>;
             roomChannel.next(joinEvent);
 
@@ -233,12 +235,11 @@ export const createRoomMachine = ({
                         maxRounds: 5,
                       },
                     },
-                    channelId: entity.id,
                     turnsIds: [],
                   });
-                  // world.add(p1);
-                  // world.add(p2);
+
                   world.add(gameEntity);
+                  entity.currentGameInstanceId = gameEntity.id;
                 },
               },
             },
