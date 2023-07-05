@@ -9,7 +9,7 @@ import {
   InitialEntityProps,
   SnowflakeId,
   TriggerEntity,
-  TriggerInput
+  TriggerInput,
 } from '@explorers-club/schema';
 // import { EventTriggerConfigSche}
 // import { TriggerInputSchema } from '@schema/lib/trigger';
@@ -53,7 +53,7 @@ export const createEntity = <TEntity extends Entity>(
   type TInterpreter = InterpreterFrom<TMachine>;
   type TStateValue = TEntity['states'];
   type TCommand = Parameters<TEntity['send']>[0];
-  const id = generateSnowflakeId();
+  const id = entityProps.id || generateSnowflakeId();
 
   const subscriptions = new Set<TCallback>();
 

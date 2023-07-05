@@ -1,10 +1,16 @@
 import { Database } from '@explorers-club/database';
-import { MakeRequired } from '@explorers-club/utils';
+import { MakeRequired, MakeOptional } from '@explorers-club/utils';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Operation } from 'fast-json-patch';
 import { IndexByType, InterpreterFrom, StateMachine } from 'xstate';
 import { z } from 'zod';
-import { SnowflakeIdSchema, StateSchemaFromStateValue } from './common';
+import {
+  SnowflakeIdSchema,
+  StateSchemaFromStateValue,
+  RouteNameSchema,
+  RoutePropsSchema,
+  ConnectionAccessTokenPropsSchema,
+} from './common';
 import { EntityCommandSchema, EntitySchema, EntitySchemas } from './entity';
 import { ChannelEventSchema, MessageEventSchema } from './events/channel';
 import { ClientEventSchema } from './events/client';
@@ -42,8 +48,6 @@ import {
   ConnectionCommandSchema,
   ConnectionEntitySchema,
   ConnectionStateValueSchema,
-  RouteNameSchema,
-  RoutePropsSchema,
 } from './lib/connection';
 import {
   MessageChannelCommandSchema,
@@ -120,6 +124,7 @@ import {
   StrikersTurnEntitySchema,
   StrikersTurnStateValueSchema,
 } from './games/strikers';
+import { StrikersGameConfigDataSchema } from './game-configuration/strikers';
 
 export type ChatContext = z.infer<typeof ChatContextSchema>;
 export type ChatCommand = z.infer<typeof ChatCommandSchema>;
@@ -153,7 +158,7 @@ export type ConnectionCommand = z.infer<typeof ConnectionCommandSchema>;
 export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
 export type InitializedConnectionEntity = MakeRequired<
   ConnectionEntity,
-  'sessionId' | 'accessToken' | 'deviceId' | 'currentLocation'
+  'sessionId' | 'deviceId' | 'currentUrl'
 >;
 export type ConnectionStateValue = z.infer<typeof ConnectionStateValueSchema>;
 export type ConnectionStateSchema =
@@ -416,9 +421,17 @@ export type EntityListEvent =
     };
 
 export type InitialEntityProps<TEntity extends Entity> = Omit<
-  TEntity,
-  'id' | 'subscribe' | 'send' | 'states' | 'command' | 'context' | 'children'
+  MakeOptional<TEntity, 'id'>,
+  | 'subscribe'
+  | 'send'
+  | 'states'
+  | 'command'
+  | 'context'
+  | 'children'
+  | 'channel'
 >;
+
+type SE = InitialEntityProps<StrikersGameEntity>;
 
 export type CreateEventProps<TEvent extends ChannelEvent> = Omit<
   TEvent,
@@ -601,6 +614,9 @@ export type StrikersGameMachine = StateMachine<
   StrikersGameStateSchema,
   WithSenderId<StrikersGameCommand>
 >;
+export type StrikersGameConfigData = z.infer<
+  typeof StrikersGameConfigDataSchema
+>;
 
 export type StrikersPlayerEntity = z.infer<typeof StrikersPlayerEntitySchema>;
 export type StrikersPlayerStateValue = z.infer<
@@ -637,3 +653,7 @@ export type WithSenderId<TCommand extends EntityCommand> = TCommand & {
 
 export type RouteProps = z.infer<typeof RoutePropsSchema>;
 export type RouteName = z.infer<typeof RouteNameSchema>;
+
+export type ConnectionAccessTokenProps = z.infer<
+  typeof ConnectionAccessTokenPropsSchema
+>;

@@ -72,8 +72,8 @@ export const StrikersGameConfigDataSchema = z.object({
   cards: z.array(StrikersPlayerCardSchema),
   gameMode: z.enum(['quickplay', 'draft']).default('quickplay'),
   turnsPerHalf: z.number().default(20),
-  p1PlayerId: SnowflakeIdSchema,
-  p2PlayerId: SnowflakeIdSchema,
+  p1SessionId: SnowflakeIdSchema,
+  p2SessionId: SnowflakeIdSchema,
   extraTime: z.object({
     minRounds: z.number().default(2),
     maxRounds: z.number().default(6),

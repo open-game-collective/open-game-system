@@ -7,7 +7,7 @@ import type { RouteProps } from '@schema/types';
 const { roomSlug } = Astro.params;
 assert(roomSlug, 'expected roomSlug but not found');
 const routeProps = { name: 'Room', roomSlug: roomSlug } satisfies RouteProps;
-const accessToken = initAccessToken(Astro.cookies, routeProps);
+const accessToken = initAccessToken(Astro.cookies, routeProps, Astro.url.href);
 ---
 
 <Layout

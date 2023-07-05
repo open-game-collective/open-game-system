@@ -12,22 +12,22 @@ import { assert, assertEventType } from '@explorers-club/utils';
 import {
   ConnectionInitializeCommandSchema,
   ConnectionNavigateCommandSchema,
+} from '@schema/lib/connection';
+import {
   HomeRoutePropsSchema,
   LoginRoutePropsSchema,
   NewRoomRoutePropsSchema,
   RoomRoutePropsSchema,
-} from '@schema/lib/connection';
+} from '@schema/common';
 import * as jwt from 'jsonwebtoken';
 import { World } from 'miniplex';
 import { DoneInvokeEvent, assign, createMachine, spawn } from 'xstate';
 // import { createEntity } from '../ecs';
 import { z } from 'zod';
 import { createEntity } from '../ecs';
-import { roomsBySlug, sessionsByUserId } from '../server/indexes';
-import { entitiesById } from '../server/state';
+import { roomsBySlug } from '../server/indexes';
 import { newRoomMachine } from '../services';
 import { createChatMachine } from '../services/chat.service';
-import { getSessionId, getUserId } from '../utils';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -71,18 +71,6 @@ export const createConnectionMachine = ({
         // supabaseClient: undefined,
         reconnectCount: -1,
         chatServiceRef: undefined,
-      },
-      on: {
-        CONNECT: {
-          actions: assign({
-            reconnectCount: ({ reconnectCount }) => reconnectCount + 1,
-          }),
-        },
-        DISCONNECT: {
-          actions: ({ reconnectCount }) => {
-            console.log('DISCONNECT!', reconnectCount);
-          },
-        },
       },
       states: {
         Route: {
@@ -172,13 +160,6 @@ export const createConnectionMachine = ({
                     world.add(entity);
 
                     connectionEntity.currentChannelId = entity.id;
-
-                    // const channel = channelEntitiesById.get(
-                    //   connectionEntity.currentChannelId
-                    // );
-
-                    // [??]: does this need to be addComponent
-                    // connectionEntity.currentRoomSlug = roomSlug;
                   },
                 },
               },
@@ -390,6 +371,26 @@ export const createConnectionMachine = ({
             True: {},
           },
         },
+        Connected: {
+          initial: 'No',
+          states: {
+            No: {
+              on: {
+                CONNECT: {
+                  target: 'Yes',
+                  actions: assign({
+                    reconnectCount: ({ reconnectCount }) => reconnectCount + 1,
+                  }),
+                },
+              },
+            },
+            Yes: {
+              on: {
+                DISCONNECT: 'No',
+              },
+            },
+          },
+        },
         Geolocation: {
           initial: 'Uninitialized',
           states: {
@@ -490,8 +491,9 @@ export const createConnectionMachine = ({
         }),
 
         connectToRoom: () => {
-          const slug = connectionEntity.currentLocation?.split('/')[1];
-          assert(slug, 'error parsing slug from currentLocation');
+          const url = new URL(connectionEntity.currentUrl);
+          const slug = url.pathname.split('/')[1];
+          assert(slug, 'error parsing slug from currentUrl');
 
           let roomEntity = roomsBySlug.get(slug);
           if (!roomEntity) {
@@ -520,21 +522,22 @@ export const createConnectionMachine = ({
               ? parsedEvent.initialRouteProps
               : parsedEvent.route;
 
+          // TODO might need to prepend full path ehre
           switch (route.name) {
             case 'Home':
-              connectionEntity.currentLocation = '/';
+              connectionEntity.currentUrl = '/';
               break;
             case 'Login':
-              connectionEntity.currentLocation = '/login';
+              connectionEntity.currentUrl = '/login';
               break;
             case 'NewRoom':
-              connectionEntity.currentLocation = '/new';
+              connectionEntity.currentUrl = '/new';
               break;
             case 'Room':
-              connectionEntity.currentLocation = `/${route.roomSlug}`;
+              connectionEntity.currentUrl = `/${route.roomSlug}`;
               break;
             default:
-              connectionEntity.currentLocation = '/not-found';
+              connectionEntity.currentUrl = '/not-found';
               break;
           }
         },

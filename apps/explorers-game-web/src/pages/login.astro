@@ -1,8 +1,10 @@
 ---
+import type { RouteProps } from '@explorers-club/schema';
 import { initAccessToken } from '../auth';
 import Layout from '../layouts/Layout.astro';
 
-const accessToken = initAccessToken(Astro.cookies);
+const routeProps = { name: 'Login' } satisfies RouteProps;
+const accessToken = initAccessToken(Astro.cookies, routeProps, Astro.url.href);
 ---
 
 <Layout

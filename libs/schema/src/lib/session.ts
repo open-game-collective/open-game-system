@@ -11,7 +11,7 @@ export const SessionContextSchema = z.object({
 
 export const SessionEntityPropsSchema = z.object({
   schema: SessionSchemaTypeLiteral,
-  userId: SnowflakeIdSchema,
+  userId: SnowflakeIdSchema.optional(),
   // name: z.string(),
 });
 

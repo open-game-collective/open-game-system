@@ -1,32 +1,24 @@
-import {
-  ConnectionEntity,
-  CreateEventProps,
-  Entity,
-  InitializedConnectionEntity,
-  JoinEvent,
-  RoomCommand,
-  RoomContext,
-  RoomEntity,
-  RoomEvent,
-  StrikersGameEntity,
-  StrikersPlayerEntity,
-} from '@explorers-club/schema';
 import type {
-  ChannelEvent,
   ConnectEvent,
   DisconnectEvent,
   WithSenderId,
 } from '@explorers-club/schema';
+import {
+  CreateEventProps,
+  Entity,
+  RoomCommand,
+  RoomContext,
+  RoomEvent,
+  StrikersGameEntity,
+  StrikersPlayerEntity,
+} from '@explorers-club/schema';
 import { assert } from '@explorers-club/utils';
+import { createStrikersGame } from '@strikers/server';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
 import { createMachine } from 'xstate';
-import { sessionsById } from '../server/indexes';
-import { entitiesById } from '../server/state';
-import { waitForCondition } from '../world';
 import { createEntity } from '../ecs';
-import { ConnectEventSchema, RoomEventSchema } from '@schema/lib/room';
-import { z } from 'zod';
+import { generateSnowflakeId } from '../ids';
 // import { generateSnowflakeId } from '../ids';
 
 export const createRoomMachine = ({
@@ -109,6 +101,7 @@ export const createRoomMachine = ({
               START: {
                 target: 'Started',
                 actions: async (context, event) => {
+                  // event.
                   // how do I get who is p1 and who is p2
                   // const p1 = createEntity<StrikersPlayerEntity>({
                   //   schema: 'strikers_player',
@@ -123,26 +116,23 @@ export const createRoomMachine = ({
                   //   channel: undefined
                   // });
 
-                  const gameEntity = createEntity<StrikersGameEntity>({
-                    schema: 'strikers_game',
-                    gameId: 'strikers',
-                    config: {
-                      cards: [],
-                      gameMode: 'quickplay',
-                      turnsPerHalf: 0,
-                      // p1PlayerId: p1.id,
-                      // p2PlayerId: p2.id,
-                      p1PlayerId: '',
-                      p2PlayerId: '',
-                      extraTime: {
-                        minRounds: 2,
-                        maxRounds: 5,
-                      },
-                    },
-                    turnsIds: [],
-                  });
+                  // roomEntity.zEQWWWW
+                  // roomEntity.configuration
 
-                  world.add(gameEntity);
+                  // switch (roomEntity.configuration.) {
+
+                  // }
+                  let gameEntity: Entity;
+                  switch (roomEntity.gameId) {
+                    case 'strikers':
+                      gameEntity = createStrikersGame(roomEntity.configuration);
+                      break;
+                    default:
+                      throw new Error(
+                        'unimplemented gameId: ' + roomEntity.gameId
+                      );
+                  }
+
                   entity.currentGameInstanceId = gameEntity.id;
                 },
               },

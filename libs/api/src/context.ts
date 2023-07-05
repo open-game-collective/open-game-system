@@ -1,26 +1,18 @@
 // See explanation at https://trpc.io/docs/context#inner-and-outer-context
 // Inner context is context which doesn't depend on the request (e.g. DB)
-import { assert } from '@explorers-club/utils';
-import * as trpcExpress from '@trpc/server/adapters/express';
 import { Database } from '@explorers-club/database';
-import {
-  ConnectionEntity,
-  InitializedConnectionEntity,
-  SnowflakeId,
-} from '@explorers-club/schema';
+import { ConnectionEntity, SnowflakeId } from '@explorers-club/schema';
+import { assert } from '@explorers-club/utils';
+import { ConnectionAccessTokenPropsSchema } from '@schema/common';
 import { createClient } from '@supabase/supabase-js';
 import { type inferAsyncReturnType } from '@trpc/server';
+import * as trpcExpress from '@trpc/server/adapters/express';
 import { IncomingMessage } from 'http';
+import * as JWT from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { createEntity } from './ecs';
 import { entitiesById, world } from './server/state';
-import * as JWT from 'jsonwebtoken';
-import {
-  connectionsByAccessToken,
-  connectionsByAccessToken$,
-} from './server/indexes';
-import { waitForCondition, waitForEntity } from './world';
-import { tap, filter, take } from 'rxjs';
+import { waitForEntity } from './world';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -83,11 +75,24 @@ export const createContextInner = async (ctx: CreateContextOptions) => {
 export const createContextHTTP = async (
   opts: trpcExpress.CreateExpressContextOptions
 ) => {
+  const accessToken = opts.req.headers.authorization?.split('Bearer ')[1];
+  assert(
+    accessToken,
+    'expected authorizaiton header to be of form Bearer ACCESS_TOKEN'
+  );
+  const { sub, sessionId, deviceId, initialRouteProps, url } =
+    parseAccessToken(accessToken);
+
   const connectionEntity = createEntity<ConnectionEntity>({
+    id: sub,
     schema: 'connection',
     instanceId,
     currentGeolocation: undefined,
     allChannelIds: [],
+    currentUrl: url,
+    sessionId,
+    deviceId,
+    initialRouteProps,
   });
   world.add(connectionEntity);
 
@@ -119,11 +124,20 @@ export const createContextWebsocket = async (opts: {
   const accessToken = url.searchParams.get('accessToken');
   assert(accessToken, "couldn't parse accessToken from connection url");
 
-  // todo add timeout
-  const connectionEntity = await getConnectionEntity(accessToken);
-  connectionEntity.send({
-    type: 'CONNECT',
-  });
+  const { sub } = parseAccessToken(accessToken);
+  const connectionEntity = await waitForEntity(world, entitiesById, sub);
+  assert(
+    connectionEntity.schema === 'connection',
+    'got type of entity for connection: ' + connectionEntity.schema
+  );
+
+  // todo might need to wait here
+  // const connectionEntity = await getConnectionEntity(connectionId, accessToken)
+  // assert(
+  //   connectionEntity && connectionEntity.schema === 'connection',
+  //   'expected connectionEntity to exist for id: ' + connectionId
+  // );
+
   const socket = opts.res;
 
   const contextInner = await createContextInner({
@@ -149,21 +163,10 @@ export const createContextWebsocket = async (opts: {
 
 export type TRPCContext = inferAsyncReturnType<typeof createContextInner>;
 
-// todo add timeout to this
-const getConnectionEntity = async (accessToken: string) => {
-  let entity = connectionsByAccessToken.get(accessToken);
-  if (entity) {
-    return entity;
-  }
+const parseAccessToken = (accessToken: string) => {
+  const verifiedToken = JWT.verify(accessToken, 'my_private_key', {
+    jwtid: 'ACCESS_TOKEN',
+  });
 
-  const event = await connectionsByAccessToken$
-    .pipe(
-      filter((event) => !!connectionsByAccessToken.get(accessToken), take(1))
-    )
-    .toPromise();
-  assert(
-    event && event.data,
-    'expected entity after listening for accessToken'
-  );
-  return event.data as ConnectionEntity;
+  return ConnectionAccessTokenPropsSchema.parse(verifiedToken);
 };

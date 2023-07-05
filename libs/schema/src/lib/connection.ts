@@ -7,45 +7,13 @@ import {
 } from '../common';
 import { EntityBaseSchema } from '../entity/base';
 import { ConnectionSchemaTypeLiteral, GameIdLiteralSchema } from '../literals';
+import { RouteNameSchema, RoutePropsSchema } from '../common';
 import { ChatContextSchema, ChatStateValueSchema } from '../services/chat';
 import {
   NewRoomCommandSchema,
   NewRoomContextSchema,
   NewRoomStateValueSchema,
 } from '../services/new-room';
-
-export const HomeRoutePropsSchema = z.object({
-  name: z.literal('Home'),
-});
-
-export const LoginRoutePropsSchema = z.object({
-  name: z.literal('Login'),
-});
-
-export const NewRoomRoutePropsSchema = z.object({
-  name: z.literal('NewRoom'),
-});
-
-export const RoomRoutePropsSchema = z.object({
-  name: z.literal('Room'),
-  roomSlug: z.string(),
-});
-
-export const RoutePropsSchema = z.union([
-  HomeRoutePropsSchema,
-  NewRoomRoutePropsSchema,
-  RoomRoutePropsSchema,
-  LoginRoutePropsSchema,
-]);
-
-export const RouteNameSchema = z.enum([
-  'Home',
-  'NewRoom',
-  'Room',
-  'Login',
-  'NotFound',
-  'Uninitialized',
-]);
 
 export const GeolocationStateSchema = z.enum([
   'Initialized',
@@ -173,10 +141,11 @@ const JoinChannelCommandSchema = z.object({
 
 const ConnectionEntityPropsSchema = z.object({
   schema: ConnectionSchemaTypeLiteral,
-  sessionId: SnowflakeIdSchema.optional(),
-  accessToken: z.string().optional(),
-  deviceId: SnowflakeIdSchema.optional(),
-  currentLocation: z.string().url().optional(),
+  sessionId: SnowflakeIdSchema,
+  // accessToken: z.string(),
+  deviceId: SnowflakeIdSchema,
+  currentUrl: z.string().url(),
+  initialRouteProps: RoutePropsSchema,
   currentChannelId: SnowflakeIdSchema.optional(),
   allChannelIds: z.array(SnowflakeIdSchema),
   currentGeolocation: z.custom<GeolocationPosition>().optional(),

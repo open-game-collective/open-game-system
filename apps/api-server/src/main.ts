@@ -7,7 +7,10 @@ import {
   createContextHTTP,
   createContextWebsocket,
   entitiesById,
+  waitForEntity,
 } from '@explorers-club/api';
+import { ConnectionAccessTokenPropsSchema } from '@schema/common';
+import * as JWT from 'jsonwebtoken';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import * as http from 'http';
@@ -30,23 +33,44 @@ const wsHandler = applyWSSHandler({
 // Get the world
 // Send connect and disconnect events on the entity
 wss.on('connection', (ws, req) => {
-  assert(req.url, 'expected url to be able to parse for accessToken');
+  try {
+    assert(req.url, 'expected url to be able to parse for accessToken');
 
-  const url = new URL(req.url, `ws://${req.headers.host}`);
-  const accessToken = url.searchParams.get('accessToken');
-  assert(accessToken, 'failed to parse for accessToken');
+    const url = new URL(req.url, `ws://${req.headers.host}`);
+    const accessToken = url.searchParams.get('accessToken');
+    assert(accessToken, 'failed to parse for accessToken');
 
-  ws.once('close', () => {
-    const connectionEntity = connectionsByAccessToken.get(accessToken);
-    if (!connectionEntity) {
-      console.warn('failed to find connectionEntity for accessToken');
-      return;
-    }
-
-    connectionEntity.send({
-      type: 'DISCONNECT',
+    const verifiedToken = JWT.verify(accessToken, 'my_private_key', {
+      jwtid: 'ACCESS_TOKEN',
     });
-  });
+
+    const { sub } = ConnectionAccessTokenPropsSchema.parse(verifiedToken);
+    const entity = entitiesById.get(sub);
+    console.log(sub, verifiedToken);
+    assert(entity, 'expected entity from accessToken but not found');
+    assert(
+      entity.schema === 'connection',
+      'expected entity to have schema connection but was: ' + entity.schema
+    );
+
+    // Keep sending heartbeat as long as this connetion stays alive...
+    const HEARTBEAT_TIMEOUT = 5000; // 5s
+    const interval = setInterval(() => {
+      entity.send({
+        type: 'HEARTBEAT',
+      });
+    }, HEARTBEAT_TIMEOUT);
+
+    ws.once('close', () => {
+      entity.send({
+        type: 'DISCONNECT',
+      });
+      clearInterval(interval);
+    });
+  } catch (ex) {
+    console.warn('warning: when trying to initialize websocket: ' + ex);
+    console.warn('client commands will fail');
+  }
 });
 
 app.use(cors()); // todo might not need

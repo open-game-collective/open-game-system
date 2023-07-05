@@ -50,3 +50,44 @@ export const LayoutPropsSchema = z.object({
   focusArea: LayoutIslandSchema.optional(),
 });
 export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
+
+export const RouteNameSchema = z.enum([
+  'Home',
+  'NewRoom',
+  'Room',
+  'Login',
+  'NotFound',
+  'Uninitialized',
+]);
+
+export const HomeRoutePropsSchema = z.object({
+  name: z.literal('Home'),
+});
+
+export const LoginRoutePropsSchema = z.object({
+  name: z.literal('Login'),
+});
+
+export const NewRoomRoutePropsSchema = z.object({
+  name: z.literal('NewRoom'),
+});
+
+export const RoomRoutePropsSchema = z.object({
+  name: z.literal('Room'),
+  roomSlug: z.string(),
+});
+
+export const RoutePropsSchema = z.union([
+  HomeRoutePropsSchema,
+  NewRoomRoutePropsSchema,
+  RoomRoutePropsSchema,
+  LoginRoutePropsSchema,
+]);
+
+export const ConnectionAccessTokenPropsSchema = z.object({
+  sub: SnowflakeIdSchema,
+  deviceId: SnowflakeIdSchema,
+  sessionId: SnowflakeIdSchema,
+  initialRouteProps: RoutePropsSchema,
+  url: z.string().url(),
+});

@@ -16,8 +16,8 @@ import { createSchemaIndex } from '../indices';
 // createSchemaIndex({
 // })
 // createSchemaIndex(world, "")
-export const [strikersPlayersByUserId] =
-  createSchemaIndex<StrikersPlayerEntity>(world, 'strikers_player', 'userid');
+export const [strikersPlayersBySessionId] =
+  createSchemaIndex<StrikersPlayerEntity>(world, 'strikers_player', 'sessionId');
 
 export const createStrikersGameMachine = ({
   world,
@@ -29,14 +29,14 @@ export const createStrikersGameMachine = ({
   assert(entity.schema === 'strikers_game', 'expected strikers_game entity');
 
   const getPlayer = (senderId: SnowflakeId) => {
-    const sessionEntity = entitiesById.get(senderId);
+    const connectionEntity = entitiesById.get(senderId);
     assert(
-      sessionEntity && sessionEntity.schema === 'session',
+      connectionEntity && connectionEntity.schema === 'connection',
       'expected sessionEntity when looking up player'
     );
 
-    const strikersPlayerEntity = strikersPlayersByUserId.get(
-      sessionEntity.userId
+    const strikersPlayerEntity = strikersPlayersBySessionId.get(
+      connectionEntity.id
     );
     assert(strikersPlayerEntity, 'strikers player entity');
     return strikersPlayerEntity;

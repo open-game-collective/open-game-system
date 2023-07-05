@@ -20,6 +20,7 @@
       "@3d/*": ["libs/components/src/3d/*"],
       "@atoms/*": ["libs/components/src/atoms/*"],
       "@context/*": ["libs/components/src/context/*"],
+      "@strikers/*": ["games/strikers/src/*"],
       "@explorers-club/api": ["libs/api/src/index.ts"],
       "@explorers-club/api-client": ["libs/api/src/client"],
       "@explorers-club/chat": ["libs/chat/src/index.ts"],
@@ -68,7 +69,6 @@
       ],
       "@explorers-club/room": ["libs/room/src/index.ts"],
       "@explorers-club/schema": ["libs/schema/src/index.ts"],
-      "@schema/*": ["libs/schema/src/*"],
       "@explorers-club/schema-types/*": ["libs/schema/@types/generated/*"],
       "@explorers-club/styles": ["libs/components/src/stitches.config.ts"],
       "@explorers-club/trivia-jam/meta/*": ["games/trivia-jam/src/meta/*"],
@@ -84,6 +84,7 @@
       "@hooks/*": ["libs/components/src/hooks/*"],
       "@molecules/*": ["libs/components/src/molecules/*"],
       "@organisms/*": ["libs/components/src/organisms/*"],
+      "@schema/*": ["libs/schema/src/*"],
       "@state/*": ["libs/components/src/state/*"],
       "@storybook-decorators/*": ["libs/components/src/decorators/*"],
       "@templates/*": ["libs/components/src/templates/*"]

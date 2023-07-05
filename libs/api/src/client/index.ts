@@ -4,6 +4,7 @@ import type { ApiRouter } from '../router';
 
 export * from '../transformer';
 export * from '../world';
+export * from '../ids';
 export type { ApiRouter };
 
 export const trpc = createTRPCReact<ApiRouter>();

@@ -1,0 +1,16 @@
+{
+  "name": "..-games-strikers",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "games/strikers/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["games/strikers/**/*.{ts,tsx,js,jsx}"]
+      }
+    }
+  }
+}
