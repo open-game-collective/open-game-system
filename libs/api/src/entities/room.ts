@@ -12,13 +12,14 @@ import {
   StrikersGameEntity,
   StrikersPlayerEntity,
 } from '@explorers-club/schema';
-import { assert } from '@explorers-club/utils';
+import { assertEntitySchema } from '@explorers-club/utils';
 import { createStrikersGame } from '@strikers/server';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
 import { createMachine } from 'xstate';
 import { createEntity } from '../ecs';
 import { generateSnowflakeId } from '../ids';
+import { entitiesById } from '../server/state';
 // import { generateSnowflakeId } from '../ids';
 
 export const createRoomMachine = ({
@@ -30,7 +31,7 @@ export const createRoomMachine = ({
   entity: Entity;
   channel: ReplaySubject<any>;
 }) => {
-  assert(entity.schema === 'room', 'expected room schema when creating room');
+  assertEntitySchema(entity, 'room');
   const roomEntity = entity;
   const roomChannel = channel as ReplaySubject<CreateEventProps<RoomEvent>>;
 
@@ -47,33 +48,33 @@ export const createRoomMachine = ({
     on: {
       CONNECT: {
         actions: async (_, event) => {
-          console.log('CONNECTING!', event);
-          // const connectionEntity = (await waitForCondition<ConnectionEntity>(
-          //   world,
-          //   entitiesById,
-          //   event.senderId,
-          //   (entity) => entity.states.Initialized === 'True'
-          // )) as InitializedConnectionEntity;
-          if (!roomEntity.connectedEntityIds.includes(event.senderId)) {
-            roomEntity.connectedEntityIds = [
-              ...roomEntity.connectedEntityIds,
-              event.senderId,
-            ];
+          console.log(event);
+          const connectionEntity = entitiesById.get(event.senderId);
+          assertEntitySchema(connectionEntity, 'connection');
 
-            roomChannel.next({
-              type: 'CONNECT',
-              subjectId: event.senderId,
-            } as CreateEventProps<ConnectEvent>);
-            console.log('CONNECTED!');
+          const { sessionId } = connectionEntity;
+
+          if (!roomEntity.allSessionIds.includes(sessionId)) {
+            roomEntity.allSessionIds = [...roomEntity.allSessionIds, sessionId];
+
+            // todo: some new joined the room, log a message
+            // by sending a message ot the channel
+
+            // roomChannel.next({
+            //   type: 'CONNECT',
+            //   subjectId: event.senderId,
+            // } as CreateEventProps<ConnectEvent>);
           }
         },
       },
       DISCONNECT: {
         actions: async (_, event) => {
-          console.log('DISCONNECTING!', event);
-          roomEntity.connectedEntityIds = [
-            ...roomEntity.connectedEntityIds.filter(
-              (id) => id !== event.senderId
+          const connectionEntity = entitiesById.get(event.senderId);
+          assertEntitySchema(connectionEntity, 'connection');
+
+          roomEntity.allSessionIds = [
+            ...roomEntity.allSessionIds.filter(
+              (id) => id !== connectionEntity.sessionId
             ),
           ];
 

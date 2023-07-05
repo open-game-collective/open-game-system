@@ -12,10 +12,15 @@ export const SessionContextSchema = z.object({
 export const SessionEntityPropsSchema = z.object({
   schema: SessionSchemaTypeLiteral,
   userId: SnowflakeIdSchema.optional(),
+  connectionIds: z.array(SnowflakeIdSchema),
   // name: z.string(),
 });
 
 export const SessionCommandSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal('NEW_CONNECTION'),
+    connectionId: z.string()
+  }),
   z.object({
     type: z.literal('RECONNECT'),
   }),

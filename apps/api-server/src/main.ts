@@ -46,7 +46,6 @@ wss.on('connection', (ws, req) => {
 
     const { sub } = ConnectionAccessTokenPropsSchema.parse(verifiedToken);
     const entity = entitiesById.get(sub);
-    console.log(sub, verifiedToken);
     assert(entity, 'expected entity from accessToken but not found');
     assert(
       entity.schema === 'connection',

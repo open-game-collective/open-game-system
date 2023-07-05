@@ -8,6 +8,7 @@ import {
   SessionEntity,
   WithSenderId,
 } from '@explorers-club/schema';
+import type { RoomCommand, SessionCommand } from '@schema/types';
 import { assert, assertEventType } from '@explorers-club/utils';
 import {
   ConnectionInitializeCommandSchema,
@@ -28,21 +29,22 @@ import { createEntity } from '../ecs';
 import { roomsBySlug } from '../server/indexes';
 import { newRoomMachine } from '../services';
 import { createChatMachine } from '../services/chat.service';
+import { entitiesById } from '../server/state';
 
-const supabaseUrl = process.env['SUPABASE_URL'];
-const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
-const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
-const supabaseServiceKey = process.env['SUPABASE_SERVICE_KEY'];
+// const supabaseUrl = process.env['SUPABASE_URL'];
+// const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
+// const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
+// const supabaseServiceKey = process.env['SUPABASE_SERVICE_KEY'];
 
 // todo: switch to using zod for parsing
-if (
-  !supabaseUrl ||
-  !supabaseJwtSecret ||
-  !supabaseAnonKey ||
-  !supabaseServiceKey
-) {
-  throw new Error('missing supabase configuration');
-}
+// if (
+//   !supabaseUrl ||
+//   !supabaseJwtSecret ||
+//   !supabaseAnonKey ||
+//   !supabaseServiceKey
+// ) {
+//   throw new Error('missing supabase configuration');
+// }
 
 export const createConnectionMachine = ({
   world,
@@ -51,12 +53,43 @@ export const createConnectionMachine = ({
   world: World;
   entity: Entity;
 }) => {
+  // const { createEntity } = await import('../ecs');
+
   assert(
     entity && entity.schema === 'connection',
     'expected connection entity but found ' + entity.schema
   );
   const connectionEntity = entity;
-  let sessionEntity: SessionEntity | undefined = undefined;
+
+  let sessionEntity = entitiesById.get(connectionEntity.sessionId);
+  if (sessionEntity) {
+    assert(
+      sessionEntity.schema === 'session',
+      'expected sessionEntity to be of schema session but was ' +
+        sessionEntity.schema
+    );
+    sessionEntity.send({
+      type: 'NEW_CONNECTION',
+      connectionId: connectionEntity.id,
+    } as SessionCommand);
+  } else {
+    sessionEntity = createEntity<SessionEntity>({
+      id: connectionEntity.sessionId,
+      schema: 'session',
+      connectionIds: [connectionEntity.id],
+    });
+  }
+
+  // todo put db client init here
+  // const supabaseClient = createClient<Database>(
+  //   supabaseUrl,
+  //   supabaseAnonKey,
+  //   {
+  //     auth: {
+  //       persistSession: false,
+  //     },
+  //   }
+  // );
 
   const connectionMachine = createMachine(
     {
@@ -74,7 +107,7 @@ export const createConnectionMachine = ({
       },
       states: {
         Route: {
-          initial: 'Uninitialized',
+          initial: connectionEntity.initialRouteProps.name,
           on: {
             NAVIGATE: [
               {
@@ -104,31 +137,6 @@ export const createConnectionMachine = ({
             ],
           },
           states: {
-            Uninitialized: {
-              exit: ['setCurrentLocation'],
-              on: {
-                INITIALIZE: [
-                  {
-                    target: 'Home',
-                    cond: (_, event) => event.initialRouteProps.name === 'Home',
-                  },
-                  {
-                    target: 'Login',
-                    cond: (_, event) =>
-                      event.initialRouteProps.name === 'Login',
-                  },
-                  {
-                    target: 'NewRoom',
-                    cond: (_, event) =>
-                      event.initialRouteProps.name === 'NewRoom',
-                  },
-                  {
-                    target: 'Room',
-                    cond: (_, event) => event.initialRouteProps.name === 'Room',
-                  },
-                ],
-              },
-            },
             Home: {},
             Login: {},
             NewRoom: {
@@ -153,8 +161,8 @@ export const createConnectionMachine = ({
                     const entity = createEntity<RoomEntity>({
                       schema: 'room',
                       slug: roomSlug,
-                      hostConnectionEntityId: connectionEntity.id,
-                      connectedEntityIds: [],
+                      hostSessionId: connectionEntity.id,
+                      allSessionIds: [],
                       gameId,
                     });
                     world.add(entity);
@@ -165,20 +173,26 @@ export const createConnectionMachine = ({
               },
             },
             Room: {
-              entry: ['connectToRoom', 'spawnChatService'],
+              initial: 'Initializing',
+              states: {
+                Initializing: {
+                  invoke: {
+                    src: 'connectToRoom',
+                    onDone: 'Initialized',
+                    onError: 'Error',
+                  },
+                },
+                Error: {},
+                Initialized: {
+                  entry: ['spawnChatService'],
+                },
+              },
             },
           },
         },
         Initialized: {
-          initial: 'False',
+          initial: 'Initializing',
           states: {
-            False: {
-              on: {
-                INITIALIZE: {
-                  target: 'Initializing',
-                },
-              },
-            },
             Error: {},
             Initializing: {
               invoke: {
@@ -200,65 +214,8 @@ export const createConnectionMachine = ({
                   // }),
                 },
                 src: async (context, event) => {
-                  assertEventType(event, 'INITIALIZE');
-
-                  const decoded = jwt.verify(
-                    event.accessToken,
-                    'my_private_key',
-                    {
-                      jwtid: 'ACCESS_TOKEN',
-                    }
-                  );
-                  assert(
-                    typeof decoded === 'object' && decoded.sub,
-                    'expected to find subject on acessToken'
-                  );
-
-                  world.update(connectionEntity, {
-                    accessToken: event.accessToken,
-                    sessionId: decoded.sub,
-                    deviceId: event.deviceId,
-                  });
-
-                  // const { accessToken } = event;
-                  // const userId = getUserId(refreshToken);
-                  // console.log({ userId });
-                  // assert(
-                  //   userId,
-                  //   'expected to get userId from refreshToken but not found'
-                  // );
-
-                  // let sessionEntity = sessionsByUserId.get(userId);
-                  // if (!sessionEntity) {
-                  //   sessionEntity = createEntity<SessionEntity>({
-                  //     schema: 'session',
-                  //     userId,
-                  //   });
-                  //   world.add(sessionEntity);
-                  // }
-                  // console.log({ sessionEntity });
-
-                  // const accessToken = jwt.sign({}, 'my_private_key', {
-                  //   subject: sessionEntity.id,
-                  // });
-                  // console.log({ accessToken });
-
-                  // connectionEntity.sessionId = sessionEntity.id;
-                  // connectionEntity.accessToken = accessToken;
-                  // connectionEntity.deviceId = event.deviceId;
-
-                  // const result = jwt.verify(refreshToken, "my_private_key")
-
-                  // const supabaseClient = createClient<Database>(
-                  //   supabaseUrl,
-                  //   supabaseAnonKey,
-                  //   {
-                  //     auth: {
-                  //       persistSession: false,
-                  //     },
-                  //   }
-                  // );
-
+                  // assertEventType(event, 'INITIALIZE');
+                  // any further async initializaiton here...
                   // let supabaseSession: Session;
                   // // If returning user, get session
                   // if (authTokens) {
@@ -267,7 +224,6 @@ export const createConnectionMachine = ({
                   //       access_token: authTokens.accessToken,
                   //       refresh_token: authTokens.refreshToken,
                   //     });
-
                   //   if (error) {
                   //     throw new TRPCError({
                   //       code: 'INTERNAL_SERVER_ERROR',
@@ -296,7 +252,6 @@ export const createConnectionMachine = ({
                   //       cause: error,
                   //     });
                   //   }
-
                   //   if (!data.session) {
                   //     throw new TRPCError({
                   //       code: 'INTERNAL_SERVER_ERROR',
@@ -308,7 +263,6 @@ export const createConnectionMachine = ({
                   //     access_token: data.session.access_token,
                   //     refresh_token: data.session.refresh_token,
                   //   });
-
                   //   // Create user entity if doesn't already exist
                   //   const userEntity = usersById.get(supabaseSession.user.id);
                   //   if (!userEntity) {
@@ -324,7 +278,6 @@ export const createConnectionMachine = ({
                   //     // sessionEntity.userId = userEntity.id;
                   //   }
                   // }
-
                   // const userId = supabaseSession.user.id;
                   // sessionEntity = sessionsByUserId.get(userId) as
                   //   | SessionEntity
@@ -351,9 +304,7 @@ export const createConnectionMachine = ({
                   //   );
                   //   world.add(sessionEntity);
                   // }
-
                   // const deviceId = event.deviceId || generateSnowflakeId();
-
                   // Do I need to use addComponent
                   // connectionEntity.deviceId = deviceId;
                   // connectionEntity.accessToken = accessToken
@@ -361,7 +312,6 @@ export const createConnectionMachine = ({
                   //   accessToken: supabaseSession.access_token,
                   //   refreshToken: supabaseSession.refresh_token,
                   // };
-
                   // return {
                   //   chatServiceRef
                   // } satisfies InitializedConnectionContext;
@@ -500,8 +450,8 @@ export const createConnectionMachine = ({
             roomEntity = createEntity<RoomEntity>({
               schema: 'room',
               slug,
-              hostConnectionEntityId: connectionEntity.id,
-              connectedEntityIds: [],
+              hostSessionId: connectionEntity.sessionId,
+              allSessionIds: [],
               gameId: 'strikers',
             });
             world.add(roomEntity);
@@ -510,9 +460,13 @@ export const createConnectionMachine = ({
           roomEntity.send({
             type: 'CONNECT',
             senderId: connectionEntity.id,
-          } as any);
+          } satisfies RoomCommand);
 
           connectionEntity.currentChannelId = roomEntity.id;
+          connectionEntity.allChannelIds = [
+            ...connectionEntity.allChannelIds,
+            roomEntity.id,
+          ];
         },
 
         setCurrentLocation: (_, event) => {

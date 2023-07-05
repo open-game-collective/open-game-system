@@ -15,6 +15,20 @@ export function assert<T>(
   }
 }
 
+export function assertEntitySchema<
+  TEntity extends Entity,
+  TSchemaType extends TEntity['schema']
+>(
+  entity: TEntity | undefined | null,
+  schemaType: TSchemaType
+): asserts entity is TEntity & { schema: TSchemaType } {
+  assert(entity, `expected entity of schema ${schemaType} but was null`);
+  assert(
+    entity.schema === schemaType,
+    `expected entity to be schema ${schemaType} but was ${entity.schema}`
+  );
+}
+
 export function assertEventType<
   TE extends EventObject,
   TType extends TE['type']

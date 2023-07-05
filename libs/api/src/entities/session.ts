@@ -4,21 +4,39 @@ import {
   SessionContext,
   SessionTypeState,
 } from '@explorers-club/schema';
+import { assert } from '@explorers-club/utils';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
 
 export const createSessionMachine = ({
   world,
+  entity,
 }: {
   world: World;
   entity: Entity;
 }) => {
-  return createMachine<SessionContext, SessionCommand, SessionTypeState>({
+  assert(
+    entity && entity.schema === 'session',
+    'expected session entity but found ' + entity.schema
+  );
+
+  return createMachine({
     id: 'SessionMachine',
     context: {
       foo: 'bar',
     },
+    schema: {
+      context: {} as SessionContext,
+      events: {} as SessionCommand,
+    },
     type: 'parallel',
+    on: {
+      NEW_CONNECTION: {
+        actions: (_, event) => {
+          entity.connectionIds = [...entity.connectionIds, event.connectionId];
+        },
+      },
+    },
     states: {
       Connected: {
         initial: 'No',

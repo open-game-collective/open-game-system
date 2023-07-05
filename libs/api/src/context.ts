@@ -83,6 +83,7 @@ export const createContextHTTP = async (
   const { sub, sessionId, deviceId, initialRouteProps, url } =
     parseAccessToken(accessToken);
 
+  console.log('creating connection', sub);
   const connectionEntity = createEntity<ConnectionEntity>({
     id: sub,
     schema: 'connection',
@@ -95,6 +96,7 @@ export const createContextHTTP = async (
     initialRouteProps,
   });
   world.add(connectionEntity);
+  console.log('connection created', sub);
 
   return {
     connectionEntity,
@@ -131,12 +133,8 @@ export const createContextWebsocket = async (opts: {
     'got type of entity for connection: ' + connectionEntity.schema
   );
 
-  // todo might need to wait here
-  // const connectionEntity = await getConnectionEntity(connectionId, accessToken)
-  // assert(
-  //   connectionEntity && connectionEntity.schema === 'connection',
-  //   'expected connectionEntity to exist for id: ' + connectionId
-  // );
+  // todo: its possible that connectionEntity doesn't exist yet,
+  // we can create it from the accessToken sync if we have to
 
   const socket = opts.res;
 

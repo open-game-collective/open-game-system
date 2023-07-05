@@ -31,6 +31,7 @@ const StartCommandSchema = z.object({
 
 const ConnectCommandSchema = z.object({
   type: z.literal('CONNECT'),
+  senderId: SnowflakeIdSchema,
 });
 
 const DisconnectCommandSchema = z.object({
@@ -55,8 +56,8 @@ export const RoomCommandSchema = z.union([
 
 export const RoomEntityPropsSchema = z.object({
   schema: RoomSchemaTypeLiteral,
-  hostConnectionEntityId: SnowflakeIdSchema,
-  connectedEntityIds: z.array(SnowflakeIdSchema),
+  hostSessionId: SnowflakeIdSchema,
+  allSessionIds: z.array(SnowflakeIdSchema),
   slug: SlugSchema,
   gameId: GameIdLiteralSchema.optional(),
   currentGameInstanceId: SnowflakeIdSchema.optional(),
