@@ -20,6 +20,7 @@ import { createMachine } from 'xstate';
 import { createEntity } from '../ecs';
 import { generateSnowflakeId } from '../ids';
 import { entitiesById } from '../server/state';
+import { assert } from 'console';
 // import { generateSnowflakeId } from '../ids';
 
 export const createRoomMachine = ({
@@ -100,45 +101,57 @@ export const createRoomMachine = ({
           WaitingToStart: {
             on: {
               START: {
-                target: 'Started',
-                actions: async (context, event) => {
-                  // event.
-                  // how do I get who is p1 and who is p2
-                  // const p1 = createEntity<StrikersPlayerEntity>({
-                  //   schema: 'strikers_player',
-                  //   userId: '',
-                  //   gameEntityId: '',
-                  //   channel: undefined
-                  // });
-                  // const p2 = createEntity<StrikersPlayerEntity>({
-                  //   schema: 'strikers_player',
-                  //   userId: '',
-                  //   gameEntityId: '',
-                  //   channel: undefined
-                  // });
-
-                  // roomEntity.zEQWWWW
-                  // roomEntity.configuration
-
-                  // switch (roomEntity.configuration.) {
-
-                  // }
-                  let gameEntity: Entity;
-                  switch (roomEntity.gameId) {
-                    case 'strikers':
-                      gameEntity = createStrikersGame(roomEntity.configuration);
-                      break;
-                    default:
-                      throw new Error(
-                        'unimplemented gameId: ' + roomEntity.gameId
-                      );
-                  }
-
-                  entity.currentGameInstanceId = gameEntity.id;
-                },
+                target: 'Starting',
               },
             },
           },
+          Starting: {
+            invoke: {
+              src: async (context, event) => {
+                // event.
+                // how do I get who is p1 and who is p2
+                // const p1 = createEntity<StrikersPlayerEntity>({
+                //   schema: 'strikers_player',
+                //   userId: '',
+                //   gameEntityId: '',
+                //   channel: undefined
+                // });
+                // const p2 = createEntity<StrikersPlayerEntity>({
+                //   schema: 'strikers_player',
+                //   userId: '',
+                //   gameEntityId: '',
+                //   channel: undefined
+                // });
+
+                // roomEntity.zEQWWWW
+                // roomEntity.configuration
+
+                // switch (roomEntity.configuration.) {
+
+                // }
+                let gameEntity: Entity;
+                assert(
+                  roomEntity.currentGameConfiguration,
+                  'expected game configuration but was null'
+                );
+
+                switch (roomEntity.gameId) {
+                  case 'strikers':
+                    gameEntity = createStrikersGame(roomEntity.id);
+                    break;
+                  default:
+                    throw new Error(
+                      'unimplemented gameId: ' + roomEntity.gameId
+                    );
+                }
+
+                entity.currentGameInstanceId = gameEntity.id;
+              },
+              onDone: 'Started',
+              onError: 'Error',
+            },
+          },
+          Error: {},
           Started: {},
         },
       },

@@ -40,6 +40,17 @@ export function assertEventType<
   }
 }
 
+// todo add other channel schemas here (i.e. dm, group, etc)
+export function assertChannelEntity<TEntity extends Entity>(
+  entity: TEntity | undefined | null
+): asserts entity is TEntity & { schema: 'room' } {
+  assert(entity, `expected entity of but was null`);
+  assert(
+    entity.schema === 'room',
+    `expected entity to be one of: 'room', 'dm', 'group'`
+  );
+}
+
 export const unwrapEvent = <
   T extends { type: K | string },
   K extends string = string

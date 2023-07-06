@@ -8,6 +8,7 @@ import { RoomContext } from './room.context';
 import { useEntitySelector } from '@hooks/useEntitySelector';
 import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
+import { RoomEntity } from '@schema/types';
 enablePatches();
 
 export const Room = () => {
