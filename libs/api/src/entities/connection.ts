@@ -378,6 +378,36 @@ export const createConnectionMachine = ({
       predictableActionArguments: true,
     },
     {
+      services: {
+        connectToRoom: async () => {
+          const url = new URL(connectionEntity.currentUrl);
+          const slug = url.pathname.split('/')[1];
+          assert(slug, 'error parsing slug from currentUrl');
+
+          let roomEntity = roomsBySlug.get(slug);
+          if (!roomEntity) {
+            roomEntity = createEntity<RoomEntity>({
+              schema: 'room',
+              slug,
+              hostSessionId: connectionEntity.sessionId,
+              allSessionIds: [],
+              gameId: 'strikers',
+            });
+            world.add(roomEntity);
+          }
+
+          roomEntity.send({
+            type: 'CONNECT',
+            senderId: connectionEntity.id,
+          } satisfies RoomCommand);
+
+          connectionEntity.currentChannelId = roomEntity.id;
+          connectionEntity.allChannelIds = [
+            ...connectionEntity.allChannelIds,
+            roomEntity.id,
+          ];
+        },
+      },
       actions: {
         // joinCurrentChannel: async (context) => {
         //   const { createEntity } = await import('../ecs');
@@ -439,35 +469,6 @@ export const createConnectionMachine = ({
               'chatService'
             ) as ConnectionContext['chatServiceRef'],
         }),
-
-        connectToRoom: () => {
-          const url = new URL(connectionEntity.currentUrl);
-          const slug = url.pathname.split('/')[1];
-          assert(slug, 'error parsing slug from currentUrl');
-
-          let roomEntity = roomsBySlug.get(slug);
-          if (!roomEntity) {
-            roomEntity = createEntity<RoomEntity>({
-              schema: 'room',
-              slug,
-              hostSessionId: connectionEntity.sessionId,
-              allSessionIds: [],
-              gameId: 'strikers',
-            });
-            world.add(roomEntity);
-          }
-
-          roomEntity.send({
-            type: 'CONNECT',
-            senderId: connectionEntity.id,
-          } satisfies RoomCommand);
-
-          connectionEntity.currentChannelId = roomEntity.id;
-          connectionEntity.allChannelIds = [
-            ...connectionEntity.allChannelIds,
-            roomEntity.id,
-          ];
-        },
 
         setCurrentLocation: (_, event) => {
           const parsedEvent = SetCurrentLocationEventSchema.parse(event);

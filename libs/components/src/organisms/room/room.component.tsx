@@ -14,7 +14,7 @@ export const Room = () => {
   const { roomEntity } = useContext(RoomContext);
   const connectPlayerCount = useEntitySelector(
     roomEntity,
-    (entity) => entity.connectedEntityIds.length
+    (entity) => entity.allSessionIds.length
   );
 
   const selectedGameId = useEntitySelector(roomEntity, (state) => state.gameId);

@@ -154,12 +154,15 @@ export const createEntity = <TEntity extends Entity>(
     entity: proxy,
     channel: channelSubject,
   });
-  // todo fix types
+
   const service = interpret(machine as any) as unknown as TInterpreter;
 
-  service.start();
+  proxy.states = machine.initialState.value as TStateValue;
 
-  proxy.states = service.getSnapshot().value as TStateValue;
+  // todo might need to do onAddWorld somehow
+  setTimeout(() => {
+    service.start();
+  }, 0);
 
   const attachedServices: Partial<Record<ServiceId, AnyActorRef>> = {};
 
