@@ -214,12 +214,23 @@ export const WorldProvider: FC<{
     []
   );
 
+  /**
+   * Entity stores hold a reference to an entity
+   * This function creates an entity store given a query function.
+   *
+   * It allows components to specify what they are looking for and then "wait"
+   * for the entity to show up in the store. They can then use
+   * useEntityStoreSelector to select typed data from the store, returning
+   * null for the selected data if the entity does not exist.
+   */
   const createEntityStore = useCallback(
     <TEntity extends Entity>(query: (entity: Entity) => boolean) => {
       const store = atom<TEntity | null>(null);
+      // take the first entity to match it
       for (const entity of world.entities) {
         if (query(entity)) {
           store.set(entity as TEntity);
+          break;
         }
       }
 
@@ -230,7 +241,14 @@ export const WorldProvider: FC<{
         }
 
         addedEntity.subscribe(() => {
+          // console.log(
+          //   'entity event sub',
+          //   JSON.parse(JSON.stringify(addedEntity))
+          // );
+          // console.log('store', store.get());
+          // console.log('query', query, query(addedEntity));
           if (!store.get() && query(addedEntity as TEntity)) {
+            console.log('SETTING!');
             store.set(addedEntity as TEntity);
           }
 

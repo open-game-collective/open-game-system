@@ -10,9 +10,16 @@ export const useCurrentChannelEntityStore = () => {
     entityStoreRegistry.myInitializedConnectionEntity,
     (entity) => entity.currentChannelId
   );
+  // console.log('CURRENT CHANNEL', { currentChannelId });
 
   return useCreateEntityStore<RoomEntity>(
     (entity) => {
+      // console.log(
+      //   'checking channel query',
+      //   entity.schema,
+      //   entity.id,
+      //   currentChannelId
+      // );
       return (currentChannelId &&
         entity.schema === 'room' &&
         entity.id === currentChannelId) as boolean;

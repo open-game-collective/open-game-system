@@ -1,6 +1,7 @@
 import type {
   ConnectEvent,
   DisconnectEvent,
+  LobbyGameConfig,
   StrikersGameConfigData,
   WithSenderId,
 } from '@explorers-club/schema';
@@ -113,24 +114,29 @@ export const createRoomMachine = ({
             Starting: {
               invoke: {
                 src: async (context, event) => {
-                  const currentGameConfiguration: StrikersGameConfigData = {
-                    cards: [],
-                    gameMode: 'quickplay',
-                    turnsPerHalf: 0,
+                  // const currentGameConfiguration: StrikersGameConfigData = {
+                  //   cards: [],
+                  //   gameMode: 'quickplay',
+                  //   turnsPerHalf: 0,
+                  //   p1SessionId: roomEntity.allSessionIds[0],
+                  //   p2SessionId: roomEntity.allSessionIds[1],
+                  //   extraTime: {
+                  //     minRounds: 2,
+                  //     maxRounds: 6,
+                  //   },
+                  // };
+                  // roomEntity.currentGameConfiguration =
+                  //   currentGameConfiguration;
+
+                  const lobbyGameConfig = {
                     p1SessionId: roomEntity.allSessionIds[0],
-                    p2SessionId: roomEntity.allSessionIds[1],
-                    extraTime: {
-                      minRounds: 2,
-                      maxRounds: 6,
-                    },
-                  };
-                  roomEntity.currentGameConfiguration =
-                    currentGameConfiguration;
+                    p2SessionId: roomEntity.allSessionIds[1]
+                  } satisfies LobbyGameConfig;
 
                   let gameEntity: Entity;
                   switch (roomEntity.gameId) {
                     case 'strikers':
-                      gameEntity = createStrikersGame(roomEntity.id);
+                      gameEntity = createStrikersGame(roomEntity.id, lobbyGameConfig);
                       break;
                     default:
                       throw new Error(

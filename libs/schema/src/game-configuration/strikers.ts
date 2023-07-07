@@ -90,12 +90,17 @@ export const StrikersCardSchema = StrikersPlayerCardSchema;
 
 export const CardIdSchema = z.string();
 
+export const StrikersLobbyConfigSchema = z.object({
+  p1SessionId: SnowflakeIdSchema,
+  p2SessionId: SnowflakeIdSchema,
+});
+
 export const StrikersGameConfigDataSchema = z.object({
+  lobbyConfig: StrikersLobbyConfigSchema,
+  playerIds: z.array(SnowflakeIdSchema),
   cards: z.array(StrikersCardSchema),
   gameMode: z.enum(['quickplay', 'draft']).default('quickplay'),
   turnsPerHalf: z.number().default(20),
-  p1SessionId: SnowflakeIdSchema,
-  p2SessionId: SnowflakeIdSchema,
   extraTime: z.object({
     minRounds: z.number().default(2),
     maxRounds: z.number().default(6),

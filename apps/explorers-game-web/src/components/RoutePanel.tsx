@@ -1,19 +1,18 @@
 import { Box } from '@atoms/Box';
+import { ButtonLink } from '@atoms/Button';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
+import { ApplicationContext } from '@context/ApplicationContext';
 import { InitializedConnectionEntityContext } from '@context/Entity';
+import { WorldContext } from '@context/WorldProvider';
+import type { RoomEntity } from '@explorers-club/schema';
+import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
+import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
 import { useStore } from '@nanostores/react';
 import { NewRoomFlow } from '@organisms/new-room-flow';
 import { Room } from '@organisms/room';
-import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
-import { ButtonLink } from '@atoms/Button';
+import { RoomProvider } from '@organisms/room/room.context';
 import { MouseEventHandler, useCallback, useContext } from 'react';
-import { RoomContext } from '@organisms/room/room.context';
-import { useEntitySelector } from '@hooks/useEntitySelector';
-import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
-import type { RoomEntity } from '@explorers-club/schema';
-import { ApplicationContext } from '@context/ApplicationContext';
-import { WorldContext } from '@context/WorldProvider';
 
 export const RoutePanel = () => {
   const { routeStore } = useContext(ApplicationContext);
@@ -70,6 +69,7 @@ const NewRoomPanel = () => {
   ) : null;
 };
 
+// TODO make this common to be able to use in HTML and canvas
 const RoomPanel = () => {
   const { entityStoreRegistry } = useContext(WorldContext);
   const connectionEntity = useStore(
@@ -94,8 +94,8 @@ const RoomPanel = () => {
   }
 
   return (
-    <RoomContext.Provider value={{ connectionEntity, roomEntity }}>
+    <RoomProvider>
       <Room />
-    </RoomContext.Provider>
+    </RoomProvider>
   );
 };

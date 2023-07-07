@@ -1,16 +1,26 @@
 // import { isMainSceneFocusedStore } from '../global/layout';
 import { Box } from '@atoms/Box';
-import { OrbitControls, useContextBridge } from '@react-three/drei';
+import {
+  Environment,
+  OrbitControls,
+  useContextBridge,
+} from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 // import { GoogleMaps } from './GoogleMaps';
 import { WorldContext } from '@context/WorldProvider';
 import { ConnectionContext } from './ApplicationProvider';
 import { TopNav } from './TopNav';
 import { BottomNav } from './BottomNav';
-import { useContext } from 'react';
+import { FC, ReactNode, useContext } from 'react';
 import { LayoutContext } from '@context/LayoutContext';
 import { useStore } from '@nanostores/react';
 import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
+import { useEntitySelector } from '@hooks/useEntitySelector';
+import { useCurrentGameEntityStore } from '@hooks/useCurrentGameEntityStore';
+import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
+import type { RoomEntity } from '@schema/types';
+import { RoomContext, RoomProvider } from '@organisms/room/room.context';
+import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
 
 export const ScenePanel = () => {
   const { isMainPanelFocusedStore } = useContext(LayoutContext);
@@ -60,11 +70,31 @@ export const ScenePanel = () => {
 };
 
 const SceneManager = () => {
-  const { entityStoreRegistry } = useContext(WorldContext);
-  const connectionEntity = useStore(
-    entityStoreRegistry.myInitializedConnectionEntity
+  // here we'll manage transitions between scenes...
+  // for now assuem each scene knows if it should
+  // render itself or not based off global routeProps
+
+  return (
+    <RoomProvider>
+      <RoomScene />
+    </RoomProvider>
   );
-  const roomEntityStore = useCurrentChannelEntityStore();
-  const roomEntity = useStore(roomEntityStore);
-  return <></>;
+};
+
+const RoomScene = () => {
+  // render a box if there is a game...
+  const { roomEntity } = useContext(RoomContext);
+  const currentGameInstanceId = useEntitySelector(
+    roomEntity,
+    (entity) => entity.currentGameInstanceId
+  );
+
+  return currentGameInstanceId ? (
+    <mesh rotation={[10, 10, 0]}>
+      <boxBufferGeometry attach="geometry" args={[2, 2, 2]} />
+      <meshStandardMaterial attach="material" color={0xcc0000} />
+    </mesh>
+  ) : (
+    <></>
+  );
 };

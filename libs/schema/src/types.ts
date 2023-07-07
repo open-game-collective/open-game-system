@@ -1,19 +1,25 @@
-import { Database } from '@explorers-club/database';
-import { MakeRequired, MakeOptional } from '@explorers-club/utils';
-import { SupabaseClient } from '@supabase/supabase-js';
+import { MakeOptional, MakeRequired } from '@explorers-club/utils';
 import { Operation } from 'fast-json-patch';
 import { IndexByType, InterpreterFrom, StateMachine } from 'xstate';
 import { z } from 'zod';
 import {
-  SnowflakeIdSchema,
-  StateSchemaFromStateValue,
+  ConnectionAccessTokenPropsSchema,
   RouteNameSchema,
   RoutePropsSchema,
-  ConnectionAccessTokenPropsSchema,
+  SnowflakeIdSchema,
+  StateSchemaFromStateValue,
 } from './common';
-import { EntityCommandSchema, EntitySchema, EntitySchemas } from './entity';
+import {
+  ChannelEntitySchema,
+  EntityCommandSchema,
+  EntitySchema,
+  EntitySchemas,
+  GameEntitySchema
+} from './entity';
 import { ChannelEventSchema, MessageEventSchema } from './events/channel';
 import { ClientEventSchema } from './events/client';
+import { LobbyGameConfigSchema } from './game-configuration';
+import { StrikersGameConfigDataSchema } from './game-configuration/strikers';
 import {
   CodebreakersGameCommandSchema,
   CodebreakersGameContextSchema,
@@ -24,6 +30,20 @@ import {
   CodebreakersPlayerEntitySchema,
   CodebreakersPlayerStateValueSchema,
 } from './games/codebreakers';
+import {
+  StrikersGameCommandSchema,
+  StrikersGameContextSchema,
+  StrikersGameEntitySchema,
+  StrikersGameStateValueSchema,
+  StrikersPlayerCommandSchema,
+  StrikersPlayerContextSchema,
+  StrikersPlayerEntitySchema,
+  StrikersPlayerStateValueSchema,
+  StrikersTurnCommandSchema,
+  StrikersTurnContextSchema,
+  StrikersTurnEntitySchema,
+  StrikersTurnStateValueSchema,
+} from './games/strikers';
 import {
   BananaTradersGameCommandSchema,
   BananaTradersGameContextSchema,
@@ -110,21 +130,6 @@ import {
   ChatContextSchema,
   ChatStateValueSchema,
 } from './services/chat';
-import {
-  StrikersGameCommandSchema,
-  StrikersGameContextSchema,
-  StrikersGameEntitySchema,
-  StrikersGameStateValueSchema,
-  StrikersPlayerCommandSchema,
-  StrikersPlayerContextSchema,
-  StrikersPlayerEntitySchema,
-  StrikersPlayerStateValueSchema,
-  StrikersTurnCommandSchema,
-  StrikersTurnContextSchema,
-  StrikersTurnEntitySchema,
-  StrikersTurnStateValueSchema,
-} from './games/strikers';
-import { StrikersGameConfigDataSchema } from './game-configuration/strikers';
 
 export type ChatContext = z.infer<typeof ChatContextSchema>;
 export type ChatCommand = z.infer<typeof ChatCommandSchema>;
@@ -263,6 +268,9 @@ export type SnowflakeId = z.infer<typeof SnowflakeIdSchema>;
 export type Entity = z.infer<typeof EntitySchema>;
 export type EntityEvent = Parameters<Parameters<Entity['subscribe']>[0]>[0];
 export type EntitySchemaType = keyof typeof EntitySchemas;
+
+export type ChannelEntity = z.infer<typeof ChannelEntitySchema>;
+export type GameEntity = z.infer<typeof GameEntitySchema>;
 
 export interface Service {
   context: unknown;
@@ -657,3 +665,5 @@ export type RouteName = z.infer<typeof RouteNameSchema>;
 export type ConnectionAccessTokenProps = z.infer<
   typeof ConnectionAccessTokenPropsSchema
 >;
+
+export type LobbyGameConfig = z.infer<typeof LobbyGameConfigSchema>;

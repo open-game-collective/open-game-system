@@ -66,3 +66,9 @@ export const EntitySchema = z.discriminatedUnion('schema', [
   //   LittleVigilanteGameEntitySchema,
   //   LittleVigilantePlayerEntitySchema,
 ]);
+
+export const ChannelEntitySchema = z.discriminatedUnion('schema', [RoomEntitySchema]);
+
+export const GameEntitySchema = z.discriminatedUnion('schema', [
+  StrikersGameEntitySchema,
+]);
