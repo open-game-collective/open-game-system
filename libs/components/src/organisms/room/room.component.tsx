@@ -33,6 +33,10 @@ export const Room = () => {
 const GamePanel = () => {
   const { roomEntity } = useContext(RoomContext);
   const selectedGameId = useEntitySelector(roomEntity, (state) => state.gameId);
+  const numPlayers = useEntitySelector(
+    roomEntity,
+    (state) => state.allSessionIds.length
+  );
 
   const handlePressStart = useCallback(() => {
     roomEntity.send({
@@ -43,7 +47,9 @@ const GamePanel = () => {
   return (
     <Box>
       <div>Game {selectedGameId}</div>
-      <Button onClick={handlePressStart}>Start</Button>
+      <Button disabled={numPlayers !== 2} onClick={handlePressStart}>
+        Start
+      </Button>
     </Box>
   );
 };

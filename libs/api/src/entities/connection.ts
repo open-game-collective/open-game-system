@@ -73,11 +73,18 @@ export const createConnectionMachine = ({
       connectionId: connectionEntity.id,
     } as SessionCommand);
   } else {
+    console.log(
+      'creating',
+      connectionEntity.sessionId,
+      'on',
+      connectionEntity.id
+    );
     sessionEntity = createEntity<SessionEntity>({
       id: connectionEntity.sessionId,
       schema: 'session',
       connectionIds: [connectionEntity.id],
     });
+    world.add(sessionEntity);
   }
 
   // todo put db client init here

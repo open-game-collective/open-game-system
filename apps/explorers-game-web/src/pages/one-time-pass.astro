@@ -1,0 +1,31 @@
+---
+import type { RouteProps } from '@explorers-club/schema';
+import { SessionAccessOneTimeTokenPropsSchema } from '@schema/common';
+import { initAccessToken } from '../auth';
+import Layout from '../layouts/Layout.astro';
+import { assert } from '@explorers-club/utils';
+import * as jwt from 'jsonwebtoken';
+
+// const routeProps = { name: 'NewRoom' } satisfies RouteProps;
+
+const token = Astro.url.searchParams.get('token');
+assert(token, "expected 'token' query param but was undefined");
+
+const verifiedToken = jwt.verify(token, 'my_private_key', {
+  jwtid: 'ONE_TIME',
+});
+const { sub } = SessionAccessOneTimeTokenPropsSchema.parse(verifiedToken);
+
+Astro.redirect(`/?sessionId=${sub}`);
+
+// Astro.cookies.get("deviceId")
+
+// Astro.url
+// const accessToken = initAccessToken(Astro.cookies, routeProps, Astro.url.href);
+---
+
+<html>
+  <!-- should never render... -->
+
+
+</html>

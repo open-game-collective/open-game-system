@@ -91,3 +91,8 @@ export const ConnectionAccessTokenPropsSchema = z.object({
   initialRouteProps: RoutePropsSchema,
   url: z.string().url(),
 });
+
+export const SessionAccessOneTimeTokenPropsSchema = z.object({
+  sub: SnowflakeIdSchema,
+  jwtid: z.literal("ONE")
+});

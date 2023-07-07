@@ -1,5 +1,6 @@
 import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
+import { isMobileDevice } from '@explorers-club/utils';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
@@ -21,11 +22,13 @@ import {
   forwardRef,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from 'react';
 import { useStore } from '@nanostores/react';
 import { LayoutContext } from '@context/LayoutContext';
 import { Box } from '@atoms/Box';
+import { trpc } from '@explorers-club/api-client';
 // import { selectNavIsOpen } from './app.selectors';
 
 export const Menu = () => {
@@ -113,6 +116,11 @@ const MenuDrawerContent = () => {
                   Shop
                 </TabButton>
               </Tabs.Trigger>
+              <Tabs.Trigger value="account" asChild>
+                <TabButton ghost size="3">
+                  Account
+                </TabButton>
+              </Tabs.Trigger>
             </Tabs.List>
             <Dialog.Close asChild>
               <IconButton size="3">
@@ -125,6 +133,7 @@ const MenuDrawerContent = () => {
               <GamesTabContent />
               <LobbyTabContent />
               <ShopTabContent />
+              <AccountTabContent />
             </ScrollAreaViewport>
             <ScrollAreaScrollbar orientation="vertical">
               <ScrollAreaThumb />
@@ -178,6 +187,129 @@ const ShopTabContent = () => {
         </a>
       </Flex>
     </Tabs.Content>
+  );
+};
+
+const AccountTabContent = () => {
+  const [isMobile] = useState(isMobileDevice(navigator.userAgent));
+
+  return (
+    <Tabs.Content value="account">
+      <Flex direction="column" gap="3">
+        QR Code Here
+        {isMobile ? <MobileQrCode /> : <DesktopQrCode />}
+      </Flex>
+    </Tabs.Content>
+  );
+};
+
+const MobileQrCode = () => {
+  return (
+    <div>
+      Open explorers.cafe/scan on another device and scan the temporary code
+      below.
+    </div>
+  );
+};
+
+const DesktopQrCode = () => {
+  const { client } = trpc.useContext();
+  const mutation = trpc.session.generateOneTimeToken.useMutation();
+
+  useEffect(() => {
+    // todo backoff logic here... rxjs?
+    if (!mutation.isSuccess && mutation.failureCount === 0 && mutation.isIdle) {
+      mutation.mutate();
+    }
+  }, [mutation]);
+
+  console.log(mutation);
+
+  if (mutation.isLoading) {
+    return <Box>Generating QR Code...</Box>;
+  }
+
+  if (mutation.isSuccess) {
+    return <Box>Token: {mutation.data.token}</Box>;
+  }
+
+  // console.log({ f });
+
+  // client
+  // client.
+  // client.session
+  // const sub = client.entity.list.subscribe(undefined, {
+  //   onError(err) {
+  //     console.error(err);
+  //   },
+  //   onData(event) {
+  //     if (event.type === 'ADDED') {
+  //       for (const entityProps of event.entities) {
+  //         const entity = createEntity(entityProps);
+
+  //         entitiesById.set(entityProps.id, entity);
+  //         world.add(entity);
+  //       }
+  //     } else if (event.type === 'REMOVED') {
+  //       for (const entityProps of event.entities) {
+  //         const entity = entitiesById.get(entityProps.id);
+  //         if (!entity) {
+  //           console.error('missing entity when trying to remove');
+  //           return;
+  //         }
+
+  //         world.remove(entity);
+  //       }
+  //     } else if (event.type === 'CHANGED') {
+  //       for (const change of event.changedEntities) {
+  //         const entity = entitiesById.get(change.id);
+  //         if (!entity) {
+  //           console.error('missing entity when trying to apply patches');
+  //           return;
+  //         }
+
+  //         for (const operation of change.patches) {
+  //           if (operation.path.match(/^\/\w+$/) && operation.op === 'add') {
+  //             const pathParts = operation.path.split('/');
+  //             const component = pathParts[1] as keyof typeof entity;
+  //             world.addComponent(entity, component, operation.value);
+  //           } else if (
+  //             operation.path.match(/^\/\w+$/) &&
+  //             operation.op === 'remove'
+  //           ) {
+  //             const pathParts = operation.path.split('/');
+  //             const component = pathParts[1] as keyof typeof entity;
+  //             world.removeComponent(entity, component);
+  //           } else {
+  //             applyPatch(entity, change.patches);
+  //           }
+  //         }
+
+  //         const next = nextFnById.get(entity.id);
+  //         if (!next) {
+  //           throw new Error('expected next function for entity ' + entity.id);
+  //         }
+
+  //         next({
+  //           type: 'CHANGE',
+  //           patches: change.patches,
+  //         });
+  //       }
+  //     }
+  //   },
+  // });
+
+  return (
+    <Flex direction="column">
+      <Heading>Play From Mobile Device</Heading>
+      <Box>
+        Scan the code below on your mobile device to play across screen.
+      </Box>
+      <div>
+        {new URL(import.meta.env.PUBLIC_WEB_SERVER_URL).host}
+        /one-time-pass?token=FOO
+      </div>
+    </Flex>
   );
 };
 

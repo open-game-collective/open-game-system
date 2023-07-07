@@ -22,20 +22,20 @@ export const createStrikersGame = (channelId: SnowflakeId) => {
     p1SessionEntity && p1SessionEntity.schema === 'session',
     "expected p1 sessionEntity but didn't exist"
   );
-  assert(
-    p1SessionEntity.userId,
-    'expected userId on session when starting game for p1'
-  );
+  // assert(
+  //   p1SessionEntity.userId,
+  //   'expected userId on session when starting game for p1'
+  // );
 
   const p2SessionEntity = entitiesById.get(gameConfig.p2SessionId);
   assert(
     p2SessionEntity && p2SessionEntity.schema === 'session',
     "expected p2 sessionEntity but didn't exist"
   );
-  assert(
-    p2SessionEntity.userId,
-    'expected userId on session when starting game for p2'
-  );
+  // assert(
+  //   p2SessionEntity.userId,
+  //   'expected userId on session when starting game for p2'
+  // );
 
   const p1Player = createEntity<StrikersPlayerEntity>({
     id: gameEntityId,

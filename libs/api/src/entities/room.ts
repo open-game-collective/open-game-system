@@ -1,6 +1,7 @@
 import type {
   ConnectEvent,
   DisconnectEvent,
+  StrikersGameConfigData,
   WithSenderId,
 } from '@explorers-club/schema';
 import {
@@ -36,132 +37,135 @@ export const createRoomMachine = ({
   const roomEntity = entity;
   const roomChannel = channel as ReplaySubject<CreateEventProps<RoomEvent>>;
 
-  return createMachine({
-    id: 'RoomMachine',
-    type: 'parallel',
-    // context: {
-    //   workflows: new Map(),
-    // },
-    schema: {
-      context: {} as RoomContext,
-      events: {} as WithSenderId<RoomCommand>,
-    },
-    on: {
-      CONNECT: {
-        actions: async (_, event) => {
-          console.log(event);
-          const connectionEntity = entitiesById.get(event.senderId);
-          assertEntitySchema(connectionEntity, 'connection');
+  return createMachine(
+    {
+      id: 'RoomMachine',
+      type: 'parallel',
+      // context: {
+      //   workflows: new Map(),
+      // },
+      schema: {
+        context: {} as RoomContext,
+        events: {} as WithSenderId<RoomCommand>,
+      },
+      on: {
+        CONNECT: {
+          actions: async (_, event) => {
+            console.log(event);
+            const connectionEntity = entitiesById.get(event.senderId);
+            assertEntitySchema(connectionEntity, 'connection');
 
-          const { sessionId } = connectionEntity;
+            const { sessionId } = connectionEntity;
 
-          if (!roomEntity.allSessionIds.includes(sessionId)) {
-            roomEntity.allSessionIds = [...roomEntity.allSessionIds, sessionId];
+            if (!roomEntity.allSessionIds.includes(sessionId)) {
+              roomEntity.allSessionIds = [
+                ...roomEntity.allSessionIds,
+                sessionId,
+              ];
 
-            // todo: some new joined the room, log a message
-            // by sending a message ot the channel
+              // todo: some new joined the room, log a message
+              // by sending a message ot the channel
 
-            // roomChannel.next({
-            //   type: 'CONNECT',
-            //   subjectId: event.senderId,
-            // } as CreateEventProps<ConnectEvent>);
-          }
+              // roomChannel.next({
+              //   type: 'CONNECT',
+              //   subjectId: event.senderId,
+              // } as CreateEventProps<ConnectEvent>);
+            }
+          },
+        },
+        DISCONNECT: {
+          actions: async (_, event) => {
+            const connectionEntity = entitiesById.get(event.senderId);
+            assertEntitySchema(connectionEntity, 'connection');
+
+            roomEntity.allSessionIds = [
+              ...roomEntity.allSessionIds.filter(
+                (id) => id !== connectionEntity.sessionId
+              ),
+            ];
+
+            roomChannel.next({
+              type: 'DISCONNECT',
+              subjectId: event.senderId,
+            } as CreateEventProps<DisconnectEvent>);
+          },
         },
       },
-      DISCONNECT: {
-        actions: async (_, event) => {
-          const connectionEntity = entitiesById.get(event.senderId);
-          assertEntitySchema(connectionEntity, 'connection');
-
-          roomEntity.allSessionIds = [
-            ...roomEntity.allSessionIds.filter(
-              (id) => id !== connectionEntity.sessionId
-            ),
-          ];
-
-          roomChannel.next({
-            type: 'DISCONNECT',
-            subjectId: event.senderId,
-          } as CreateEventProps<DisconnectEvent>);
+      states: {
+        Scene: {
+          initial: 'Lobby',
+          states: {
+            Lobby: {},
+            Loading: {},
+            Game: {},
+          },
         },
-      },
-    },
-    states: {
-      Scene: {
-        initial: 'Lobby',
-        states: {
-          Lobby: {},
-          Loading: {},
-          Game: {},
-        },
-      },
-      Game: {
-        initial: 'WaitingToStart',
-        states: {
-          WaitingToStart: {
-            on: {
-              START: {
-                target: 'Starting',
+        Game: {
+          initial: 'WaitingToStart',
+          states: {
+            WaitingToStart: {
+              on: {
+                START: {
+                  target: 'Starting',
+                },
               },
             },
-          },
-          Starting: {
-            invoke: {
-              src: async (context, event) => {
-                // event.
-                // how do I get who is p1 and who is p2
-                // const p1 = createEntity<StrikersPlayerEntity>({
-                //   schema: 'strikers_player',
-                //   userId: '',
-                //   gameEntityId: '',
-                //   channel: undefined
-                // });
-                // const p2 = createEntity<StrikersPlayerEntity>({
-                //   schema: 'strikers_player',
-                //   userId: '',
-                //   gameEntityId: '',
-                //   channel: undefined
-                // });
+            Starting: {
+              invoke: {
+                src: async (context, event) => {
+                  const currentGameConfiguration: StrikersGameConfigData = {
+                    cards: [],
+                    gameMode: 'quickplay',
+                    turnsPerHalf: 0,
+                    p1SessionId: roomEntity.allSessionIds[0],
+                    p2SessionId: roomEntity.allSessionIds[1],
+                    extraTime: {
+                      minRounds: 2,
+                      maxRounds: 6,
+                    },
+                  };
+                  roomEntity.currentGameConfiguration =
+                    currentGameConfiguration;
 
-                // roomEntity.zEQWWWW
-                // roomEntity.configuration
+                  let gameEntity: Entity;
+                  switch (roomEntity.gameId) {
+                    case 'strikers':
+                      gameEntity = createStrikersGame(roomEntity.id);
+                      break;
+                    default:
+                      throw new Error(
+                        'unimplemented gameId: ' + roomEntity.gameId
+                      );
+                  }
 
-                // switch (roomEntity.configuration.) {
-
-                // }
-                let gameEntity: Entity;
-                assert(
-                  roomEntity.currentGameConfiguration,
-                  'expected game configuration but was null'
-                );
-
-                switch (roomEntity.gameId) {
-                  case 'strikers':
-                    gameEntity = createStrikersGame(roomEntity.id);
-                    break;
-                  default:
-                    throw new Error(
-                      'unimplemented gameId: ' + roomEntity.gameId
-                    );
-                }
-
-                entity.currentGameInstanceId = gameEntity.id;
+                  entity.currentGameInstanceId = gameEntity.id;
+                },
+                onDone: 'Started',
+                onError: {
+                  target: 'Error',
+                  actions: 'logEventError',
+                },
               },
-              onDone: 'Started',
-              onError: 'Error',
             },
+            Error: {},
+            Started: {},
           },
-          Error: {},
-          Started: {},
         },
-      },
-      Active: {
-        initial: 'No',
-        states: {
-          No: {},
-          Yes: {},
+        Active: {
+          initial: 'No',
+          states: {
+            No: {},
+            Yes: {},
+          },
         },
       },
     },
-  });
+    {
+      actions: {
+        logEventError: (_, event) => {
+          console.error(event);
+        },
+      },
+    }
+  );
 };

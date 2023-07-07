@@ -42,7 +42,7 @@ export const initAccessToken = (
         sessionId,
         initialRouteProps: routeProps,
         url,
-      } satisfies ConnectionAccessTokenProps,
+      } satisfies Omit<ConnectionAccessTokenProps, 'sub'>,
       'my_private_key',
       {
         subject: connectionId,

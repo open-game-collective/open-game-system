@@ -184,3 +184,20 @@ export const fromWorld = (world: World<Entity>) => {
 
   return subject as Observable<Entity>;
 };
+
+export function isMobileDevice(userAgent: string): boolean {
+  // List of common mobile device keywords
+  const mobileKeywords: string[] = [
+    'Mobile',
+    'Android',
+    'iPhone',
+    'iPad',
+    'Windows Phone',
+    'BlackBerry',
+    'Opera Mini',
+    'IEMobile',
+  ];
+
+  // Check if the user agent contains any mobile device keywords
+  return mobileKeywords.some(keyword => userAgent.includes(keyword));
+}
