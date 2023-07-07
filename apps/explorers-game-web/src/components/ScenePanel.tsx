@@ -10,6 +10,7 @@ import { BottomNav } from './BottomNav';
 import { useContext } from 'react';
 import { LayoutContext } from '@context/LayoutContext';
 import { useStore } from '@nanostores/react';
+import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
 
 export const ScenePanel = () => {
   const { isMainPanelFocusedStore } = useContext(LayoutContext);
@@ -46,6 +47,7 @@ export const ScenePanel = () => {
         camera={{ far: 2000000000 }}
       >
         <ContextBridge>
+          <SceneManager />
           {/* <GoogleMaps /> */}
           {/* <CafeModel /> */}
           {/* <OrbitControls />
@@ -55,4 +57,14 @@ export const ScenePanel = () => {
       </Canvas>
     </Box>
   );
+};
+
+const SceneManager = () => {
+  const { entityStoreRegistry } = useContext(WorldContext);
+  const connectionEntity = useStore(
+    entityStoreRegistry.myInitializedConnectionEntity
+  );
+  const roomEntityStore = useCurrentChannelEntityStore();
+  const roomEntity = useStore(roomEntityStore);
+  return <></>;
 };

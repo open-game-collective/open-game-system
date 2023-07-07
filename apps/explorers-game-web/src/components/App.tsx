@@ -1,7 +1,7 @@
 import { Flex } from '@atoms/Flex';
 import type { RouteProps } from '@explorers-club/schema';
 import { styled } from '@explorers-club/styles';
-import { useCurrentRoomEntityStore } from '@hooks/useCurrentRoomEntityStore';
+import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
 import { useStore } from '@nanostores/react';
 import { Chat, ChatContext } from '@organisms/Chat';
 import { FC, useContext } from 'react';
@@ -91,7 +91,7 @@ const ChatPanel = () => {
   const connectionEntity = useStore(
     entityStoreRegistry.myInitializedConnectionEntity
   );
-  const roomEntityStore = useCurrentRoomEntityStore();
+  const roomEntityStore = useCurrentChannelEntityStore();
   const roomEntity = useStore(roomEntityStore);
 
   if (mainPanelFocused) {
