@@ -223,8 +223,6 @@ const DesktopQrCode = () => {
     }
   }, [mutation]);
 
-  console.log(mutation);
-
   if (mutation.isLoading) {
     return <Box>Generating QR Code...</Box>;
   }

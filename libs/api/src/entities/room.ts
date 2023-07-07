@@ -148,7 +148,9 @@ export const createRoomMachine = ({
               },
             },
             Error: {},
-            Started: {},
+            Started: {
+              // todo listen for game done here...
+            },
           },
         },
         Active: {

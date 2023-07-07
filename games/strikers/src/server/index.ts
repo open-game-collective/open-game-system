@@ -1,14 +1,19 @@
 import { entitiesById, generateSnowflakeId, world } from '@explorers-club/api';
 import { assert, assertChannelEntity } from '@explorers-club/utils';
-import { StrikersGameConfigDataSchema } from '@schema/game-configuration/strikers';
+import {
+  StrikersCardSchema,
+  StrikersGameConfigDataSchema,
+} from '@schema/game-configuration/strikers';
 import {
   SnowflakeId,
   StrikersGameEntity,
   StrikersPlayerEntity,
 } from '@schema/types';
 import { createEntity } from 'libs/api/src/ecs';
+import * as cardData from '../../data/cards.json';
 
 export const createStrikersGame = (channelId: SnowflakeId) => {
+  const cards = cardData.map((item) => StrikersCardSchema.parse(item));
   const channelEntity = entitiesById.get(channelId);
   assertChannelEntity(channelEntity);
 
@@ -40,14 +45,14 @@ export const createStrikersGame = (channelId: SnowflakeId) => {
   const p1Player = createEntity<StrikersPlayerEntity>({
     id: gameEntityId,
     schema: 'strikers_player',
-    sessionId: p1SessionEntity.id,
+    sessionIds: [p1SessionEntity.id],
     gameEntityId,
   });
 
   const p2Player = createEntity<StrikersPlayerEntity>({
     id: gameEntityId,
     schema: 'strikers_player',
-    sessionId: p2SessionEntity.id,
+    sessionIds: [p2SessionEntity.id],
     gameEntityId,
   });
 
@@ -56,7 +61,7 @@ export const createStrikersGame = (channelId: SnowflakeId) => {
     schema: 'strikers_game',
     gameId: 'strikers',
     config: {
-      cards: [],
+      cards,
       gameMode: 'quickplay',
       turnsPerHalf: 0,
       p1SessionId: p1Player.id,
@@ -70,5 +75,5 @@ export const createStrikersGame = (channelId: SnowflakeId) => {
   });
 
   world.add(gameEntity);
-  return {} as StrikersGameEntity;
+  return gameEntity;
 };

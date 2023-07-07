@@ -7,7 +7,7 @@
     "strict": true
   },
   "files": [],
-  "include": [],
+  "include": ["data"],
   "references": [
     {
       "path": "./tsconfig.lib.json"

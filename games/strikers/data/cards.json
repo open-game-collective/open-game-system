@@ -1,0 +1,5002 @@
+[
+    {
+      "id": "1993_LaLiga_FCBarcelona_MichaelYoung",
+      "name": "Michael Young",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 1993,
+      "position": "GK",
+      "speed": 11,
+      "control": 19,
+      "endurance": 2,
+      "shooting": 19,
+      "salary": 5100,
+      "weights": {
+        "goal": 17,
+        "save": 21,
+        "deflection": 21,
+        "blocked": 13,
+        "miss": 29
+      }
+    },
+    {
+      "id": "2015_SerieA_Juventus_JenniferPerez",
+      "name": "Jennifer Perez",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 2015,
+      "position": "MID",
+      "speed": 10,
+      "control": 5,
+      "endurance": 4,
+      "shooting": 1,
+      "salary": 2000,
+      "weights": {
+        "goal": 12,
+        "save": 15,
+        "deflection": 28,
+        "blocked": 29,
+        "miss": 8
+      }
+    },
+    {
+      "id": "1996_LaLiga_FCBarcelona_JessicaThomas",
+      "name": "Jessica Thomas",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 1996,
+      "position": "GK",
+      "speed": 1,
+      "control": 19,
+      "endurance": 5,
+      "shooting": 7,
+      "salary": 3200,
+      "weights": {
+        "goal": 5,
+        "save": 18,
+        "deflection": 1,
+        "blocked": 13,
+        "miss": 17
+      }
+    },
+    {
+      "id": "2011_International_Argentina_EddieWheeler",
+      "name": "Eddie Wheeler",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2011,
+      "position": "FWD",
+      "speed": 11,
+      "control": 10,
+      "endurance": 2,
+      "shooting": 4,
+      "salary": 2700,
+      "weights": {
+        "goal": 8,
+        "save": 7,
+        "deflection": 29,
+        "blocked": 4,
+        "miss": 3
+      }
+    },
+    {
+      "id": "1995_International_Argentina_LeonardOneal",
+      "name": "Leonard Oneal",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1995,
+      "position": "MID",
+      "speed": 9,
+      "control": 16,
+      "endurance": 15,
+      "shooting": 15,
+      "salary": 5500,
+      "weights": {
+        "goal": 5,
+        "save": 17,
+        "deflection": 17,
+        "blocked": 4,
+        "miss": 26
+      }
+    },
+    {
+      "id": "2015_PremierLeague_ManchesterUnited_AnnaLe",
+      "name": "Anna Le",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2015,
+      "position": "FWD",
+      "speed": 3,
+      "control": 11,
+      "endurance": 20,
+      "shooting": 19,
+      "salary": 5300,
+      "weights": {
+        "goal": 11,
+        "save": 8,
+        "deflection": 1,
+        "blocked": 11,
+        "miss": 24
+      }
+    },
+    {
+      "id": "2001_PremierLeague_ManchesterUnited_ShannonMaldonado",
+      "name": "Shannon Maldonado",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2001,
+      "position": "GK",
+      "speed": 18,
+      "control": 18,
+      "endurance": 5,
+      "shooting": 19,
+      "salary": 6000,
+      "weights": {
+        "goal": 11,
+        "save": 5,
+        "deflection": 3,
+        "blocked": 9,
+        "miss": 18
+      }
+    },
+    {
+      "id": "2004_Ligue1_ParisSaint-Germain_CarlosGrant",
+      "name": "Carlos Grant",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2004,
+      "position": "MID",
+      "speed": 16,
+      "control": 4,
+      "endurance": 18,
+      "shooting": 12,
+      "salary": 5000,
+      "weights": {
+        "goal": 17,
+        "save": 4,
+        "deflection": 22,
+        "blocked": 18,
+        "miss": 10
+      }
+    },
+    {
+      "id": "2015_PremierLeague_ManchesterUnited_JamieLivingston",
+      "name": "Jamie Livingston",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2015,
+      "position": "MID",
+      "speed": 6,
+      "control": 13,
+      "endurance": 7,
+      "shooting": 3,
+      "salary": 2900,
+      "weights": {
+        "goal": 18,
+        "save": 13,
+        "deflection": 8,
+        "blocked": 25,
+        "miss": 26
+      }
+    },
+    {
+      "id": "1987_International_Argentina_Mr.DavidPierce",
+      "name": "Mr. David Pierce",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1987,
+      "position": "GK",
+      "speed": 2,
+      "control": 7,
+      "endurance": 9,
+      "shooting": 20,
+      "salary": 3800,
+      "weights": {
+        "goal": 15,
+        "save": 20,
+        "deflection": 21,
+        "blocked": 20,
+        "miss": 18
+      }
+    },
+    {
+      "id": "2007_International_Argentina_TimothyMorgan",
+      "name": "Timothy Morgan",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2007,
+      "position": "GK",
+      "speed": 20,
+      "control": 3,
+      "endurance": 17,
+      "shooting": 12,
+      "salary": 5200,
+      "weights": {
+        "goal": 29,
+        "save": 22,
+        "deflection": 29,
+        "blocked": 14,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2002_SerieA_ACMilan_MarkLindsey",
+      "name": "Mark Lindsey",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2002,
+      "position": "GK",
+      "speed": 4,
+      "control": 11,
+      "endurance": 18,
+      "shooting": 2,
+      "salary": 3500,
+      "weights": {
+        "goal": 6,
+        "save": 9,
+        "deflection": 17,
+        "blocked": 21,
+        "miss": 21
+      }
+    },
+    {
+      "id": "2015_SerieA_Juventus_JosephJohnson",
+      "name": "Joseph Johnson",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 2015,
+      "position": "GK",
+      "speed": 3,
+      "control": 5,
+      "endurance": 8,
+      "shooting": 20,
+      "salary": 3600,
+      "weights": {
+        "goal": 18,
+        "save": 8,
+        "deflection": 7,
+        "blocked": 4,
+        "miss": 30
+      }
+    },
+    {
+      "id": "2000_International_Argentina_JoeBrown",
+      "name": "Joe Brown",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2000,
+      "position": "FWD",
+      "speed": 5,
+      "control": 10,
+      "endurance": 14,
+      "shooting": 3,
+      "salary": 3200,
+      "weights": {
+        "goal": 22,
+        "save": 11,
+        "deflection": 30,
+        "blocked": 14,
+        "miss": 14
+      }
+    },
+    {
+      "id": "1984_LaLiga_FCBarcelona_ChadNelson",
+      "name": "Chad Nelson",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 1984,
+      "position": "GK",
+      "speed": 4,
+      "control": 17,
+      "endurance": 16,
+      "shooting": 4,
+      "salary": 4100,
+      "weights": {
+        "goal": 18,
+        "save": 4,
+        "deflection": 13,
+        "blocked": 9,
+        "miss": 26
+      }
+    },
+    {
+      "id": "1986_Ligue1_ParisSaint-Germain_Mrs.ShannonEvansMD",
+      "name": "Mrs. Shannon Evans MD",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 1986,
+      "position": "MID",
+      "speed": 12,
+      "control": 17,
+      "endurance": 1,
+      "shooting": 5,
+      "salary": 3500,
+      "weights": {
+        "goal": 29,
+        "save": 17,
+        "deflection": 3,
+        "blocked": 29,
+        "miss": 22
+      }
+    },
+    {
+      "id": "1981_USLChampionship_OaklandRoots_GlennMccoy",
+      "name": "Glenn Mccoy",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 1981,
+      "position": "GK",
+      "speed": 1,
+      "control": 18,
+      "endurance": 9,
+      "shooting": 6,
+      "salary": 3400,
+      "weights": {
+        "goal": 14,
+        "save": 1,
+        "deflection": 12,
+        "blocked": 30,
+        "miss": 25
+      }
+    },
+    {
+      "id": "2008_Bundesliga_BayernMunich_CarmenDuncan",
+      "name": "Carmen Duncan",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2008,
+      "position": "DEF",
+      "speed": 8,
+      "control": 11,
+      "endurance": 19,
+      "shooting": 2,
+      "salary": 4000,
+      "weights": {
+        "goal": 20,
+        "save": 17,
+        "deflection": 2,
+        "blocked": 30,
+        "miss": 23
+      }
+    },
+    {
+      "id": "1995_SerieA_ACMilan_JonBrown",
+      "name": "Jon Brown",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1995,
+      "position": "MID",
+      "speed": 10,
+      "control": 16,
+      "endurance": 11,
+      "shooting": 16,
+      "salary": 5300,
+      "weights": {
+        "goal": 27,
+        "save": 18,
+        "deflection": 10,
+        "blocked": 21,
+        "miss": 30
+      }
+    },
+    {
+      "id": "1996_Bundesliga_BayernMunich_CharlesVilla",
+      "name": "Charles Villa",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 1996,
+      "position": "DEF",
+      "speed": 17,
+      "control": 5,
+      "endurance": 7,
+      "shooting": 12,
+      "salary": 4100,
+      "weights": {
+        "goal": 27,
+        "save": 21,
+        "deflection": 9,
+        "blocked": 24,
+        "miss": 13
+      }
+    },
+    {
+      "id": "1999_PremierLeague_ManchesterUnited_DanielMiller",
+      "name": "Daniel Miller",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 1999,
+      "position": "GK",
+      "speed": 6,
+      "control": 12,
+      "endurance": 1,
+      "shooting": 18,
+      "salary": 3700,
+      "weights": {
+        "goal": 10,
+        "save": 1,
+        "deflection": 12,
+        "blocked": 8,
+        "miss": 13
+      }
+    },
+    {
+      "id": "2001_Bundesliga_BayernMunich_StacyLopez",
+      "name": "Stacy Lopez",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2001,
+      "position": "DEF",
+      "speed": 1,
+      "control": 18,
+      "endurance": 5,
+      "shooting": 4,
+      "salary": 2800,
+      "weights": {
+        "goal": 15,
+        "save": 7,
+        "deflection": 3,
+        "blocked": 15,
+        "miss": 8
+      }
+    },
+    {
+      "id": "2016_International_Argentina_MichelleMoreno",
+      "name": "Michelle Moreno",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2016,
+      "position": "GK",
+      "speed": 20,
+      "control": 4,
+      "endurance": 17,
+      "shooting": 5,
+      "salary": 4600,
+      "weights": {
+        "goal": 21,
+        "save": 30,
+        "deflection": 21,
+        "blocked": 5,
+        "miss": 30
+      }
+    },
+    {
+      "id": "2009_SerieA_ACMilan_JustinWilson",
+      "name": "Justin Wilson",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2009,
+      "position": "MID",
+      "speed": 16,
+      "control": 16,
+      "endurance": 8,
+      "shooting": 10,
+      "salary": 5000,
+      "weights": {
+        "goal": 30,
+        "save": 7,
+        "deflection": 26,
+        "blocked": 29,
+        "miss": 26
+      }
+    },
+    {
+      "id": "1991_SerieA_ACMilan_KatrinaJefferson",
+      "name": "Katrina Jefferson",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1991,
+      "position": "MID",
+      "speed": 1,
+      "control": 13,
+      "endurance": 16,
+      "shooting": 11,
+      "salary": 4100,
+      "weights": {
+        "goal": 17,
+        "save": 16,
+        "deflection": 14,
+        "blocked": 1,
+        "miss": 19
+      }
+    },
+    {
+      "id": "1997_Ligue1_ParisSaint-Germain_AmyRichardson",
+      "name": "Amy Richardson",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 1997,
+      "position": "GK",
+      "speed": 11,
+      "control": 10,
+      "endurance": 2,
+      "shooting": 7,
+      "salary": 3000,
+      "weights": {
+        "goal": 22,
+        "save": 16,
+        "deflection": 12,
+        "blocked": 11,
+        "miss": 24
+      }
+    },
+    {
+      "id": "1994_International_Argentina_AlyssaSchmidt",
+      "name": "Alyssa Schmidt",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1994,
+      "position": "GK",
+      "speed": 14,
+      "control": 8,
+      "endurance": 7,
+      "shooting": 15,
+      "salary": 4400,
+      "weights": {
+        "goal": 2,
+        "save": 23,
+        "deflection": 12,
+        "blocked": 25,
+        "miss": 12
+      }
+    },
+    {
+      "id": "2022_PremierLeague_ManchesterUnited_BryanSchroeder",
+      "name": "Bryan Schroeder",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2022,
+      "position": "GK",
+      "speed": 13,
+      "control": 6,
+      "endurance": 3,
+      "shooting": 6,
+      "salary": 2800,
+      "weights": {
+        "goal": 27,
+        "save": 9,
+        "deflection": 16,
+        "blocked": 16,
+        "miss": 19
+      }
+    },
+    {
+      "id": "2017_SerieA_ACMilan_JeromeHolland",
+      "name": "Jerome Holland",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2017,
+      "position": "GK",
+      "speed": 11,
+      "control": 12,
+      "endurance": 2,
+      "shooting": 19,
+      "salary": 4400,
+      "weights": {
+        "goal": 24,
+        "save": 8,
+        "deflection": 5,
+        "blocked": 15,
+        "miss": 22
+      }
+    },
+    {
+      "id": "2015_PremierLeague_LiverpoolFC_JefferyHunter",
+      "name": "Jeffery Hunter",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 2015,
+      "position": "FWD",
+      "speed": 15,
+      "control": 9,
+      "endurance": 15,
+      "shooting": 14,
+      "salary": 5300,
+      "weights": {
+        "goal": 26,
+        "save": 23,
+        "deflection": 12,
+        "blocked": 28,
+        "miss": 14
+      }
+    },
+    {
+      "id": "2010_USLChampionship_OaklandRoots_GregRoss",
+      "name": "Greg Ross",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 2010,
+      "position": "FWD",
+      "speed": 4,
+      "control": 12,
+      "endurance": 17,
+      "shooting": 1,
+      "salary": 3400,
+      "weights": {
+        "goal": 18,
+        "save": 27,
+        "deflection": 26,
+        "blocked": 21,
+        "miss": 1
+      }
+    },
+    {
+      "id": "2004_LaLiga_FCBarcelona_DavidCrawford",
+      "name": "David Crawford",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2004,
+      "position": "DEF",
+      "speed": 11,
+      "control": 20,
+      "endurance": 14,
+      "shooting": 15,
+      "salary": 6000,
+      "weights": {
+        "goal": 8,
+        "save": 18,
+        "deflection": 9,
+        "blocked": 17,
+        "miss": 28
+      }
+    },
+    {
+      "id": "2012_USLChampionship_OaklandRoots_SaraLopez",
+      "name": "Sara Lopez",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 2012,
+      "position": "FWD",
+      "speed": 17,
+      "control": 16,
+      "endurance": 10,
+      "shooting": 2,
+      "salary": 4500,
+      "weights": {
+        "goal": 2,
+        "save": 11,
+        "deflection": 5,
+        "blocked": 29,
+        "miss": 24
+      }
+    },
+    {
+      "id": "2004_Bundesliga_BayernMunich_RobinDillon",
+      "name": "Robin Dillon",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2004,
+      "position": "FWD",
+      "speed": 19,
+      "control": 4,
+      "endurance": 19,
+      "shooting": 5,
+      "salary": 4700,
+      "weights": {
+        "goal": 3,
+        "save": 7,
+        "deflection": 9,
+        "blocked": 24,
+        "miss": 5
+      }
+    },
+    {
+      "id": "2018_SerieA_ACMilan_TammyClayton",
+      "name": "Tammy Clayton",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2018,
+      "position": "FWD",
+      "speed": 10,
+      "control": 12,
+      "endurance": 10,
+      "shooting": 18,
+      "salary": 5000,
+      "weights": {
+        "goal": 21,
+        "save": 6,
+        "deflection": 10,
+        "blocked": 24,
+        "miss": 18
+      }
+    },
+    {
+      "id": "2013_Bundesliga_BayernMunich_MelanieLowery",
+      "name": "Melanie Lowery",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2013,
+      "position": "DEF",
+      "speed": 4,
+      "control": 1,
+      "endurance": 9,
+      "shooting": 9,
+      "salary": 2300,
+      "weights": {
+        "goal": 6,
+        "save": 28,
+        "deflection": 18,
+        "blocked": 2,
+        "miss": 29
+      }
+    },
+    {
+      "id": "1994_LaLiga_RealMadrid_AlexGrahamPhD",
+      "name": "Alex Graham PhD",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1994,
+      "position": "MID",
+      "speed": 10,
+      "control": 10,
+      "endurance": 11,
+      "shooting": 6,
+      "salary": 3700,
+      "weights": {
+        "goal": 13,
+        "save": 25,
+        "deflection": 10,
+        "blocked": 14,
+        "miss": 28
+      }
+    },
+    {
+      "id": "2013_International_Argentina_ArielRichmond",
+      "name": "Ariel Richmond",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2013,
+      "position": "GK",
+      "speed": 10,
+      "control": 6,
+      "endurance": 16,
+      "shooting": 8,
+      "salary": 4000,
+      "weights": {
+        "goal": 10,
+        "save": 16,
+        "deflection": 26,
+        "blocked": 28,
+        "miss": 28
+      }
+    },
+    {
+      "id": "2020_International_Argentina_DavidCarson",
+      "name": "David Carson",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2020,
+      "position": "MID",
+      "speed": 11,
+      "control": 19,
+      "endurance": 5,
+      "shooting": 12,
+      "salary": 4700,
+      "weights": {
+        "goal": 23,
+        "save": 7,
+        "deflection": 6,
+        "blocked": 18,
+        "miss": 14
+      }
+    },
+    {
+      "id": "1988_SerieA_ACMilan_MichelleAnthony",
+      "name": "Michelle Anthony",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1988,
+      "position": "MID",
+      "speed": 19,
+      "control": 5,
+      "endurance": 1,
+      "shooting": 4,
+      "salary": 2900,
+      "weights": {
+        "goal": 25,
+        "save": 24,
+        "deflection": 16,
+        "blocked": 26,
+        "miss": 24
+      }
+    },
+    {
+      "id": "1981_PremierLeague_LiverpoolFC_JacquelineFrederickDVM",
+      "name": "Jacqueline Frederick DVM",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1981,
+      "position": "FWD",
+      "speed": 16,
+      "control": 18,
+      "endurance": 20,
+      "shooting": 5,
+      "salary": 5900,
+      "weights": {
+        "goal": 29,
+        "save": 28,
+        "deflection": 13,
+        "blocked": 27,
+        "miss": 24
+      }
+    },
+    {
+      "id": "2019_LaLiga_FCBarcelona_PamelaWolf",
+      "name": "Pamela Wolf",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2019,
+      "position": "GK",
+      "speed": 5,
+      "control": 10,
+      "endurance": 1,
+      "shooting": 18,
+      "salary": 3400,
+      "weights": {
+        "goal": 12,
+        "save": 24,
+        "deflection": 20,
+        "blocked": 14,
+        "miss": 25
+      }
+    },
+    {
+      "id": "2013_USLChampionship_OaklandRoots_ValerieBrown",
+      "name": "Valerie Brown",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 2013,
+      "position": "GK",
+      "speed": 5,
+      "control": 3,
+      "endurance": 13,
+      "shooting": 19,
+      "salary": 4000,
+      "weights": {
+        "goal": 24,
+        "save": 9,
+        "deflection": 1,
+        "blocked": 1,
+        "miss": 16
+      }
+    },
+    {
+      "id": "2013_SerieA_ACMilan_AshleyVelasquez",
+      "name": "Ashley Velasquez",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2013,
+      "position": "DEF",
+      "speed": 16,
+      "control": 5,
+      "endurance": 1,
+      "shooting": 17,
+      "salary": 3900,
+      "weights": {
+        "goal": 24,
+        "save": 16,
+        "deflection": 3,
+        "blocked": 28,
+        "miss": 18
+      }
+    },
+    {
+      "id": "2002_USLChampionship_OaklandRoots_LisaAguirre",
+      "name": "Lisa Aguirre",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 2002,
+      "position": "GK",
+      "speed": 16,
+      "control": 14,
+      "endurance": 18,
+      "shooting": 2,
+      "salary": 5000,
+      "weights": {
+        "goal": 13,
+        "save": 4,
+        "deflection": 1,
+        "blocked": 7,
+        "miss": 22
+      }
+    },
+    {
+      "id": "2000_LaLiga_FCBarcelona_LindseyWeeks",
+      "name": "Lindsey Weeks",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2000,
+      "position": "FWD",
+      "speed": 9,
+      "control": 15,
+      "endurance": 15,
+      "shooting": 14,
+      "salary": 5300,
+      "weights": {
+        "goal": 8,
+        "save": 18,
+        "deflection": 26,
+        "blocked": 28,
+        "miss": 18
+      }
+    },
+    {
+      "id": "2017_Bundesliga_BayernMunich_JasonSilva",
+      "name": "Jason Silva",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2017,
+      "position": "FWD",
+      "speed": 18,
+      "control": 2,
+      "endurance": 10,
+      "shooting": 12,
+      "salary": 4200,
+      "weights": {
+        "goal": 11,
+        "save": 2,
+        "deflection": 8,
+        "blocked": 2,
+        "miss": 1
+      }
+    },
+    {
+      "id": "2020_Bundesliga_BayernMunich_DerekMcclure",
+      "name": "Derek Mcclure",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2020,
+      "position": "FWD",
+      "speed": 13,
+      "control": 2,
+      "endurance": 8,
+      "shooting": 9,
+      "salary": 3200,
+      "weights": {
+        "goal": 21,
+        "save": 25,
+        "deflection": 24,
+        "blocked": 15,
+        "miss": 27
+      }
+    },
+    {
+      "id": "2018_SerieA_ACMilan_KarenWright",
+      "name": "Karen Wright",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2018,
+      "position": "FWD",
+      "speed": 6,
+      "control": 16,
+      "endurance": 1,
+      "shooting": 13,
+      "salary": 3600,
+      "weights": {
+        "goal": 26,
+        "save": 17,
+        "deflection": 1,
+        "blocked": 26,
+        "miss": 20
+      }
+    },
+    {
+      "id": "2021_LaLiga_FCBarcelona_CarrieDaniels",
+      "name": "Carrie Daniels",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2021,
+      "position": "FWD",
+      "speed": 20,
+      "control": 17,
+      "endurance": 11,
+      "shooting": 12,
+      "salary": 6000,
+      "weights": {
+        "goal": 23,
+        "save": 29,
+        "deflection": 9,
+        "blocked": 16,
+        "miss": 15
+      }
+    },
+    {
+      "id": "1997_International_Argentina_DeniseFlores",
+      "name": "Denise Flores",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1997,
+      "position": "GK",
+      "speed": 17,
+      "control": 2,
+      "endurance": 4,
+      "shooting": 14,
+      "salary": 3700,
+      "weights": {
+        "goal": 12,
+        "save": 13,
+        "deflection": 24,
+        "blocked": 6,
+        "miss": 22
+      }
+    },
+    {
+      "id": "2012_PremierLeague_ManchesterUnited_MarthaHouston",
+      "name": "Martha Houston",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2012,
+      "position": "DEF",
+      "speed": 14,
+      "control": 3,
+      "endurance": 11,
+      "shooting": 18,
+      "salary": 4600,
+      "weights": {
+        "goal": 17,
+        "save": 15,
+        "deflection": 2,
+        "blocked": 15,
+        "miss": 13
+      }
+    },
+    {
+      "id": "2008_Ligue1_ParisSaint-Germain_JohnNelson",
+      "name": "John Nelson",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2008,
+      "position": "MID",
+      "speed": 19,
+      "control": 6,
+      "endurance": 19,
+      "shooting": 4,
+      "salary": 4800,
+      "weights": {
+        "goal": 10,
+        "save": 12,
+        "deflection": 24,
+        "blocked": 10,
+        "miss": 11
+      }
+    },
+    {
+      "id": "2011_Ligue1_ParisSaint-Germain_SamanthaThompson",
+      "name": "Samantha Thompson",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2011,
+      "position": "MID",
+      "speed": 6,
+      "control": 7,
+      "endurance": 8,
+      "shooting": 17,
+      "salary": 3800,
+      "weights": {
+        "goal": 17,
+        "save": 5,
+        "deflection": 1,
+        "blocked": 4,
+        "miss": 16
+      }
+    },
+    {
+      "id": "1999_LaLiga_RealMadrid_AndrewPittman",
+      "name": "Andrew Pittman",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1999,
+      "position": "FWD",
+      "speed": 3,
+      "control": 19,
+      "endurance": 16,
+      "shooting": 8,
+      "salary": 4600,
+      "weights": {
+        "goal": 11,
+        "save": 29,
+        "deflection": 8,
+        "blocked": 15,
+        "miss": 30
+      }
+    },
+    {
+      "id": "2018_SerieA_ACMilan_GaryParker",
+      "name": "Gary Parker",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2018,
+      "position": "DEF",
+      "speed": 15,
+      "control": 4,
+      "endurance": 11,
+      "shooting": 1,
+      "salary": 3100,
+      "weights": {
+        "goal": 24,
+        "save": 19,
+        "deflection": 18,
+        "blocked": 5,
+        "miss": 25
+      }
+    },
+    {
+      "id": "1989_LaLiga_RealMadrid_RichardWoods",
+      "name": "Richard Woods",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1989,
+      "position": "DEF",
+      "speed": 11,
+      "control": 11,
+      "endurance": 8,
+      "shooting": 4,
+      "salary": 3400,
+      "weights": {
+        "goal": 24,
+        "save": 22,
+        "deflection": 15,
+        "blocked": 22,
+        "miss": 17
+      }
+    },
+    {
+      "id": "1980_International_Argentina_DanielleCarter",
+      "name": "Danielle Carter",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1980,
+      "position": "GK",
+      "speed": 4,
+      "control": 2,
+      "endurance": 14,
+      "shooting": 17,
+      "salary": 3700,
+      "weights": {
+        "goal": 30,
+        "save": 16,
+        "deflection": 3,
+        "blocked": 29,
+        "miss": 12
+      }
+    },
+    {
+      "id": "1992_SerieA_Juventus_SeanBallard",
+      "name": "Sean Ballard",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 1992,
+      "position": "FWD",
+      "speed": 4,
+      "control": 18,
+      "endurance": 14,
+      "shooting": 1,
+      "salary": 3700,
+      "weights": {
+        "goal": 10,
+        "save": 8,
+        "deflection": 28,
+        "blocked": 23,
+        "miss": 27
+      }
+    },
+    {
+      "id": "1996_USLChampionship_OaklandRoots_ChristopherCline",
+      "name": "Christopher Cline",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 1996,
+      "position": "FWD",
+      "speed": 3,
+      "control": 20,
+      "endurance": 14,
+      "shooting": 8,
+      "salary": 4500,
+      "weights": {
+        "goal": 18,
+        "save": 30,
+        "deflection": 11,
+        "blocked": 21,
+        "miss": 22
+      }
+    },
+    {
+      "id": "1998_Bundesliga_BayernMunich_PaulCunningham",
+      "name": "Paul Cunningham",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 1998,
+      "position": "DEF",
+      "speed": 7,
+      "control": 6,
+      "endurance": 15,
+      "shooting": 9,
+      "salary": 3700,
+      "weights": {
+        "goal": 5,
+        "save": 2,
+        "deflection": 16,
+        "blocked": 10,
+        "miss": 11
+      }
+    },
+    {
+      "id": "2021_PremierLeague_LiverpoolFC_JanetGarcia",
+      "name": "Janet Garcia",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 2021,
+      "position": "DEF",
+      "speed": 5,
+      "control": 4,
+      "endurance": 15,
+      "shooting": 20,
+      "salary": 4400,
+      "weights": {
+        "goal": 7,
+        "save": 30,
+        "deflection": 21,
+        "blocked": 6,
+        "miss": 24
+      }
+    },
+    {
+      "id": "1996_LaLiga_RealMadrid_MiguelSantana",
+      "name": "Miguel Santana",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1996,
+      "position": "FWD",
+      "speed": 5,
+      "control": 18,
+      "endurance": 16,
+      "shooting": 3,
+      "salary": 4200,
+      "weights": {
+        "goal": 14,
+        "save": 7,
+        "deflection": 25,
+        "blocked": 2,
+        "miss": 28
+      }
+    },
+    {
+      "id": "2004_LaLiga_RealMadrid_DanaRoth",
+      "name": "Dana Roth",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2004,
+      "position": "GK",
+      "speed": 3,
+      "control": 20,
+      "endurance": 16,
+      "shooting": 20,
+      "salary": 5900,
+      "weights": {
+        "goal": 19,
+        "save": 25,
+        "deflection": 24,
+        "blocked": 10,
+        "miss": 7
+      }
+    },
+    {
+      "id": "1996_LaLiga_FCBarcelona_GregoryRobinson",
+      "name": "Gregory Robinson",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 1996,
+      "position": "FWD",
+      "speed": 15,
+      "control": 12,
+      "endurance": 6,
+      "shooting": 16,
+      "salary": 4900,
+      "weights": {
+        "goal": 17,
+        "save": 10,
+        "deflection": 22,
+        "blocked": 11,
+        "miss": 30
+      }
+    },
+    {
+      "id": "1982_SerieA_ACMilan_KyleJones",
+      "name": "Kyle Jones",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1982,
+      "position": "DEF",
+      "speed": 7,
+      "control": 9,
+      "endurance": 10,
+      "shooting": 1,
+      "salary": 2700,
+      "weights": {
+        "goal": 18,
+        "save": 5,
+        "deflection": 29,
+        "blocked": 12,
+        "miss": 23
+      }
+    },
+    {
+      "id": "2015_PremierLeague_LiverpoolFC_AdamCalderon",
+      "name": "Adam Calderon",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 2015,
+      "position": "DEF",
+      "speed": 3,
+      "control": 11,
+      "endurance": 5,
+      "shooting": 13,
+      "salary": 3200,
+      "weights": {
+        "goal": 20,
+        "save": 23,
+        "deflection": 27,
+        "blocked": 29,
+        "miss": 20
+      }
+    },
+    {
+      "id": "1992_USLChampionship_OaklandRoots_JeromeMartin",
+      "name": "Jerome Martin",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 1992,
+      "position": "FWD",
+      "speed": 10,
+      "control": 14,
+      "endurance": 1,
+      "shooting": 14,
+      "salary": 3900,
+      "weights": {
+        "goal": 8,
+        "save": 26,
+        "deflection": 10,
+        "blocked": 9,
+        "miss": 18
+      }
+    },
+    {
+      "id": "2011_PremierLeague_ManchesterUnited_PaulBates",
+      "name": "Paul Bates",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2011,
+      "position": "GK",
+      "speed": 14,
+      "control": 10,
+      "endurance": 12,
+      "shooting": 8,
+      "salary": 4400,
+      "weights": {
+        "goal": 26,
+        "save": 8,
+        "deflection": 27,
+        "blocked": 7,
+        "miss": 1
+      }
+    },
+    {
+      "id": "2021_LaLiga_RealMadrid_VanessaHunt",
+      "name": "Vanessa Hunt",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2021,
+      "position": "GK",
+      "speed": 17,
+      "control": 14,
+      "endurance": 20,
+      "shooting": 6,
+      "salary": 5700,
+      "weights": {
+        "goal": 30,
+        "save": 12,
+        "deflection": 18,
+        "blocked": 21,
+        "miss": 2
+      }
+    },
+    {
+      "id": "2005_SerieA_Juventus_WandaMacdonald",
+      "name": "Wanda Macdonald",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 2005,
+      "position": "GK",
+      "speed": 11,
+      "control": 2,
+      "endurance": 9,
+      "shooting": 10,
+      "salary": 3200,
+      "weights": {
+        "goal": 10,
+        "save": 1,
+        "deflection": 29,
+        "blocked": 22,
+        "miss": 15
+      }
+    },
+    {
+      "id": "2007_PremierLeague_LiverpoolFC_CraigPhillips",
+      "name": "Craig Phillips",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 2007,
+      "position": "DEF",
+      "speed": 14,
+      "control": 17,
+      "endurance": 5,
+      "shooting": 8,
+      "salary": 4400,
+      "weights": {
+        "goal": 1,
+        "save": 11,
+        "deflection": 12,
+        "blocked": 17,
+        "miss": 14
+      }
+    },
+    {
+      "id": "2011_LaLiga_RealMadrid_MatthewGoodwin",
+      "name": "Matthew Goodwin",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2011,
+      "position": "GK",
+      "speed": 5,
+      "control": 18,
+      "endurance": 8,
+      "shooting": 16,
+      "salary": 4700,
+      "weights": {
+        "goal": 4,
+        "save": 24,
+        "deflection": 28,
+        "blocked": 13,
+        "miss": 21
+      }
+    },
+    {
+      "id": "2020_LaLiga_FCBarcelona_MatthewSmith",
+      "name": "Matthew Smith",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2020,
+      "position": "GK",
+      "speed": 11,
+      "control": 16,
+      "endurance": 4,
+      "shooting": 20,
+      "salary": 5100,
+      "weights": {
+        "goal": 6,
+        "save": 18,
+        "deflection": 28,
+        "blocked": 6,
+        "miss": 10
+      }
+    },
+    {
+      "id": "1983_SerieA_ACMilan_CarolineParrish",
+      "name": "Caroline Parrish",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1983,
+      "position": "GK",
+      "speed": 3,
+      "control": 20,
+      "endurance": 4,
+      "shooting": 17,
+      "salary": 4400,
+      "weights": {
+        "goal": 13,
+        "save": 1,
+        "deflection": 20,
+        "blocked": 4,
+        "miss": 24
+      }
+    },
+    {
+      "id": "2004_Bundesliga_BayernMunich_SuzanneEwing",
+      "name": "Suzanne Ewing",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2004,
+      "position": "MID",
+      "speed": 15,
+      "control": 1,
+      "endurance": 17,
+      "shooting": 15,
+      "salary": 4800,
+      "weights": {
+        "goal": 11,
+        "save": 25,
+        "deflection": 16,
+        "blocked": 23,
+        "miss": 28
+      }
+    },
+    {
+      "id": "1986_SerieA_Juventus_AndrewMatthews",
+      "name": "Andrew Matthews",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 1986,
+      "position": "GK",
+      "speed": 19,
+      "control": 8,
+      "endurance": 10,
+      "shooting": 9,
+      "salary": 4600,
+      "weights": {
+        "goal": 1,
+        "save": 22,
+        "deflection": 9,
+        "blocked": 12,
+        "miss": 27
+      }
+    },
+    {
+      "id": "2001_PremierLeague_ManchesterUnited_JerryRobertson",
+      "name": "Jerry Robertson",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2001,
+      "position": "FWD",
+      "speed": 8,
+      "control": 5,
+      "endurance": 7,
+      "shooting": 17,
+      "salary": 3700,
+      "weights": {
+        "goal": 6,
+        "save": 10,
+        "deflection": 11,
+        "blocked": 24,
+        "miss": 14
+      }
+    },
+    {
+      "id": "2001_International_Argentina_ElizabethWhite",
+      "name": "Elizabeth White",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2001,
+      "position": "GK",
+      "speed": 11,
+      "control": 19,
+      "endurance": 1,
+      "shooting": 7,
+      "salary": 3800,
+      "weights": {
+        "goal": 9,
+        "save": 10,
+        "deflection": 18,
+        "blocked": 4,
+        "miss": 2
+      }
+    },
+    {
+      "id": "1995_PremierLeague_LiverpoolFC_MarkCalhoun",
+      "name": "Mark Calhoun",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1995,
+      "position": "MID",
+      "speed": 5,
+      "control": 20,
+      "endurance": 16,
+      "shooting": 4,
+      "salary": 4500,
+      "weights": {
+        "goal": 18,
+        "save": 23,
+        "deflection": 10,
+        "blocked": 26,
+        "miss": 21
+      }
+    },
+    {
+      "id": "2007_SerieA_ACMilan_DanielClarke",
+      "name": "Daniel Clarke",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2007,
+      "position": "DEF",
+      "speed": 16,
+      "control": 1,
+      "endurance": 12,
+      "shooting": 13,
+      "salary": 4200,
+      "weights": {
+        "goal": 12,
+        "save": 9,
+        "deflection": 12,
+        "blocked": 27,
+        "miss": 12
+      }
+    },
+    {
+      "id": "2004_Bundesliga_BayernMunich_CharlesWright",
+      "name": "Charles Wright",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2004,
+      "position": "DEF",
+      "speed": 1,
+      "control": 13,
+      "endurance": 18,
+      "shooting": 2,
+      "salary": 3400,
+      "weights": {
+        "goal": 5,
+        "save": 7,
+        "deflection": 19,
+        "blocked": 9,
+        "miss": 30
+      }
+    },
+    {
+      "id": "2006_SerieA_Juventus_DavidKing",
+      "name": "David King",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 2006,
+      "position": "MID",
+      "speed": 4,
+      "control": 18,
+      "endurance": 16,
+      "shooting": 20,
+      "salary": 5800,
+      "weights": {
+        "goal": 11,
+        "save": 12,
+        "deflection": 14,
+        "blocked": 1,
+        "miss": 13
+      }
+    },
+    {
+      "id": "1985_PremierLeague_LiverpoolFC_JordanStevenson",
+      "name": "Jordan Stevenson",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1985,
+      "position": "FWD",
+      "speed": 19,
+      "control": 14,
+      "endurance": 15,
+      "shooting": 20,
+      "salary": 6800,
+      "weights": {
+        "goal": 30,
+        "save": 12,
+        "deflection": 26,
+        "blocked": 20,
+        "miss": 10
+      }
+    },
+    {
+      "id": "2019_International_Argentina_HannahBeck",
+      "name": "Hannah Beck",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2019,
+      "position": "FWD",
+      "speed": 8,
+      "control": 2,
+      "endurance": 12,
+      "shooting": 11,
+      "salary": 3300,
+      "weights": {
+        "goal": 18,
+        "save": 8,
+        "deflection": 9,
+        "blocked": 2,
+        "miss": 13
+      }
+    },
+    {
+      "id": "1992_LaLiga_RealMadrid_VeronicaWilliams",
+      "name": "Veronica Williams",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1992,
+      "position": "GK",
+      "speed": 14,
+      "control": 19,
+      "endurance": 3,
+      "shooting": 9,
+      "salary": 4500,
+      "weights": {
+        "goal": 2,
+        "save": 24,
+        "deflection": 10,
+        "blocked": 5,
+        "miss": 29
+      }
+    },
+    {
+      "id": "2019_SerieA_ACMilan_KelseyElliott",
+      "name": "Kelsey Elliott",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2019,
+      "position": "MID",
+      "speed": 3,
+      "control": 6,
+      "endurance": 19,
+      "shooting": 6,
+      "salary": 3400,
+      "weights": {
+        "goal": 26,
+        "save": 16,
+        "deflection": 25,
+        "blocked": 4,
+        "miss": 18
+      }
+    },
+    {
+      "id": "2015_PremierLeague_ManchesterUnited_PaulBailey",
+      "name": "Paul Bailey",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2015,
+      "position": "DEF",
+      "speed": 8,
+      "control": 4,
+      "endurance": 14,
+      "shooting": 6,
+      "salary": 3200,
+      "weights": {
+        "goal": 13,
+        "save": 15,
+        "deflection": 10,
+        "blocked": 23,
+        "miss": 5
+      }
+    },
+    {
+      "id": "1982_Ligue1_ParisSaint-Germain_NancyRamirez",
+      "name": "Nancy Ramirez",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 1982,
+      "position": "DEF",
+      "speed": 11,
+      "control": 6,
+      "endurance": 6,
+      "shooting": 14,
+      "salary": 3700,
+      "weights": {
+        "goal": 30,
+        "save": 19,
+        "deflection": 26,
+        "blocked": 7,
+        "miss": 7
+      }
+    },
+    {
+      "id": "1992_USLChampionship_OaklandRoots_StephanieThompson",
+      "name": "Stephanie Thompson",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 1992,
+      "position": "MID",
+      "speed": 2,
+      "control": 1,
+      "endurance": 14,
+      "shooting": 13,
+      "salary": 3000,
+      "weights": {
+        "goal": 17,
+        "save": 15,
+        "deflection": 7,
+        "blocked": 21,
+        "miss": 23
+      }
+    },
+    {
+      "id": "2011_Bundesliga_BayernMunich_KimberlyCollins",
+      "name": "Kimberly Collins",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2011,
+      "position": "DEF",
+      "speed": 11,
+      "control": 10,
+      "endurance": 19,
+      "shooting": 19,
+      "salary": 5900,
+      "weights": {
+        "goal": 12,
+        "save": 28,
+        "deflection": 14,
+        "blocked": 4,
+        "miss": 6
+      }
+    },
+    {
+      "id": "2004_Bundesliga_BayernMunich_VincentDecker",
+      "name": "Vincent Decker",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2004,
+      "position": "MID",
+      "speed": 3,
+      "control": 13,
+      "endurance": 15,
+      "shooting": 17,
+      "salary": 4800,
+      "weights": {
+        "goal": 18,
+        "save": 10,
+        "deflection": 4,
+        "blocked": 8,
+        "miss": 3
+      }
+    },
+    {
+      "id": "1989_SerieA_Juventus_KaitlynGallegos",
+      "name": "Kaitlyn Gallegos",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 1989,
+      "position": "MID",
+      "speed": 14,
+      "control": 13,
+      "endurance": 14,
+      "shooting": 1,
+      "salary": 4200,
+      "weights": {
+        "goal": 28,
+        "save": 24,
+        "deflection": 23,
+        "blocked": 20,
+        "miss": 10
+      }
+    },
+    {
+      "id": "1995_Ligue1_ParisSaint-Germain_JessicaAnderson",
+      "name": "Jessica Anderson",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 1995,
+      "position": "GK",
+      "speed": 20,
+      "control": 7,
+      "endurance": 14,
+      "shooting": 18,
+      "salary": 5900,
+      "weights": {
+        "goal": 30,
+        "save": 11,
+        "deflection": 17,
+        "blocked": 22,
+        "miss": 25
+      }
+    },
+    {
+      "id": "1985_PremierLeague_LiverpoolFC_LisaParker",
+      "name": "Lisa Parker",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1985,
+      "position": "GK",
+      "speed": 8,
+      "control": 17,
+      "endurance": 18,
+      "shooting": 4,
+      "salary": 4700,
+      "weights": {
+        "goal": 18,
+        "save": 20,
+        "deflection": 2,
+        "blocked": 3,
+        "miss": 18
+      }
+    },
+    {
+      "id": "2015_PremierLeague_LiverpoolFC_JamesWilson",
+      "name": "James Wilson",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 2015,
+      "position": "GK",
+      "speed": 13,
+      "control": 3,
+      "endurance": 19,
+      "shooting": 20,
+      "salary": 5500,
+      "weights": {
+        "goal": 14,
+        "save": 30,
+        "deflection": 22,
+        "blocked": 27,
+        "miss": 26
+      }
+    },
+    {
+      "id": "2014_LaLiga_FCBarcelona_LoganQuinn",
+      "name": "Logan Quinn",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2014,
+      "position": "GK",
+      "speed": 1,
+      "control": 15,
+      "endurance": 13,
+      "shooting": 7,
+      "salary": 3600,
+      "weights": {
+        "goal": 14,
+        "save": 22,
+        "deflection": 26,
+        "blocked": 30,
+        "miss": 19
+      }
+    },
+    {
+      "id": "1996_Bundesliga_BayernMunich_SusanScott",
+      "name": "Susan Scott",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 1996,
+      "position": "GK",
+      "speed": 8,
+      "control": 6,
+      "endurance": 8,
+      "shooting": 5,
+      "salary": 2700,
+      "weights": {
+        "goal": 24,
+        "save": 4,
+        "deflection": 22,
+        "blocked": 26,
+        "miss": 11
+      }
+    },
+    {
+      "id": "2018_Ligue1_ParisSaint-Germain_AprilCummings",
+      "name": "April Cummings",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2018,
+      "position": "DEF",
+      "speed": 1,
+      "control": 3,
+      "endurance": 12,
+      "shooting": 6,
+      "salary": 2200,
+      "weights": {
+        "goal": 11,
+        "save": 14,
+        "deflection": 15,
+        "blocked": 15,
+        "miss": 5
+      }
+    },
+    {
+      "id": "1989_International_Argentina_BruceOsborn",
+      "name": "Bruce Osborn",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1989,
+      "position": "FWD",
+      "speed": 3,
+      "control": 10,
+      "endurance": 14,
+      "shooting": 20,
+      "salary": 4700,
+      "weights": {
+        "goal": 12,
+        "save": 22,
+        "deflection": 9,
+        "blocked": 12,
+        "miss": 2
+      }
+    },
+    {
+      "id": "1983_PremierLeague_LiverpoolFC_BarryCole",
+      "name": "Barry Cole",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1983,
+      "position": "FWD",
+      "speed": 8,
+      "control": 11,
+      "endurance": 18,
+      "shooting": 13,
+      "salary": 5000,
+      "weights": {
+        "goal": 4,
+        "save": 20,
+        "deflection": 27,
+        "blocked": 5,
+        "miss": 5
+      }
+    },
+    {
+      "id": "1983_LaLiga_RealMadrid_RaymondBlanchard",
+      "name": "Raymond Blanchard",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1983,
+      "position": "DEF",
+      "speed": 19,
+      "control": 1,
+      "endurance": 16,
+      "shooting": 3,
+      "salary": 3900,
+      "weights": {
+        "goal": 24,
+        "save": 12,
+        "deflection": 28,
+        "blocked": 4,
+        "miss": 24
+      }
+    },
+    {
+      "id": "1997_SerieA_ACMilan_AnthonyFerrell",
+      "name": "Anthony Ferrell",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1997,
+      "position": "MID",
+      "speed": 7,
+      "control": 6,
+      "endurance": 5,
+      "shooting": 11,
+      "salary": 2900,
+      "weights": {
+        "goal": 7,
+        "save": 2,
+        "deflection": 21,
+        "blocked": 10,
+        "miss": 15
+      }
+    },
+    {
+      "id": "2005_LaLiga_RealMadrid_JoeKrause",
+      "name": "Joe Krause",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2005,
+      "position": "DEF",
+      "speed": 13,
+      "control": 18,
+      "endurance": 19,
+      "shooting": 13,
+      "salary": 6300,
+      "weights": {
+        "goal": 23,
+        "save": 6,
+        "deflection": 13,
+        "blocked": 15,
+        "miss": 8
+      }
+    },
+    {
+      "id": "1997_SerieA_Juventus_MichaelMack",
+      "name": "Michael Mack",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 1997,
+      "position": "MID",
+      "speed": 19,
+      "control": 12,
+      "endurance": 16,
+      "shooting": 12,
+      "salary": 5900,
+      "weights": {
+        "goal": 18,
+        "save": 8,
+        "deflection": 23,
+        "blocked": 20,
+        "miss": 27
+      }
+    },
+    {
+      "id": "2006_LaLiga_RealMadrid_CharlesGonzalez",
+      "name": "Charles Gonzalez",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2006,
+      "position": "GK",
+      "speed": 8,
+      "control": 9,
+      "endurance": 18,
+      "shooting": 14,
+      "salary": 4900,
+      "weights": {
+        "goal": 30,
+        "save": 29,
+        "deflection": 13,
+        "blocked": 24,
+        "miss": 14
+      }
+    },
+    {
+      "id": "1988_SerieA_ACMilan_MarioMcneil",
+      "name": "Mario Mcneil",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1988,
+      "position": "DEF",
+      "speed": 20,
+      "control": 8,
+      "endurance": 3,
+      "shooting": 8,
+      "salary": 3900,
+      "weights": {
+        "goal": 28,
+        "save": 14,
+        "deflection": 8,
+        "blocked": 9,
+        "miss": 28
+      }
+    },
+    {
+      "id": "1990_Bundesliga_BayernMunich_ChristopherFischer",
+      "name": "Christopher Fischer",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 1990,
+      "position": "FWD",
+      "speed": 10,
+      "control": 18,
+      "endurance": 2,
+      "shooting": 11,
+      "salary": 4100,
+      "weights": {
+        "goal": 10,
+        "save": 25,
+        "deflection": 25,
+        "blocked": 4,
+        "miss": 25
+      }
+    },
+    {
+      "id": "2004_LaLiga_RealMadrid_SarahSchwartz",
+      "name": "Sarah Schwartz",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2004,
+      "position": "MID",
+      "speed": 6,
+      "control": 17,
+      "endurance": 3,
+      "shooting": 4,
+      "salary": 3000,
+      "weights": {
+        "goal": 21,
+        "save": 4,
+        "deflection": 7,
+        "blocked": 26,
+        "miss": 2
+      }
+    },
+    {
+      "id": "1997_PremierLeague_ManchesterUnited_JuanSmith",
+      "name": "Juan Smith",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 1997,
+      "position": "DEF",
+      "speed": 17,
+      "control": 19,
+      "endurance": 1,
+      "shooting": 9,
+      "salary": 4600,
+      "weights": {
+        "goal": 1,
+        "save": 14,
+        "deflection": 26,
+        "blocked": 29,
+        "miss": 15
+      }
+    },
+    {
+      "id": "1994_PremierLeague_ManchesterUnited_CathyHunter",
+      "name": "Cathy Hunter",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 1994,
+      "position": "MID",
+      "speed": 11,
+      "control": 12,
+      "endurance": 4,
+      "shooting": 4,
+      "salary": 3100,
+      "weights": {
+        "goal": 10,
+        "save": 29,
+        "deflection": 19,
+        "blocked": 24,
+        "miss": 13
+      }
+    },
+    {
+      "id": "2014_SerieA_ACMilan_SharonDiaz",
+      "name": "Sharon Diaz",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2014,
+      "position": "DEF",
+      "speed": 12,
+      "control": 2,
+      "endurance": 15,
+      "shooting": 17,
+      "salary": 4600,
+      "weights": {
+        "goal": 21,
+        "save": 30,
+        "deflection": 17,
+        "blocked": 13,
+        "miss": 28
+      }
+    },
+    {
+      "id": "1996_Ligue1_ParisSaint-Germain_RachelAllen",
+      "name": "Rachel Allen",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 1996,
+      "position": "DEF",
+      "speed": 16,
+      "control": 16,
+      "endurance": 11,
+      "shooting": 9,
+      "salary": 5200,
+      "weights": {
+        "goal": 17,
+        "save": 26,
+        "deflection": 29,
+        "blocked": 10,
+        "miss": 7
+      }
+    },
+    {
+      "id": "1981_PremierLeague_ManchesterUnited_TerryStout",
+      "name": "Terry Stout",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 1981,
+      "position": "MID",
+      "speed": 4,
+      "control": 11,
+      "endurance": 1,
+      "shooting": 12,
+      "salary": 2800,
+      "weights": {
+        "goal": 3,
+        "save": 28,
+        "deflection": 26,
+        "blocked": 2,
+        "miss": 6
+      }
+    },
+    {
+      "id": "2015_LaLiga_RealMadrid_JessicaThomas",
+      "name": "Jessica Thomas",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2015,
+      "position": "GK",
+      "speed": 10,
+      "control": 7,
+      "endurance": 9,
+      "shooting": 10,
+      "salary": 3600,
+      "weights": {
+        "goal": 9,
+        "save": 20,
+        "deflection": 18,
+        "blocked": 28,
+        "miss": 30
+      }
+    },
+    {
+      "id": "1986_USLChampionship_OaklandRoots_KristinGarcia",
+      "name": "Kristin Garcia",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 1986,
+      "position": "GK",
+      "speed": 10,
+      "control": 7,
+      "endurance": 19,
+      "shooting": 12,
+      "salary": 4800,
+      "weights": {
+        "goal": 30,
+        "save": 22,
+        "deflection": 5,
+        "blocked": 3,
+        "miss": 23
+      }
+    },
+    {
+      "id": "1981_PremierLeague_LiverpoolFC_MelissaDalton",
+      "name": "Melissa Dalton",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1981,
+      "position": "DEF",
+      "speed": 18,
+      "control": 13,
+      "endurance": 4,
+      "shooting": 15,
+      "salary": 5000,
+      "weights": {
+        "goal": 7,
+        "save": 16,
+        "deflection": 6,
+        "blocked": 8,
+        "miss": 7
+      }
+    },
+    {
+      "id": "1990_LaLiga_RealMadrid_JacobPetersen",
+      "name": "Jacob Petersen",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1990,
+      "position": "DEF",
+      "speed": 3,
+      "control": 13,
+      "endurance": 1,
+      "shooting": 4,
+      "salary": 2100,
+      "weights": {
+        "goal": 6,
+        "save": 3,
+        "deflection": 2,
+        "blocked": 8,
+        "miss": 15
+      }
+    },
+    {
+      "id": "1981_Bundesliga_BayernMunich_CarolynMurray",
+      "name": "Carolyn Murray",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 1981,
+      "position": "MID",
+      "speed": 6,
+      "control": 14,
+      "endurance": 11,
+      "shooting": 20,
+      "salary": 5100,
+      "weights": {
+        "goal": 17,
+        "save": 19,
+        "deflection": 11,
+        "blocked": 16,
+        "miss": 17
+      }
+    },
+    {
+      "id": "2019_USLChampionship_OaklandRoots_LisaWatts",
+      "name": "Lisa Watts",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 2019,
+      "position": "DEF",
+      "speed": 11,
+      "control": 7,
+      "endurance": 10,
+      "shooting": 10,
+      "salary": 3800,
+      "weights": {
+        "goal": 7,
+        "save": 4,
+        "deflection": 9,
+        "blocked": 28,
+        "miss": 6
+      }
+    },
+    {
+      "id": "1983_PremierLeague_LiverpoolFC_DenisePatterson",
+      "name": "Denise Patterson",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1983,
+      "position": "FWD",
+      "speed": 18,
+      "control": 12,
+      "endurance": 12,
+      "shooting": 11,
+      "salary": 5300,
+      "weights": {
+        "goal": 24,
+        "save": 19,
+        "deflection": 23,
+        "blocked": 3,
+        "miss": 25
+      }
+    },
+    {
+      "id": "1989_SerieA_ACMilan_JonathanKennedy",
+      "name": "Jonathan Kennedy",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1989,
+      "position": "MID",
+      "speed": 5,
+      "control": 19,
+      "endurance": 1,
+      "shooting": 13,
+      "salary": 3800,
+      "weights": {
+        "goal": 27,
+        "save": 7,
+        "deflection": 9,
+        "blocked": 3,
+        "miss": 26
+      }
+    },
+    {
+      "id": "1993_USLChampionship_OaklandRoots_KatelynHammond",
+      "name": "Katelyn Hammond",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 1993,
+      "position": "GK",
+      "speed": 1,
+      "control": 5,
+      "endurance": 5,
+      "shooting": 6,
+      "salary": 1700,
+      "weights": {
+        "goal": 6,
+        "save": 1,
+        "deflection": 7,
+        "blocked": 7,
+        "miss": 22
+      }
+    },
+    {
+      "id": "2022_LaLiga_RealMadrid_StephanieYang",
+      "name": "Stephanie Yang",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2022,
+      "position": "GK",
+      "speed": 3,
+      "control": 5,
+      "endurance": 17,
+      "shooting": 5,
+      "salary": 3000,
+      "weights": {
+        "goal": 27,
+        "save": 14,
+        "deflection": 17,
+        "blocked": 27,
+        "miss": 21
+      }
+    },
+    {
+      "id": "1980_USLChampionship_OaklandRoots_DaleGarrison",
+      "name": "Dale Garrison",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 1980,
+      "position": "GK",
+      "speed": 1,
+      "control": 8,
+      "endurance": 2,
+      "shooting": 19,
+      "salary": 3000,
+      "weights": {
+        "goal": 19,
+        "save": 17,
+        "deflection": 10,
+        "blocked": 17,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2007_Ligue1_ParisSaint-Germain_GregoryAcosta",
+      "name": "Gregory Acosta",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2007,
+      "position": "MID",
+      "speed": 7,
+      "control": 11,
+      "endurance": 9,
+      "shooting": 9,
+      "salary": 3600,
+      "weights": {
+        "goal": 22,
+        "save": 6,
+        "deflection": 14,
+        "blocked": 18,
+        "miss": 22
+      }
+    },
+    {
+      "id": "1989_PremierLeague_ManchesterUnited_JamieWebb",
+      "name": "Jamie Webb",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 1989,
+      "position": "FWD",
+      "speed": 15,
+      "control": 19,
+      "endurance": 3,
+      "shooting": 4,
+      "salary": 4100,
+      "weights": {
+        "goal": 5,
+        "save": 4,
+        "deflection": 1,
+        "blocked": 26,
+        "miss": 6
+      }
+    },
+    {
+      "id": "1997_SerieA_Juventus_ShannonHurst",
+      "name": "Shannon Hurst",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 1997,
+      "position": "DEF",
+      "speed": 16,
+      "control": 10,
+      "endurance": 10,
+      "shooting": 4,
+      "salary": 4000,
+      "weights": {
+        "goal": 15,
+        "save": 6,
+        "deflection": 12,
+        "blocked": 22,
+        "miss": 16
+      }
+    },
+    {
+      "id": "1981_SerieA_ACMilan_JanetBrewer",
+      "name": "Janet Brewer",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1981,
+      "position": "DEF",
+      "speed": 20,
+      "control": 19,
+      "endurance": 18,
+      "shooting": 13,
+      "salary": 7000,
+      "weights": {
+        "goal": 17,
+        "save": 25,
+        "deflection": 29,
+        "blocked": 11,
+        "miss": 7
+      }
+    },
+    {
+      "id": "1994_Bundesliga_BayernMunich_NathanielWeaver",
+      "name": "Nathaniel Weaver",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 1994,
+      "position": "FWD",
+      "speed": 14,
+      "control": 12,
+      "endurance": 12,
+      "shooting": 6,
+      "salary": 4400,
+      "weights": {
+        "goal": 10,
+        "save": 14,
+        "deflection": 5,
+        "blocked": 1,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2015_International_Argentina_JenniferSmith",
+      "name": "Jennifer Smith",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2015,
+      "position": "DEF",
+      "speed": 19,
+      "control": 17,
+      "endurance": 7,
+      "shooting": 6,
+      "salary": 4900,
+      "weights": {
+        "goal": 16,
+        "save": 28,
+        "deflection": 3,
+        "blocked": 17,
+        "miss": 1
+      }
+    },
+    {
+      "id": "1981_LaLiga_RealMadrid_ShelleySanders",
+      "name": "Shelley Sanders",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1981,
+      "position": "MID",
+      "speed": 14,
+      "control": 15,
+      "endurance": 17,
+      "shooting": 12,
+      "salary": 5800,
+      "weights": {
+        "goal": 12,
+        "save": 4,
+        "deflection": 22,
+        "blocked": 1,
+        "miss": 4
+      }
+    },
+    {
+      "id": "2002_Ligue1_ParisSaint-Germain_ChristopherBarry",
+      "name": "Christopher Barry",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2002,
+      "position": "GK",
+      "speed": 1,
+      "control": 5,
+      "endurance": 8,
+      "shooting": 3,
+      "salary": 1700,
+      "weights": {
+        "goal": 11,
+        "save": 3,
+        "deflection": 11,
+        "blocked": 7,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2003_LaLiga_FCBarcelona_HeidiWebb",
+      "name": "Heidi Webb",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2003,
+      "position": "FWD",
+      "speed": 17,
+      "control": 4,
+      "endurance": 10,
+      "shooting": 4,
+      "salary": 3500,
+      "weights": {
+        "goal": 28,
+        "save": 17,
+        "deflection": 3,
+        "blocked": 11,
+        "miss": 14
+      }
+    },
+    {
+      "id": "2009_LaLiga_RealMadrid_MariaJohnson",
+      "name": "Maria Johnson",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2009,
+      "position": "GK",
+      "speed": 19,
+      "control": 11,
+      "endurance": 11,
+      "shooting": 20,
+      "salary": 6100,
+      "weights": {
+        "goal": 27,
+        "save": 8,
+        "deflection": 25,
+        "blocked": 18,
+        "miss": 7
+      }
+    },
+    {
+      "id": "2008_PremierLeague_ManchesterUnited_BenjaminLove",
+      "name": "Benjamin Love",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2008,
+      "position": "GK",
+      "speed": 12,
+      "control": 14,
+      "endurance": 15,
+      "shooting": 19,
+      "salary": 6000,
+      "weights": {
+        "goal": 3,
+        "save": 2,
+        "deflection": 13,
+        "blocked": 28,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2019_LaLiga_FCBarcelona_TeresaWilliams",
+      "name": "Teresa Williams",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2019,
+      "position": "MID",
+      "speed": 20,
+      "control": 20,
+      "endurance": 20,
+      "shooting": 16,
+      "salary": 7600,
+      "weights": {
+        "goal": 21,
+        "save": 6,
+        "deflection": 14,
+        "blocked": 12,
+        "miss": 17
+      }
+    },
+    {
+      "id": "1990_International_Argentina_WendyStewart",
+      "name": "Wendy Stewart",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1990,
+      "position": "GK",
+      "speed": 9,
+      "control": 8,
+      "endurance": 6,
+      "shooting": 15,
+      "salary": 3800,
+      "weights": {
+        "goal": 24,
+        "save": 11,
+        "deflection": 19,
+        "blocked": 6,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2023_USLChampionship_OaklandRoots_JasonAdams",
+      "name": "Jason Adams",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 2023,
+      "position": "FWD",
+      "speed": 7,
+      "control": 10,
+      "endurance": 12,
+      "shooting": 8,
+      "salary": 3700,
+      "weights": {
+        "goal": 2,
+        "save": 18,
+        "deflection": 11,
+        "blocked": 1,
+        "miss": 2
+      }
+    },
+    {
+      "id": "2013_USLChampionship_OaklandRoots_AnthonyMorton",
+      "name": "Anthony Morton",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 2013,
+      "position": "DEF",
+      "speed": 16,
+      "control": 3,
+      "endurance": 11,
+      "shooting": 17,
+      "salary": 4700,
+      "weights": {
+        "goal": 21,
+        "save": 16,
+        "deflection": 23,
+        "blocked": 7,
+        "miss": 8
+      }
+    },
+    {
+      "id": "1993_LaLiga_RealMadrid_JacobRobinson",
+      "name": "Jacob Robinson",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1993,
+      "position": "DEF",
+      "speed": 1,
+      "control": 14,
+      "endurance": 2,
+      "shooting": 8,
+      "salary": 2500,
+      "weights": {
+        "goal": 17,
+        "save": 5,
+        "deflection": 24,
+        "blocked": 21,
+        "miss": 24
+      }
+    },
+    {
+      "id": "1998_LaLiga_RealMadrid_EdwardAguilar",
+      "name": "Edward Aguilar",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1998,
+      "position": "FWD",
+      "speed": 2,
+      "control": 14,
+      "endurance": 6,
+      "shooting": 8,
+      "salary": 3000,
+      "weights": {
+        "goal": 17,
+        "save": 10,
+        "deflection": 6,
+        "blocked": 7,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2016_LaLiga_FCBarcelona_JenniferNunez",
+      "name": "Jennifer Nunez",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2016,
+      "position": "GK",
+      "speed": 17,
+      "control": 3,
+      "endurance": 13,
+      "shooting": 15,
+      "salary": 4800,
+      "weights": {
+        "goal": 14,
+        "save": 24,
+        "deflection": 11,
+        "blocked": 7,
+        "miss": 27
+      }
+    },
+    {
+      "id": "2013_SerieA_Juventus_SeanBenton",
+      "name": "Sean Benton",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 2013,
+      "position": "GK",
+      "speed": 6,
+      "control": 14,
+      "endurance": 20,
+      "shooting": 16,
+      "salary": 5600,
+      "weights": {
+        "goal": 21,
+        "save": 10,
+        "deflection": 6,
+        "blocked": 5,
+        "miss": 11
+      }
+    },
+    {
+      "id": "1985_LaLiga_FCBarcelona_LauraBerg",
+      "name": "Laura Berg",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 1985,
+      "position": "GK",
+      "speed": 5,
+      "control": 20,
+      "endurance": 16,
+      "shooting": 18,
+      "salary": 5900,
+      "weights": {
+        "goal": 21,
+        "save": 19,
+        "deflection": 26,
+        "blocked": 22,
+        "miss": 24
+      }
+    },
+    {
+      "id": "2007_Bundesliga_BayernMunich_ErinHarris",
+      "name": "Erin Harris",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2007,
+      "position": "FWD",
+      "speed": 19,
+      "control": 12,
+      "endurance": 11,
+      "shooting": 19,
+      "salary": 6100,
+      "weights": {
+        "goal": 17,
+        "save": 20,
+        "deflection": 16,
+        "blocked": 3,
+        "miss": 22
+      }
+    },
+    {
+      "id": "1995_SerieA_Juventus_TravisShortMD",
+      "name": "Travis Short MD",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 1995,
+      "position": "DEF",
+      "speed": 4,
+      "control": 8,
+      "endurance": 14,
+      "shooting": 17,
+      "salary": 4300,
+      "weights": {
+        "goal": 23,
+        "save": 10,
+        "deflection": 21,
+        "blocked": 17,
+        "miss": 10
+      }
+    },
+    {
+      "id": "1985_Bundesliga_BayernMunich_DeannaMorris",
+      "name": "Deanna Morris",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 1985,
+      "position": "FWD",
+      "speed": 15,
+      "control": 2,
+      "endurance": 16,
+      "shooting": 13,
+      "salary": 4600,
+      "weights": {
+        "goal": 27,
+        "save": 21,
+        "deflection": 3,
+        "blocked": 4,
+        "miss": 27
+      }
+    },
+    {
+      "id": "1996_SerieA_ACMilan_MonicaChaney",
+      "name": "Monica Chaney",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1996,
+      "position": "GK",
+      "speed": 10,
+      "control": 15,
+      "endurance": 17,
+      "shooting": 15,
+      "salary": 5700,
+      "weights": {
+        "goal": 29,
+        "save": 27,
+        "deflection": 28,
+        "blocked": 1,
+        "miss": 25
+      }
+    },
+    {
+      "id": "2004_LaLiga_FCBarcelona_TammyRiley",
+      "name": "Tammy Riley",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2004,
+      "position": "MID",
+      "speed": 3,
+      "control": 8,
+      "endurance": 19,
+      "shooting": 8,
+      "salary": 3800,
+      "weights": {
+        "goal": 28,
+        "save": 23,
+        "deflection": 15,
+        "blocked": 5,
+        "miss": 11
+      }
+    },
+    {
+      "id": "2005_SerieA_Juventus_JamesRamos",
+      "name": "James Ramos",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 2005,
+      "position": "GK",
+      "speed": 3,
+      "control": 6,
+      "endurance": 8,
+      "shooting": 2,
+      "salary": 1900,
+      "weights": {
+        "goal": 8,
+        "save": 5,
+        "deflection": 18,
+        "blocked": 24,
+        "miss": 5
+      }
+    },
+    {
+      "id": "2022_PremierLeague_LiverpoolFC_MaryVillanueva",
+      "name": "Mary Villanueva",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 2022,
+      "position": "MID",
+      "speed": 17,
+      "control": 11,
+      "endurance": 17,
+      "shooting": 2,
+      "salary": 4700,
+      "weights": {
+        "goal": 17,
+        "save": 11,
+        "deflection": 17,
+        "blocked": 8,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2018_LaLiga_FCBarcelona_MargaretMarks",
+      "name": "Margaret Marks",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2018,
+      "position": "MID",
+      "speed": 1,
+      "control": 11,
+      "endurance": 18,
+      "shooting": 20,
+      "salary": 5000,
+      "weights": {
+        "goal": 22,
+        "save": 16,
+        "deflection": 3,
+        "blocked": 10,
+        "miss": 12
+      }
+    },
+    {
+      "id": "2004_PremierLeague_LiverpoolFC_AngelAllen",
+      "name": "Angel Allen",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 2004,
+      "position": "FWD",
+      "speed": 11,
+      "control": 14,
+      "endurance": 6,
+      "shooting": 8,
+      "salary": 3900,
+      "weights": {
+        "goal": 13,
+        "save": 9,
+        "deflection": 25,
+        "blocked": 22,
+        "miss": 14
+      }
+    },
+    {
+      "id": "1988_SerieA_ACMilan_MitchellMedina",
+      "name": "Mitchell Medina",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1988,
+      "position": "MID",
+      "speed": 16,
+      "control": 3,
+      "endurance": 15,
+      "shooting": 5,
+      "salary": 3900,
+      "weights": {
+        "goal": 26,
+        "save": 13,
+        "deflection": 1,
+        "blocked": 5,
+        "miss": 6
+      }
+    },
+    {
+      "id": "1980_PremierLeague_ManchesterUnited_AshleyLyons",
+      "name": "Ashley Lyons",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 1980,
+      "position": "DEF",
+      "speed": 20,
+      "control": 9,
+      "endurance": 13,
+      "shooting": 20,
+      "salary": 6200,
+      "weights": {
+        "goal": 19,
+        "save": 18,
+        "deflection": 29,
+        "blocked": 2,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2016_USLChampionship_OaklandRoots_DonnaChavez",
+      "name": "Donna Chavez",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 2016,
+      "position": "DEF",
+      "speed": 14,
+      "control": 20,
+      "endurance": 10,
+      "shooting": 18,
+      "salary": 6200,
+      "weights": {
+        "goal": 17,
+        "save": 19,
+        "deflection": 29,
+        "blocked": 10,
+        "miss": 16
+      }
+    },
+    {
+      "id": "2023_Ligue1_ParisSaint-Germain_RobertLyons",
+      "name": "Robert Lyons",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2023,
+      "position": "DEF",
+      "speed": 17,
+      "control": 10,
+      "endurance": 19,
+      "shooting": 6,
+      "salary": 5200,
+      "weights": {
+        "goal": 14,
+        "save": 24,
+        "deflection": 21,
+        "blocked": 13,
+        "miss": 21
+      }
+    },
+    {
+      "id": "2012_SerieA_Juventus_SamuelSimmons",
+      "name": "Samuel Simmons",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 2012,
+      "position": "MID",
+      "speed": 10,
+      "control": 11,
+      "endurance": 10,
+      "shooting": 12,
+      "salary": 4300,
+      "weights": {
+        "goal": 6,
+        "save": 1,
+        "deflection": 5,
+        "blocked": 3,
+        "miss": 15
+      }
+    },
+    {
+      "id": "1980_Bundesliga_BayernMunich_DanielPatterson",
+      "name": "Daniel Patterson",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 1980,
+      "position": "MID",
+      "speed": 16,
+      "control": 17,
+      "endurance": 19,
+      "shooting": 11,
+      "salary": 6300,
+      "weights": {
+        "goal": 2,
+        "save": 15,
+        "deflection": 8,
+        "blocked": 1,
+        "miss": 18
+      }
+    },
+    {
+      "id": "2012_Ligue1_ParisSaint-Germain_Mr.BrianRoyV",
+      "name": "Mr. Brian Roy V",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2012,
+      "position": "GK",
+      "speed": 18,
+      "control": 4,
+      "endurance": 13,
+      "shooting": 6,
+      "salary": 4100,
+      "weights": {
+        "goal": 21,
+        "save": 23,
+        "deflection": 3,
+        "blocked": 3,
+        "miss": 7
+      }
+    },
+    {
+      "id": "2020_PremierLeague_ManchesterUnited_MichaelKerr",
+      "name": "Michael Kerr",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2020,
+      "position": "DEF",
+      "speed": 11,
+      "control": 14,
+      "endurance": 15,
+      "shooting": 6,
+      "salary": 4600,
+      "weights": {
+        "goal": 28,
+        "save": 22,
+        "deflection": 28,
+        "blocked": 1,
+        "miss": 7
+      }
+    },
+    {
+      "id": "2022_LaLiga_RealMadrid_Dr.ErikaJohnson",
+      "name": "Dr. Erika Johnson",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2022,
+      "position": "FWD",
+      "speed": 4,
+      "control": 8,
+      "endurance": 7,
+      "shooting": 20,
+      "salary": 3900,
+      "weights": {
+        "goal": 29,
+        "save": 24,
+        "deflection": 11,
+        "blocked": 22,
+        "miss": 1
+      }
+    },
+    {
+      "id": "2012_Ligue1_ParisSaint-Germain_DanaJohnson",
+      "name": "Dana Johnson",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2012,
+      "position": "FWD",
+      "speed": 4,
+      "control": 20,
+      "endurance": 9,
+      "shooting": 9,
+      "salary": 4200,
+      "weights": {
+        "goal": 21,
+        "save": 5,
+        "deflection": 17,
+        "blocked": 12,
+        "miss": 16
+      }
+    },
+    {
+      "id": "2020_Ligue1_ParisSaint-Germain_SamuelSmith",
+      "name": "Samuel Smith",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2020,
+      "position": "FWD",
+      "speed": 17,
+      "control": 7,
+      "endurance": 16,
+      "shooting": 10,
+      "salary": 5000,
+      "weights": {
+        "goal": 27,
+        "save": 17,
+        "deflection": 28,
+        "blocked": 6,
+        "miss": 21
+      }
+    },
+    {
+      "id": "2022_Ligue1_ParisSaint-Germain_SamanthaCobb",
+      "name": "Samantha Cobb",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2022,
+      "position": "MID",
+      "speed": 1,
+      "control": 3,
+      "endurance": 11,
+      "shooting": 15,
+      "salary": 3000,
+      "weights": {
+        "goal": 10,
+        "save": 19,
+        "deflection": 22,
+        "blocked": 17,
+        "miss": 30
+      }
+    },
+    {
+      "id": "2011_LaLiga_RealMadrid_Dr.WilliamAdams",
+      "name": "Dr. William Adams",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2011,
+      "position": "GK",
+      "speed": 14,
+      "control": 12,
+      "endurance": 19,
+      "shooting": 14,
+      "salary": 5900,
+      "weights": {
+        "goal": 1,
+        "save": 1,
+        "deflection": 2,
+        "blocked": 4,
+        "miss": 22
+      }
+    },
+    {
+      "id": "1995_PremierLeague_ManchesterUnited_JasonLarson",
+      "name": "Jason Larson",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 1995,
+      "position": "DEF",
+      "speed": 17,
+      "control": 11,
+      "endurance": 20,
+      "shooting": 14,
+      "salary": 6200,
+      "weights": {
+        "goal": 27,
+        "save": 21,
+        "deflection": 19,
+        "blocked": 19,
+        "miss": 14
+      }
+    },
+    {
+      "id": "2019_Bundesliga_BayernMunich_EddieEdwards",
+      "name": "Eddie Edwards",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2019,
+      "position": "DEF",
+      "speed": 3,
+      "control": 9,
+      "endurance": 16,
+      "shooting": 11,
+      "salary": 3900,
+      "weights": {
+        "goal": 22,
+        "save": 7,
+        "deflection": 12,
+        "blocked": 10,
+        "miss": 23
+      }
+    },
+    {
+      "id": "2004_Bundesliga_BayernMunich_Mr.JoshuaDixon",
+      "name": "Mr. Joshua Dixon",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2004,
+      "position": "FWD",
+      "speed": 16,
+      "control": 7,
+      "endurance": 9,
+      "shooting": 18,
+      "salary": 5000,
+      "weights": {
+        "goal": 9,
+        "save": 19,
+        "deflection": 21,
+        "blocked": 28,
+        "miss": 6
+      }
+    },
+    {
+      "id": "1981_USLChampionship_OaklandRoots_RichardClark",
+      "name": "Richard Clark",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 1981,
+      "position": "FWD",
+      "speed": 1,
+      "control": 16,
+      "endurance": 20,
+      "shooting": 1,
+      "salary": 3800,
+      "weights": {
+        "goal": 11,
+        "save": 15,
+        "deflection": 13,
+        "blocked": 11,
+        "miss": 30
+      }
+    },
+    {
+      "id": "1998_Ligue1_ParisSaint-Germain_MelissaOlsen",
+      "name": "Melissa Olsen",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 1998,
+      "position": "GK",
+      "speed": 9,
+      "control": 18,
+      "endurance": 10,
+      "shooting": 2,
+      "salary": 3900,
+      "weights": {
+        "goal": 29,
+        "save": 18,
+        "deflection": 29,
+        "blocked": 7,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2008_PremierLeague_LiverpoolFC_CharlesHutchinson",
+      "name": "Charles Hutchinson",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 2008,
+      "position": "GK",
+      "speed": 11,
+      "control": 3,
+      "endurance": 19,
+      "shooting": 13,
+      "salary": 4600,
+      "weights": {
+        "goal": 25,
+        "save": 24,
+        "deflection": 14,
+        "blocked": 27,
+        "miss": 21
+      }
+    },
+    {
+      "id": "2008_USLChampionship_OaklandRoots_Mrs.DominiqueNelson",
+      "name": "Mrs. Dominique Nelson",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 2008,
+      "position": "GK",
+      "speed": 12,
+      "control": 4,
+      "endurance": 15,
+      "shooting": 14,
+      "salary": 4500,
+      "weights": {
+        "goal": 20,
+        "save": 7,
+        "deflection": 13,
+        "blocked": 23,
+        "miss": 10
+      }
+    },
+    {
+      "id": "1983_PremierLeague_ManchesterUnited_StephanieLee",
+      "name": "Stephanie Lee",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 1983,
+      "position": "GK",
+      "speed": 11,
+      "control": 15,
+      "endurance": 17,
+      "shooting": 5,
+      "salary": 4800,
+      "weights": {
+        "goal": 2,
+        "save": 21,
+        "deflection": 9,
+        "blocked": 13,
+        "miss": 2
+      }
+    },
+    {
+      "id": "1998_LaLiga_FCBarcelona_JonathanKnapp",
+      "name": "Jonathan Knapp",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 1998,
+      "position": "GK",
+      "speed": 15,
+      "control": 20,
+      "endurance": 9,
+      "shooting": 13,
+      "salary": 5700,
+      "weights": {
+        "goal": 23,
+        "save": 24,
+        "deflection": 10,
+        "blocked": 1,
+        "miss": 24
+      }
+    },
+    {
+      "id": "2021_LaLiga_RealMadrid_WalterWilliams",
+      "name": "Walter Williams",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2021,
+      "position": "FWD",
+      "speed": 7,
+      "control": 18,
+      "endurance": 14,
+      "shooting": 7,
+      "salary": 4600,
+      "weights": {
+        "goal": 15,
+        "save": 14,
+        "deflection": 18,
+        "blocked": 28,
+        "miss": 14
+      }
+    },
+    {
+      "id": "2009_International_Argentina_WilliamRivera",
+      "name": "William Rivera",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2009,
+      "position": "GK",
+      "speed": 13,
+      "control": 17,
+      "endurance": 1,
+      "shooting": 20,
+      "salary": 5100,
+      "weights": {
+        "goal": 12,
+        "save": 4,
+        "deflection": 19,
+        "blocked": 23,
+        "miss": 19
+      }
+    },
+    {
+      "id": "1986_International_Argentina_TerrySwanson",
+      "name": "Terry Swanson",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1986,
+      "position": "FWD",
+      "speed": 11,
+      "control": 3,
+      "endurance": 18,
+      "shooting": 20,
+      "salary": 5200,
+      "weights": {
+        "goal": 21,
+        "save": 10,
+        "deflection": 26,
+        "blocked": 8,
+        "miss": 8
+      }
+    },
+    {
+      "id": "2009_LaLiga_RealMadrid_SarahKnight",
+      "name": "Sarah Knight",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2009,
+      "position": "FWD",
+      "speed": 13,
+      "control": 17,
+      "endurance": 9,
+      "shooting": 9,
+      "salary": 4800,
+      "weights": {
+        "goal": 13,
+        "save": 5,
+        "deflection": 10,
+        "blocked": 7,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2016_SerieA_ACMilan_CassidyRasmussen",
+      "name": "Cassidy Rasmussen",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2016,
+      "position": "MID",
+      "speed": 17,
+      "control": 6,
+      "endurance": 8,
+      "shooting": 3,
+      "salary": 3400,
+      "weights": {
+        "goal": 23,
+        "save": 15,
+        "deflection": 22,
+        "blocked": 16,
+        "miss": 6
+      }
+    },
+    {
+      "id": "1999_International_Argentina_LoriBenton",
+      "name": "Lori Benton",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1999,
+      "position": "FWD",
+      "speed": 8,
+      "control": 5,
+      "endurance": 13,
+      "shooting": 13,
+      "salary": 3900,
+      "weights": {
+        "goal": 10,
+        "save": 10,
+        "deflection": 23,
+        "blocked": 21,
+        "miss": 20
+      }
+    },
+    {
+      "id": "1981_Ligue1_ParisSaint-Germain_JaredWu",
+      "name": "Jared Wu",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 1981,
+      "position": "DEF",
+      "speed": 1,
+      "control": 18,
+      "endurance": 1,
+      "shooting": 10,
+      "salary": 3000,
+      "weights": {
+        "goal": 2,
+        "save": 26,
+        "deflection": 22,
+        "blocked": 17,
+        "miss": 24
+      }
+    },
+    {
+      "id": "1984_USLChampionship_OaklandRoots_ElaineBall",
+      "name": "Elaine Ball",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 1984,
+      "position": "FWD",
+      "speed": 9,
+      "control": 16,
+      "endurance": 19,
+      "shooting": 4,
+      "salary": 4800,
+      "weights": {
+        "goal": 22,
+        "save": 27,
+        "deflection": 14,
+        "blocked": 26,
+        "miss": 24
+      }
+    },
+    {
+      "id": "2012_LaLiga_RealMadrid_AlexChang",
+      "name": "Alex Chang",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2012,
+      "position": "MID",
+      "speed": 14,
+      "control": 4,
+      "endurance": 9,
+      "shooting": 1,
+      "salary": 2800,
+      "weights": {
+        "goal": 13,
+        "save": 12,
+        "deflection": 7,
+        "blocked": 28,
+        "miss": 5
+      }
+    },
+    {
+      "id": "1990_SerieA_ACMilan_CassandraRichardDDS",
+      "name": "Cassandra Richard DDS",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1990,
+      "position": "GK",
+      "speed": 8,
+      "control": 12,
+      "endurance": 9,
+      "shooting": 7,
+      "salary": 3600,
+      "weights": {
+        "goal": 4,
+        "save": 18,
+        "deflection": 16,
+        "blocked": 20,
+        "miss": 17
+      }
+    },
+    {
+      "id": "2000_PremierLeague_LiverpoolFC_BrendaKlein",
+      "name": "Brenda Klein",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 2000,
+      "position": "GK",
+      "speed": 13,
+      "control": 16,
+      "endurance": 12,
+      "shooting": 5,
+      "salary": 4600,
+      "weights": {
+        "goal": 23,
+        "save": 7,
+        "deflection": 1,
+        "blocked": 11,
+        "miss": 15
+      }
+    },
+    {
+      "id": "2020_LaLiga_RealMadrid_ChristopherAlvarez",
+      "name": "Christopher Alvarez",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2020,
+      "position": "GK",
+      "speed": 5,
+      "control": 12,
+      "endurance": 14,
+      "shooting": 7,
+      "salary": 3800,
+      "weights": {
+        "goal": 25,
+        "save": 6,
+        "deflection": 20,
+        "blocked": 10,
+        "miss": 26
+      }
+    },
+    {
+      "id": "2005_USLChampionship_OaklandRoots_TristanRuiz",
+      "name": "Tristan Ruiz",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 2005,
+      "position": "GK",
+      "speed": 17,
+      "control": 16,
+      "endurance": 9,
+      "shooting": 9,
+      "salary": 5100,
+      "weights": {
+        "goal": 18,
+        "save": 17,
+        "deflection": 29,
+        "blocked": 5,
+        "miss": 27
+      }
+    },
+    {
+      "id": "1985_LaLiga_RealMadrid_ErinCannon",
+      "name": "Erin Cannon",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1985,
+      "position": "DEF",
+      "speed": 18,
+      "control": 6,
+      "endurance": 17,
+      "shooting": 11,
+      "salary": 5200,
+      "weights": {
+        "goal": 13,
+        "save": 4,
+        "deflection": 6,
+        "blocked": 7,
+        "miss": 10
+      }
+    },
+    {
+      "id": "1981_Ligue1_ParisSaint-Germain_PhyllisLewis",
+      "name": "Phyllis Lewis",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 1981,
+      "position": "DEF",
+      "speed": 16,
+      "control": 17,
+      "endurance": 13,
+      "shooting": 9,
+      "salary": 5500,
+      "weights": {
+        "goal": 9,
+        "save": 2,
+        "deflection": 1,
+        "blocked": 23,
+        "miss": 3
+      }
+    },
+    {
+      "id": "2016_SerieA_Juventus_VickiGoodwin",
+      "name": "Vicki Goodwin",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 2016,
+      "position": "GK",
+      "speed": 7,
+      "control": 3,
+      "endurance": 8,
+      "shooting": 18,
+      "salary": 3600,
+      "weights": {
+        "goal": 22,
+        "save": 15,
+        "deflection": 11,
+        "blocked": 9,
+        "miss": 18
+      }
+    },
+    {
+      "id": "1990_SerieA_ACMilan_CaseySkinner",
+      "name": "Casey Skinner",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 1990,
+      "position": "DEF",
+      "speed": 10,
+      "control": 14,
+      "endurance": 2,
+      "shooting": 17,
+      "salary": 4300,
+      "weights": {
+        "goal": 18,
+        "save": 11,
+        "deflection": 27,
+        "blocked": 17,
+        "miss": 8
+      }
+    },
+    {
+      "id": "2015_SerieA_ACMilan_BriannaWilliams",
+      "name": "Brianna Williams",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2015,
+      "position": "FWD",
+      "speed": 6,
+      "control": 11,
+      "endurance": 12,
+      "shooting": 10,
+      "salary": 3900,
+      "weights": {
+        "goal": 12,
+        "save": 23,
+        "deflection": 12,
+        "blocked": 21,
+        "miss": 6
+      }
+    },
+    {
+      "id": "2015_LaLiga_RealMadrid_StevenReid",
+      "name": "Steven Reid",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2015,
+      "position": "GK",
+      "speed": 3,
+      "control": 12,
+      "endurance": 6,
+      "shooting": 7,
+      "salary": 2800,
+      "weights": {
+        "goal": 1,
+        "save": 13,
+        "deflection": 21,
+        "blocked": 21,
+        "miss": 23
+      }
+    },
+    {
+      "id": "2002_International_Argentina_EricAdams",
+      "name": "Eric Adams",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2002,
+      "position": "FWD",
+      "speed": 11,
+      "control": 3,
+      "endurance": 4,
+      "shooting": 2,
+      "salary": 2000,
+      "weights": {
+        "goal": 10,
+        "save": 30,
+        "deflection": 16,
+        "blocked": 30,
+        "miss": 11
+      }
+    },
+    {
+      "id": "1994_LaLiga_RealMadrid_RodneyBowen",
+      "name": "Rodney Bowen",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1994,
+      "position": "FWD",
+      "speed": 10,
+      "control": 20,
+      "endurance": 18,
+      "shooting": 5,
+      "salary": 5300,
+      "weights": {
+        "goal": 25,
+        "save": 26,
+        "deflection": 10,
+        "blocked": 20,
+        "miss": 9
+      }
+    },
+    {
+      "id": "1980_International_Argentina_BrandonAguilar",
+      "name": "Brandon Aguilar",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1980,
+      "position": "MID",
+      "speed": 20,
+      "control": 10,
+      "endurance": 20,
+      "shooting": 3,
+      "salary": 5300,
+      "weights": {
+        "goal": 27,
+        "save": 16,
+        "deflection": 18,
+        "blocked": 14,
+        "miss": 30
+      }
+    },
+    {
+      "id": "2021_PremierLeague_ManchesterUnited_SusanBurns",
+      "name": "Susan Burns",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2021,
+      "position": "GK",
+      "speed": 1,
+      "control": 3,
+      "endurance": 4,
+      "shooting": 10,
+      "salary": 1800,
+      "weights": {
+        "goal": 24,
+        "save": 12,
+        "deflection": 5,
+        "blocked": 12,
+        "miss": 1
+      }
+    },
+    {
+      "id": "2015_Ligue1_ParisSaint-Germain_SarahButler",
+      "name": "Sarah Butler",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 2015,
+      "position": "GK",
+      "speed": 5,
+      "control": 7,
+      "endurance": 11,
+      "shooting": 9,
+      "salary": 3200,
+      "weights": {
+        "goal": 26,
+        "save": 23,
+        "deflection": 20,
+        "blocked": 13,
+        "miss": 2
+      }
+    },
+    {
+      "id": "2013_USLChampionship_OaklandRoots_AudreyKing",
+      "name": "Audrey King",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 2013,
+      "position": "GK",
+      "speed": 12,
+      "control": 9,
+      "endurance": 17,
+      "shooting": 11,
+      "salary": 4900,
+      "weights": {
+        "goal": 7,
+        "save": 26,
+        "deflection": 23,
+        "blocked": 21,
+        "miss": 30
+      }
+    },
+    {
+      "id": "1985_SerieA_Juventus_HannahElliott",
+      "name": "Hannah Elliott",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 1985,
+      "position": "GK",
+      "speed": 6,
+      "control": 16,
+      "endurance": 14,
+      "shooting": 20,
+      "salary": 5600,
+      "weights": {
+        "goal": 9,
+        "save": 17,
+        "deflection": 29,
+        "blocked": 23,
+        "miss": 17
+      }
+    },
+    {
+      "id": "2017_LaLiga_RealMadrid_AndreaRobles",
+      "name": "Andrea Robles",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2017,
+      "position": "FWD",
+      "speed": 6,
+      "control": 6,
+      "endurance": 17,
+      "shooting": 20,
+      "salary": 4900,
+      "weights": {
+        "goal": 26,
+        "save": 13,
+        "deflection": 28,
+        "blocked": 19,
+        "miss": 27
+      }
+    },
+    {
+      "id": "2012_PremierLeague_LiverpoolFC_MichaelMiller",
+      "name": "Michael Miller",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 2012,
+      "position": "GK",
+      "speed": 1,
+      "control": 13,
+      "endurance": 12,
+      "shooting": 4,
+      "salary": 3000,
+      "weights": {
+        "goal": 30,
+        "save": 10,
+        "deflection": 2,
+        "blocked": 24,
+        "miss": 4
+      }
+    },
+    {
+      "id": "2003_LaLiga_FCBarcelona_PatrickHaley",
+      "name": "Patrick Haley",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2003,
+      "position": "FWD",
+      "speed": 16,
+      "control": 14,
+      "endurance": 18,
+      "shooting": 14,
+      "salary": 6200,
+      "weights": {
+        "goal": 9,
+        "save": 6,
+        "deflection": 25,
+        "blocked": 10,
+        "miss": 4
+      }
+    },
+    {
+      "id": "1981_Ligue1_ParisSaint-Germain_CrystalAlvarado",
+      "name": "Crystal Alvarado",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 1981,
+      "position": "GK",
+      "speed": 14,
+      "control": 7,
+      "endurance": 20,
+      "shooting": 3,
+      "salary": 4400,
+      "weights": {
+        "goal": 15,
+        "save": 10,
+        "deflection": 1,
+        "blocked": 25,
+        "miss": 17
+      }
+    },
+    {
+      "id": "2005_PremierLeague_ManchesterUnited_HeatherFlowers",
+      "name": "Heather Flowers",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2005,
+      "position": "FWD",
+      "speed": 11,
+      "control": 9,
+      "endurance": 6,
+      "shooting": 10,
+      "salary": 3600,
+      "weights": {
+        "goal": 29,
+        "save": 15,
+        "deflection": 9,
+        "blocked": 13,
+        "miss": 26
+      }
+    },
+    {
+      "id": "1988_LaLiga_FCBarcelona_DustinLynn",
+      "name": "Dustin Lynn",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 1988,
+      "position": "DEF",
+      "speed": 12,
+      "control": 9,
+      "endurance": 6,
+      "shooting": 7,
+      "salary": 3400,
+      "weights": {
+        "goal": 19,
+        "save": 25,
+        "deflection": 7,
+        "blocked": 10,
+        "miss": 6
+      }
+    },
+    {
+      "id": "2017_LaLiga_FCBarcelona_JonathanAbbott",
+      "name": "Jonathan Abbott",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2017,
+      "position": "FWD",
+      "speed": 8,
+      "control": 1,
+      "endurance": 20,
+      "shooting": 13,
+      "salary": 4200,
+      "weights": {
+        "goal": 8,
+        "save": 27,
+        "deflection": 11,
+        "blocked": 18,
+        "miss": 9
+      }
+    },
+    {
+      "id": "1988_SerieA_Juventus_TammyLee",
+      "name": "Tammy Lee",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 1988,
+      "position": "MID",
+      "speed": 13,
+      "control": 19,
+      "endurance": 10,
+      "shooting": 6,
+      "salary": 4800,
+      "weights": {
+        "goal": 6,
+        "save": 27,
+        "deflection": 19,
+        "blocked": 18,
+        "miss": 22
+      }
+    },
+    {
+      "id": "1998_PremierLeague_ManchesterUnited_KatiePace",
+      "name": "Katie Pace",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 1998,
+      "position": "MID",
+      "speed": 19,
+      "control": 2,
+      "endurance": 20,
+      "shooting": 7,
+      "salary": 4800,
+      "weights": {
+        "goal": 16,
+        "save": 15,
+        "deflection": 4,
+        "blocked": 5,
+        "miss": 26
+      }
+    },
+    {
+      "id": "1999_LaLiga_RealMadrid_JessicaCarterMD",
+      "name": "Jessica Carter MD",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 1999,
+      "position": "GK",
+      "speed": 8,
+      "control": 6,
+      "endurance": 18,
+      "shooting": 17,
+      "salary": 4900,
+      "weights": {
+        "goal": 24,
+        "save": 18,
+        "deflection": 26,
+        "blocked": 11,
+        "miss": 6
+      }
+    },
+    {
+      "id": "1998_SerieA_Juventus_CarolynParker",
+      "name": "Carolyn Parker",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 1998,
+      "position": "FWD",
+      "speed": 19,
+      "control": 11,
+      "endurance": 19,
+      "shooting": 15,
+      "salary": 6400,
+      "weights": {
+        "goal": 11,
+        "save": 16,
+        "deflection": 27,
+        "blocked": 17,
+        "miss": 9
+      }
+    },
+    {
+      "id": "2023_SerieA_ACMilan_SharonChurch",
+      "name": "Sharon Church",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2023,
+      "position": "DEF",
+      "speed": 7,
+      "control": 2,
+      "endurance": 10,
+      "shooting": 12,
+      "salary": 3100,
+      "weights": {
+        "goal": 4,
+        "save": 1,
+        "deflection": 5,
+        "blocked": 27,
+        "miss": 19
+      }
+    },
+    {
+      "id": "2021_SerieA_ACMilan_TeresaGarcia",
+      "name": "Teresa Garcia",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2021,
+      "position": "DEF",
+      "speed": 17,
+      "control": 2,
+      "endurance": 5,
+      "shooting": 8,
+      "salary": 3200,
+      "weights": {
+        "goal": 29,
+        "save": 8,
+        "deflection": 11,
+        "blocked": 15,
+        "miss": 26
+      }
+    },
+    {
+      "id": "1994_PremierLeague_LiverpoolFC_BarryKing",
+      "name": "Barry King",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1994,
+      "position": "GK",
+      "speed": 16,
+      "control": 19,
+      "endurance": 3,
+      "shooting": 11,
+      "salary": 4900,
+      "weights": {
+        "goal": 30,
+        "save": 21,
+        "deflection": 12,
+        "blocked": 8,
+        "miss": 12
+      }
+    },
+    {
+      "id": "1993_PremierLeague_LiverpoolFC_DaleSmith",
+      "name": "Dale Smith",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1993,
+      "position": "MID",
+      "speed": 1,
+      "control": 16,
+      "endurance": 8,
+      "shooting": 17,
+      "salary": 4200,
+      "weights": {
+        "goal": 16,
+        "save": 30,
+        "deflection": 2,
+        "blocked": 3,
+        "miss": 26
+      }
+    },
+    {
+      "id": "1981_International_Argentina_MichaelCaldwell",
+      "name": "Michael Caldwell",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1981,
+      "position": "DEF",
+      "speed": 14,
+      "control": 5,
+      "endurance": 3,
+      "shooting": 5,
+      "salary": 2700,
+      "weights": {
+        "goal": 27,
+        "save": 20,
+        "deflection": 26,
+        "blocked": 9,
+        "miss": 11
+      }
+    },
+    {
+      "id": "2001_SerieA_ACMilan_KevinLeblanc",
+      "name": "Kevin Leblanc",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2001,
+      "position": "FWD",
+      "speed": 16,
+      "control": 15,
+      "endurance": 15,
+      "shooting": 14,
+      "salary": 6000,
+      "weights": {
+        "goal": 7,
+        "save": 19,
+        "deflection": 21,
+        "blocked": 7,
+        "miss": 29
+      }
+    },
+    {
+      "id": "2023_Bundesliga_BayernMunich_AmyJordan",
+      "name": "Amy Jordan",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2023,
+      "position": "GK",
+      "speed": 16,
+      "control": 17,
+      "endurance": 13,
+      "shooting": 5,
+      "salary": 5100,
+      "weights": {
+        "goal": 15,
+        "save": 4,
+        "deflection": 14,
+        "blocked": 20,
+        "miss": 13
+      }
+    },
+    {
+      "id": "1989_International_Argentina_ThomasWyatt",
+      "name": "Thomas Wyatt",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1989,
+      "position": "GK",
+      "speed": 3,
+      "control": 9,
+      "endurance": 9,
+      "shooting": 19,
+      "salary": 4000,
+      "weights": {
+        "goal": 21,
+        "save": 30,
+        "deflection": 23,
+        "blocked": 18,
+        "miss": 26
+      }
+    },
+    {
+      "id": "2011_LaLiga_RealMadrid_HelenYoung",
+      "name": "Helen Young",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2011,
+      "position": "DEF",
+      "speed": 5,
+      "control": 5,
+      "endurance": 2,
+      "shooting": 12,
+      "salary": 2400,
+      "weights": {
+        "goal": 30,
+        "save": 7,
+        "deflection": 12,
+        "blocked": 17,
+        "miss": 19
+      }
+    },
+    {
+      "id": "2022_PremierLeague_ManchesterUnited_RachelOrtiz",
+      "name": "Rachel Ortiz",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2022,
+      "position": "FWD",
+      "speed": 19,
+      "control": 1,
+      "endurance": 8,
+      "shooting": 1,
+      "salary": 2900,
+      "weights": {
+        "goal": 25,
+        "save": 9,
+        "deflection": 22,
+        "blocked": 7,
+        "miss": 30
+      }
+    },
+    {
+      "id": "1996_PremierLeague_LiverpoolFC_AmyStafford",
+      "name": "Amy Stafford",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1996,
+      "position": "DEF",
+      "speed": 16,
+      "control": 17,
+      "endurance": 5,
+      "shooting": 17,
+      "salary": 5500,
+      "weights": {
+        "goal": 24,
+        "save": 9,
+        "deflection": 25,
+        "blocked": 8,
+        "miss": 19
+      }
+    },
+    {
+      "id": "1998_SerieA_Juventus_RobertYoung",
+      "name": "Robert Young",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 1998,
+      "position": "DEF",
+      "speed": 12,
+      "control": 20,
+      "endurance": 13,
+      "shooting": 4,
+      "salary": 4900,
+      "weights": {
+        "goal": 2,
+        "save": 18,
+        "deflection": 15,
+        "blocked": 7,
+        "miss": 19
+      }
+    },
+    {
+      "id": "2002_SerieA_ACMilan_GinaRussell",
+      "name": "Gina Russell",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2002,
+      "position": "DEF",
+      "speed": 15,
+      "control": 13,
+      "endurance": 16,
+      "shooting": 7,
+      "salary": 5100,
+      "weights": {
+        "goal": 22,
+        "save": 23,
+        "deflection": 2,
+        "blocked": 2,
+        "miss": 23
+      }
+    },
+    {
+      "id": "2005_Bundesliga_BayernMunich_SheliaFoster",
+      "name": "Shelia Foster",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2005,
+      "position": "FWD",
+      "speed": 4,
+      "control": 11,
+      "endurance": 13,
+      "shooting": 1,
+      "salary": 2900,
+      "weights": {
+        "goal": 11,
+        "save": 29,
+        "deflection": 27,
+        "blocked": 16,
+        "miss": 9
+      }
+    },
+    {
+      "id": "1987_Ligue1_ParisSaint-Germain_TeresaCobb",
+      "name": "Teresa Cobb",
+      "team": "Paris Saint-Germain",
+      "league": "Ligue 1",
+      "year": 1987,
+      "position": "GK",
+      "speed": 17,
+      "control": 2,
+      "endurance": 3,
+      "shooting": 18,
+      "salary": 4000,
+      "weights": {
+        "goal": 18,
+        "save": 28,
+        "deflection": 28,
+        "blocked": 2,
+        "miss": 15
+      }
+    },
+    {
+      "id": "2022_Bundesliga_BayernMunich_RhondaSanchez",
+      "name": "Rhonda Sanchez",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2022,
+      "position": "GK",
+      "speed": 16,
+      "control": 18,
+      "endurance": 18,
+      "shooting": 7,
+      "salary": 5900,
+      "weights": {
+        "goal": 27,
+        "save": 23,
+        "deflection": 23,
+        "blocked": 26,
+        "miss": 24
+      }
+    },
+    {
+      "id": "2001_Bundesliga_BayernMunich_JasonWood",
+      "name": "Jason Wood",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 2001,
+      "position": "MID",
+      "speed": 10,
+      "control": 11,
+      "endurance": 19,
+      "shooting": 6,
+      "salary": 4600,
+      "weights": {
+        "goal": 20,
+        "save": 4,
+        "deflection": 12,
+        "blocked": 2,
+        "miss": 20
+      }
+    },
+    {
+      "id": "1985_International_Argentina_AndreJohnson",
+      "name": "Andre Johnson",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1985,
+      "position": "DEF",
+      "speed": 8,
+      "control": 7,
+      "endurance": 16,
+      "shooting": 14,
+      "salary": 4500,
+      "weights": {
+        "goal": 21,
+        "save": 13,
+        "deflection": 29,
+        "blocked": 3,
+        "miss": 11
+      }
+    },
+    {
+      "id": "1986_Bundesliga_BayernMunich_MadisonPhillips",
+      "name": "Madison Phillips",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 1986,
+      "position": "FWD",
+      "speed": 6,
+      "control": 7,
+      "endurance": 7,
+      "shooting": 16,
+      "salary": 3600,
+      "weights": {
+        "goal": 4,
+        "save": 7,
+        "deflection": 7,
+        "blocked": 27,
+        "miss": 14
+      }
+    },
+    {
+      "id": "2007_PremierLeague_ManchesterUnited_MichaelLowe",
+      "name": "Michael Lowe",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2007,
+      "position": "FWD",
+      "speed": 10,
+      "control": 9,
+      "endurance": 5,
+      "shooting": 16,
+      "salary": 4000,
+      "weights": {
+        "goal": 30,
+        "save": 15,
+        "deflection": 16,
+        "blocked": 26,
+        "miss": 28
+      }
+    },
+    {
+      "id": "2002_SerieA_Juventus_ElizabethBenjamin",
+      "name": "Elizabeth Benjamin",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 2002,
+      "position": "GK",
+      "speed": 5,
+      "control": 6,
+      "endurance": 12,
+      "shooting": 9,
+      "salary": 3200,
+      "weights": {
+        "goal": 30,
+        "save": 23,
+        "deflection": 1,
+        "blocked": 19,
+        "miss": 3
+      }
+    },
+    {
+      "id": "1992_Bundesliga_BayernMunich_ChristopherPowell",
+      "name": "Christopher Powell",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "year": 1992,
+      "position": "DEF",
+      "speed": 11,
+      "control": 19,
+      "endurance": 1,
+      "shooting": 17,
+      "salary": 4800,
+      "weights": {
+        "goal": 30,
+        "save": 14,
+        "deflection": 5,
+        "blocked": 1,
+        "miss": 24
+      }
+    },
+    {
+      "id": "2017_International_Argentina_RaymondDelgado",
+      "name": "Raymond Delgado",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2017,
+      "position": "DEF",
+      "speed": 12,
+      "control": 19,
+      "endurance": 7,
+      "shooting": 18,
+      "salary": 5600,
+      "weights": {
+        "goal": 8,
+        "save": 4,
+        "deflection": 10,
+        "blocked": 17,
+        "miss": 29
+      }
+    },
+    {
+      "id": "2014_LaLiga_RealMadrid_BradTaylor",
+      "name": "Brad Taylor",
+      "team": "Real Madrid",
+      "league": "La Liga",
+      "year": 2014,
+      "position": "DEF",
+      "speed": 20,
+      "control": 2,
+      "endurance": 4,
+      "shooting": 13,
+      "salary": 3900,
+      "weights": {
+        "goal": 29,
+        "save": 20,
+        "deflection": 5,
+        "blocked": 14,
+        "miss": 9
+      }
+    },
+    {
+      "id": "1982_PremierLeague_LiverpoolFC_AshleyTaylor",
+      "name": "Ashley Taylor",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1982,
+      "position": "FWD",
+      "speed": 7,
+      "control": 19,
+      "endurance": 10,
+      "shooting": 20,
+      "salary": 5600,
+      "weights": {
+        "goal": 22,
+        "save": 5,
+        "deflection": 2,
+        "blocked": 13,
+        "miss": 29
+      }
+    },
+    {
+      "id": "2018_International_Argentina_MichaelHoward",
+      "name": "Michael Howard",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2018,
+      "position": "MID",
+      "speed": 18,
+      "control": 12,
+      "endurance": 20,
+      "shooting": 17,
+      "salary": 6700,
+      "weights": {
+        "goal": 7,
+        "save": 16,
+        "deflection": 23,
+        "blocked": 16,
+        "miss": 20
+      }
+    },
+    {
+      "id": "1985_LaLiga_FCBarcelona_MonicaKelly",
+      "name": "Monica Kelly",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 1985,
+      "position": "GK",
+      "speed": 4,
+      "control": 16,
+      "endurance": 4,
+      "shooting": 14,
+      "salary": 3800,
+      "weights": {
+        "goal": 19,
+        "save": 5,
+        "deflection": 5,
+        "blocked": 3,
+        "miss": 17
+      }
+    },
+    {
+      "id": "1988_International_Argentina_EmilyRodriguez",
+      "name": "Emily Rodriguez",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1988,
+      "position": "MID",
+      "speed": 18,
+      "control": 9,
+      "endurance": 10,
+      "shooting": 10,
+      "salary": 4700,
+      "weights": {
+        "goal": 25,
+        "save": 15,
+        "deflection": 3,
+        "blocked": 3,
+        "miss": 24
+      }
+    },
+    {
+      "id": "1982_PremierLeague_LiverpoolFC_SharonBond",
+      "name": "Sharon Bond",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "year": 1982,
+      "position": "FWD",
+      "speed": 17,
+      "control": 20,
+      "endurance": 7,
+      "shooting": 4,
+      "salary": 4800,
+      "weights": {
+        "goal": 17,
+        "save": 19,
+        "deflection": 8,
+        "blocked": 25,
+        "miss": 26
+      }
+    },
+    {
+      "id": "2006_SerieA_Juventus_ElizabethScott",
+      "name": "Elizabeth Scott",
+      "team": "Juventus",
+      "league": "Serie A",
+      "year": 2006,
+      "position": "MID",
+      "speed": 7,
+      "control": 4,
+      "endurance": 5,
+      "shooting": 4,
+      "salary": 2000,
+      "weights": {
+        "goal": 18,
+        "save": 9,
+        "deflection": 26,
+        "blocked": 2,
+        "miss": 29
+      }
+    },
+    {
+      "id": "2015_SerieA_ACMilan_CandiceHicks",
+      "name": "Candice Hicks",
+      "team": "AC Milan",
+      "league": "Serie A",
+      "year": 2015,
+      "position": "GK",
+      "speed": 11,
+      "control": 19,
+      "endurance": 8,
+      "shooting": 13,
+      "salary": 5100,
+      "weights": {
+        "goal": 29,
+        "save": 8,
+        "deflection": 16,
+        "blocked": 10,
+        "miss": 11
+      }
+    },
+    {
+      "id": "2016_International_Argentina_KevinRoberts",
+      "name": "Kevin Roberts",
+      "team": "Argentina",
+      "league": "International",
+      "year": 2016,
+      "position": "GK",
+      "speed": 20,
+      "control": 10,
+      "endurance": 20,
+      "shooting": 5,
+      "salary": 5500,
+      "weights": {
+        "goal": 9,
+        "save": 16,
+        "deflection": 3,
+        "blocked": 2,
+        "miss": 28
+      }
+    },
+    {
+      "id": "1988_International_Argentina_MollyHayes",
+      "name": "Molly Hayes",
+      "team": "Argentina",
+      "league": "International",
+      "year": 1988,
+      "position": "GK",
+      "speed": 10,
+      "control": 8,
+      "endurance": 3,
+      "shooting": 13,
+      "salary": 3400,
+      "weights": {
+        "goal": 13,
+        "save": 28,
+        "deflection": 3,
+        "blocked": 2,
+        "miss": 28
+      }
+    },
+    {
+      "id": "2013_LaLiga_FCBarcelona_CrystalCasey",
+      "name": "Crystal Casey",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2013,
+      "position": "GK",
+      "speed": 18,
+      "control": 4,
+      "endurance": 15,
+      "shooting": 12,
+      "salary": 4900,
+      "weights": {
+        "goal": 23,
+        "save": 16,
+        "deflection": 25,
+        "blocked": 20,
+        "miss": 9
+      }
+    },
+    {
+      "id": "2022_LaLiga_FCBarcelona_KristinWilson",
+      "name": "Kristin Wilson",
+      "team": "FC Barcelona",
+      "league": "La Liga",
+      "year": 2022,
+      "position": "DEF",
+      "speed": 14,
+      "control": 3,
+      "endurance": 16,
+      "shooting": 17,
+      "salary": 5000,
+      "weights": {
+        "goal": 24,
+        "save": 25,
+        "deflection": 26,
+        "blocked": 28,
+        "miss": 2
+      }
+    },
+    {
+      "id": "2006_PremierLeague_ManchesterUnited_TimothyGarcia",
+      "name": "Timothy Garcia",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "year": 2006,
+      "position": "FWD",
+      "speed": 5,
+      "control": 9,
+      "endurance": 20,
+      "shooting": 14,
+      "salary": 4800,
+      "weights": {
+        "goal": 18,
+        "save": 4,
+        "deflection": 1,
+        "blocked": 27,
+        "miss": 12
+      }
+    },
+    {
+      "id": "1993_USLChampionship_OaklandRoots_DanielleDavidson",
+      "name": "Danielle Davidson",
+      "team": "Oakland Roots",
+      "league": "USL Championship",
+      "year": 1993,
+      "position": "MID",
+      "speed": 20,
+      "control": 12,
+      "endurance": 4,
+      "shooting": 19,
+      "salary": 5500,
+      "weights": {
+        "goal": 1,
+        "save": 18,
+        "deflection": 15,
+        "blocked": 28,
+        "miss": 3
+      }
+    }
+  ]

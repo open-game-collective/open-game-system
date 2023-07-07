@@ -28,48 +28,70 @@ const ShotChartSchema = z.object({
   goal: z.number(),
 });
 
-const StrikersForwardPlayerCardSchema = z.object({
-  id: z.string().uuid(),
-  position: StrikersPlayerPositionSchema,
-  possessionValue: PossessionValueSchema,
-  playChart: PlayChartSchema,
-  shotChart: ShotChartSchema,
+const StrikersPlayerCardSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  team: z.string(),
+  league: z.string(),
+  year: z.number(),
+  speed: z.number(),
+  control: z.number(),
+  endurance: z.number(),
+  shooting: z.number(),
+  salary: z.number(),
+  weights: z.object({
+    goal: z.number(),
+    save: z.number(),
+    deflection: z.number(),
+    blocked: z.number(),
+    miss: z.number(),
+  }),
 });
 
-const StrikersMidfielderPlayerCardSchema = z.object({
-  id: z.string().uuid(),
-  position: StrikersPlayerPositionSchema,
-  possessionValue: PossessionValueSchema,
-  playChart: PlayChartSchema,
-  shotChart: ShotChartSchema,
-});
+// const StrikersForwardPlayerCardSchema = z.object({
+//   id: z.string().uuid(),
+//   position: StrikersPlayerPositionSchema,
+//   possessionValue: PossessionValueSchema,
+//   playChart: PlayChartSchema,
+//   shotChart: ShotChartSchema,
+// });
 
-const StrikersKeeperPlayerCardSchema = z.object({
-  id: z.string().uuid(),
-  position: StrikersPlayerPositionSchema,
-  possessionValue: PossessionValueSchema,
-  shotChart: ShotChartSchema,
-});
+// const StrikersMidfielderPlayerCardSchema = z.object({
+//   id: z.string().uuid(),
+//   position: StrikersPlayerPositionSchema,
+//   possessionValue: PossessionValueSchema,
+//   playChart: PlayChartSchema,
+//   shotChart: ShotChartSchema,
+// });
 
-const StrikersDefenderPlayerCardSchema = z.object({
-  id: z.string().uuid(),
-  position: StrikersPlayerPositionSchema,
-  possessionValue: PossessionValueSchema,
-  playChart: PlayChartSchema,
-  shotChart: ShotChartSchema,
-});
+// const StrikersKeeperPlayerCardSchema = z.object({
+//   id: z.string().uuid(),
+//   position: StrikersPlayerPositionSchema,
+//   possessionValue: PossessionValueSchema,
+//   shotChart: ShotChartSchema,
+// });
 
-const StrikersPlayerCardSchema = z.union([
-  StrikersDefenderPlayerCardSchema,
-  StrikersKeeperPlayerCardSchema,
-  StrikersMidfielderPlayerCardSchema,
-  StrikersForwardPlayerCardSchema,
-]);
+// const StrikersDefenderPlayerCardSchema = z.object({
+//   id: z.string().uuid(),
+//   position: StrikersPlayerPositionSchema,
+//   possessionValue: PossessionValueSchema,
+//   playChart: PlayChartSchema,
+//   shotChart: ShotChartSchema,
+// });
+
+// const StrikersPlayerCardSchema = z.union([
+//   StrikersDefenderPlayerCardSchema,
+//   StrikersKeeperPlayerCardSchema,
+//   StrikersMidfielderPlayerCardSchema,
+//   StrikersForwardPlayerCardSchema,
+// ]);
+
+export const StrikersCardSchema = StrikersPlayerCardSchema;
 
 export const CardIdSchema = z.string();
 
 export const StrikersGameConfigDataSchema = z.object({
-  cards: z.array(StrikersPlayerCardSchema),
+  cards: z.array(StrikersCardSchema),
   gameMode: z.enum(['quickplay', 'draft']).default('quickplay'),
   turnsPerHalf: z.number().default(20),
   p1SessionId: SnowflakeIdSchema,

@@ -11,7 +11,7 @@ import { useContext } from 'react';
 import { LayoutContext } from '@context/LayoutContext';
 import { useStore } from '@nanostores/react';
 
-export const MainScene = () => {
+export const ScenePanel = () => {
   const { isMainPanelFocusedStore } = useContext(LayoutContext);
   const isMainPanelFocused = useStore(isMainPanelFocusedStore);
   // const isMainSceneFocused = useStore(isMainSceneFocusedStore);

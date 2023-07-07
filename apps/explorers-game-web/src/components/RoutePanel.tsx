@@ -15,7 +15,7 @@ import type { RoomEntity } from '@explorers-club/schema';
 import { ApplicationContext } from '@context/ApplicationContext';
 import { WorldContext } from '@context/WorldProvider';
 
-export const MainPanel = () => {
+export const RoutePanel = () => {
   const { routeStore } = useContext(ApplicationContext);
   const currentRoute = useStore(routeStore);
 
