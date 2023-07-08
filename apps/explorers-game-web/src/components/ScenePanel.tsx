@@ -11,7 +11,7 @@ import { WorldContext } from '@context/WorldProvider';
 import { ConnectionContext } from './ApplicationProvider';
 import { TopNav } from './TopNav';
 import { BottomNav } from './BottomNav';
-import { FC, ReactNode, useContext } from 'react';
+import { FC, ReactNode, useContext, useState } from 'react';
 import { LayoutContext } from '@context/LayoutContext';
 import { useStore } from '@nanostores/react';
 import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
@@ -21,6 +21,7 @@ import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
 import type { RoomEntity } from '@schema/types';
 import { RoomContext, RoomProvider } from '@organisms/room/room.context';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
+import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 
 export const ScenePanel = () => {
   const { isMainPanelFocusedStore } = useContext(LayoutContext);
@@ -58,6 +59,7 @@ export const ScenePanel = () => {
       >
         <ContextBridge>
           <SceneManager />
+          <OrbitControls />
           {/* <GoogleMaps /> */}
           {/* <CafeModel /> */}
           {/* <OrbitControls />
@@ -80,6 +82,7 @@ const SceneManager = () => {
     </RoomProvider>
   );
 };
+const Tile = defineHex({ dimensions: 30 });
 
 const RoomScene = () => {
   // render a box if there is a game...
@@ -89,12 +92,28 @@ const RoomScene = () => {
     (entity) => entity.currentGameInstanceId
   );
 
+  const [grid] = useState(new Grid(Tile, rectangle({ width: 13, height: 9 })));
+  const cells = Array.from(grid).map((cell) => {
+    return cell.center;
+  });
+  // const centers = grid.map((cell) => cell.center);
+  // console.log({ f });
+
   return currentGameInstanceId ? (
     <mesh rotation={[10, 10, 0]}>
       <boxBufferGeometry attach="geometry" args={[2, 2, 2]} />
       <meshStandardMaterial attach="material" color={0xcc0000} />
     </mesh>
   ) : (
-    <></>
+    <>
+      {/* {grid.map((_cells: any, index: number | undefined) => {
+        return (
+          <mesh id={index} rotation={[10, 10, 0]}>
+            <boxBufferGeometry attach="geometry" args={[2, 2, 2]} />
+            <meshStandardMaterial attach="material" color={0xcc0000} />
+          </mesh>
+        );
+      })} */}
+    </>
   );
 };

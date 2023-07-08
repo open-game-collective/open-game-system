@@ -3,6 +3,7 @@ import {
   CodebreakersPlayerEntitySchema,
 } from '@schema/games/codebreakers';
 import {
+  StrikersGameCommandSchema,
   StrikersGameEntitySchema,
   StrikersPlayerEntitySchema,
   StrikersTurnEntitySchema,
@@ -30,6 +31,7 @@ export const EntityCommandSchema = z.union([
   ConnectionCommandSchema,
   SessionCommandSchema,
   RoomCommandSchema,
+  // StrikersGameCommandSchema,
 ]);
 
 export const EntitySchemas = {
@@ -67,7 +69,9 @@ export const EntitySchema = z.discriminatedUnion('schema', [
   //   LittleVigilantePlayerEntitySchema,
 ]);
 
-export const ChannelEntitySchema = z.discriminatedUnion('schema', [RoomEntitySchema]);
+export const ChannelEntitySchema = z.discriminatedUnion('schema', [
+  RoomEntitySchema,
+]);
 
 export const GameEntitySchema = z.discriminatedUnion('schema', [
   StrikersGameEntitySchema,

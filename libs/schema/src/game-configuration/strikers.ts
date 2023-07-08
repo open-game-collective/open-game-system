@@ -32,6 +32,7 @@ const StrikersPlayerCardSchema = z.object({
   id: z.string(),
   name: z.string(),
   team: z.string(),
+  position: z.enum(['GK', 'FWD', 'DEF', 'MID']),
   league: z.string(),
   year: z.number(),
   speed: z.number(),

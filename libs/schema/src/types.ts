@@ -14,12 +14,15 @@ import {
   EntityCommandSchema,
   EntitySchema,
   EntitySchemas,
-  GameEntitySchema
+  GameEntitySchema,
 } from './entity';
 import { ChannelEventSchema, MessageEventSchema } from './events/channel';
 import { ClientEventSchema } from './events/client';
 import { LobbyGameConfigSchema } from './game-configuration';
-import { StrikersGameConfigDataSchema } from './game-configuration/strikers';
+import {
+  StrikersCardSchema,
+  StrikersGameConfigDataSchema,
+} from './game-configuration/strikers';
 import {
   CodebreakersGameCommandSchema,
   CodebreakersGameContextSchema,
@@ -35,6 +38,8 @@ import {
   StrikersGameContextSchema,
   StrikersGameEntitySchema,
   StrikersGameStateValueSchema,
+  // StrikersLineupCommandSchema,
+  StrikersLineupContextSchema,
   StrikersPlayerCommandSchema,
   StrikersPlayerContextSchema,
   StrikersPlayerEntitySchema,
@@ -625,6 +630,9 @@ export type StrikersGameMachine = StateMachine<
 export type StrikersGameConfigData = z.infer<
   typeof StrikersGameConfigDataSchema
 >;
+export type StrikersCard = z.infer<typeof StrikersCardSchema>;
+// export type StrikersLineupCommand = z.infer<typeof StrikersLineupCommandSchema>;
+export type StrikersLineupContext = z.infer<typeof StrikersLineupContextSchema>;
 
 export type StrikersPlayerEntity = z.infer<typeof StrikersPlayerEntitySchema>;
 export type StrikersPlayerStateValue = z.infer<

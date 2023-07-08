@@ -1,25 +1,38 @@
 import {
   Entity,
-  BananaTradersPlayerCommand,
-  BananaTradersPlayerContext,
+  StrikersPlayerCommand,
+  StrikersPlayerContext,
+  StrikersPlayerMachine,
   WithSenderId,
 } from '@explorers-club/schema';
+import { assertEntitySchema } from '@explorers-club/utils';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
 
 export const createStrikersPlayerMachine = ({
   world,
+  entity,
 }: {
   world: World;
   entity: Entity;
 }) => {
+  assertEntitySchema(entity, 'strikers_player');
+
   return createMachine({
     id: 'StrikersPlayerMachine',
     type: 'parallel',
     schema: {
-      context: {} as BananaTradersPlayerContext,
-      events: {} as WithSenderId<BananaTradersPlayerCommand>,
+      context: {} as StrikersPlayerContext,
+      events: {} as WithSenderId<StrikersPlayerCommand>,
     },
-    states: {},
-  });
+    states: {
+      Active: {
+        initial: "False",
+        states: {
+          False: {},
+          True: {}
+        }
+      },
+    },
+  }) satisfies StrikersPlayerMachine;
 };

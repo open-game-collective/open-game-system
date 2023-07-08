@@ -7,17 +7,24 @@ import {
   SnowflakeId,
 } from '@explorers-club/schema';
 import { assert } from '@explorers-club/utils';
-import type { StrikersPlayerEntity } from '@schema/types';
+import type {
+  StrikersCard,
+  // StrikersLineupCommand,
+  StrikersLineupContext,
+  StrikersPlayerEntity,
+} from '@schema/types';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
 import { entitiesById, world } from '../server/state';
 import { createSchemaIndex } from '../indices';
+import { assign } from '@xstate/immer';
 
-// createSchemaIndex({
-// })
-// createSchemaIndex(world, "")
 export const [strikersPlayersBySessionId] =
-  createSchemaIndex<StrikersPlayerEntity>(world, 'strikers_player', 'sessionId');
+  createSchemaIndex<StrikersPlayerEntity>(
+    world,
+    'strikers_player',
+    'sessionId'
+  );
 
 export const createStrikersGameMachine = ({
   world,
@@ -28,19 +35,39 @@ export const createStrikersGameMachine = ({
 }) => {
   assert(entity.schema === 'strikers_game', 'expected strikers_game entity');
 
-  const getPlayer = (senderId: SnowflakeId) => {
-    const connectionEntity = entitiesById.get(senderId);
-    assert(
-      connectionEntity && connectionEntity.schema === 'connection',
-      'expected sessionEntity when looking up player'
-    );
-
-    const strikersPlayerEntity = strikersPlayersBySessionId.get(
-      connectionEntity.id
-    );
-    assert(strikersPlayerEntity, 'strikers player entity');
-    return strikersPlayerEntity;
-  };
+  const LineupMachine = createMachine(
+    {
+      id: 'LineupSetupMachine',
+      initial: 'Initializing',
+      context: {
+        homeCardIds: [],
+        awayCardIds: [],
+      } satisfies StrikersLineupContext,
+      schema: {
+        // events: {} as WithSenderId<StrikersLineupCommand>,
+        context: {} as StrikersLineupContext,
+      },
+      states: {
+        Initializing: {
+          always: {
+            actions: 'initializeLineups',
+            target: 'Complete',
+          },
+        },
+        Complete: {
+          type: 'final',
+        },
+      },
+      predictableActionArguments: true,
+    },
+    {
+      actions: {
+        initializeLineups: assign((context, event) => {
+          context = initializeLineups(entity.config.cards);
+        }),
+      },
+    }
+  );
 
   return createMachine({
     id: 'StrikersGameMachine',
@@ -79,10 +106,39 @@ export const createStrikersGameMachine = ({
   });
 };
 
-const LineupMachine = createMachine({
-  id: 'LineupSetupMachine',
-  initial: 'ChoosingPlayers',
-  states: {
-    ChoosingPlayers: {},
-  },
-});
+type InitializeLineupsService = (cards: StrikersCard[]) => {
+  homeCardIds: string[];
+  awayCardIds: string[];
+};
+
+const initializeLineups: InitializeLineupsService = (cards) => {
+  // Shuffle the cards to ensure randomness
+  cards.sort(() => Math.random() - 0.5);
+
+  // Initialize empty lists for each position
+  const homeCardIds: string[] = [];
+  const awayCardIds: string[] = [];
+
+  // Distribute the cards to each team
+  for (const card of cards) {
+    const positionCount = (team: string[], position: string) =>
+      team.filter(
+        (id) => cards.find((card) => card.id === id)?.position === position
+      ).length;
+
+    if (
+      positionCount(homeCardIds, card.position) <
+      (card.position === 'GK' ? 1 : card.position === 'DEF' ? 4 : 3)
+    ) {
+      homeCardIds.push(card.id);
+    } else if (
+      positionCount(awayCardIds, card.position) <
+      (card.position === 'GK' ? 1 : card.position === 'DEF' ? 4 : 3)
+    ) {
+      awayCardIds.push(card.id);
+    }
+  }
+  console.log({ homeCardIds, awayCardIds });
+
+  return { homeCardIds, awayCardIds };
+};
