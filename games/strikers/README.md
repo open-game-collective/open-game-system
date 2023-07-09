@@ -1,4 +1,4 @@
-# ..-games-strikers
+# Strikers
 
 This library was generated with [Nx](https://nx.dev).
 

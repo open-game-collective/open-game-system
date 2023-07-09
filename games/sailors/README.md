@@ -1,4 +1,4 @@
-# ..-games-sailors
+# Sailors
 
 This library was generated with [Nx](https://nx.dev).
 

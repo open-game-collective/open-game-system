@@ -1,7 +1,6 @@
 // import { isMainSceneFocusedStore } from '../global/layout';
 import { Box } from '@atoms/Box';
 import {
-  Environment,
   OrbitControls,
   useContextBridge,
 } from '@react-three/drei';
@@ -79,10 +78,8 @@ const SceneManager = () => {
     </RoomProvider>
   );
 };
-const Tile = defineHex({ dimensions: 30 });
 
 const RoomScene = () => {
-
   // render a box if there is a game...
   const { roomEntity } = useContext(RoomContext);
   const currentGameInstanceId = useEntitySelector(
@@ -90,28 +87,15 @@ const RoomScene = () => {
     (entity) => entity.currentGameInstanceId
   );
 
-  const [grid] = useState(new Grid(Tile, rectangle({ width: 13, height: 9 })));
-  const cells = Array.from(grid).map((cell) => {
-    return cell.center;
-  });
-
-
   return currentGameInstanceId ? (
     <StrikersSceneManager gameInstanceId={currentGameInstanceId} />
-    // <mesh rotation={[10, 10, 0]}>
-    //   <boxBufferGeometry attach="geometry" args={[2, 2, 2]} />
-    //   <meshStandardMaterial attach="material" color={0xcc0000} />
-    // </mesh>
   ) : (
     <>
-      {/* {grid.map((_cells: any, index: number | undefined) => {
-        return (
-          <mesh id={index} rotation={[10, 10, 0]}>
-            <boxBufferGeometry attach="geometry" args={[2, 2, 2]} />
-            <meshStandardMaterial attach="material" color={0xcc0000} />
-          </mesh>
-        );
-      })} */}
+      <OrbitControls />
+      <mesh position={[0, 0, 0]}>
+        <boxBufferGeometry attach="geometry" args={[2, 2, 2]} />
+        <meshStandardMaterial attach="material" color={0xccffff} />
+      </mesh>
     </>
   );
 };
