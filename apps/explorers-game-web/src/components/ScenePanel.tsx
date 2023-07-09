@@ -11,7 +11,7 @@ import { WorldContext } from '@context/WorldProvider';
 import { ConnectionContext } from './ApplicationProvider';
 import { TopNav } from './TopNav';
 import { BottomNav } from './BottomNav';
-import { FC, ReactNode, useContext, useState } from 'react';
+import { FC, ReactNode, Suspense, useContext, useState } from 'react';
 import { LayoutContext } from '@context/LayoutContext';
 import { useStore } from '@nanostores/react';
 import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
@@ -22,6 +22,7 @@ import type { RoomEntity } from '@schema/types';
 import { RoomContext, RoomProvider } from '@organisms/room/room.context';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
+import { StrikersSceneManager } from '../../../../games/strikers/src/client/scene-manager';
 
 export const ScenePanel = () => {
   const { isMainPanelFocusedStore } = useContext(LayoutContext);
@@ -59,12 +60,6 @@ export const ScenePanel = () => {
       >
         <ContextBridge>
           <SceneManager />
-          <OrbitControls />
-          {/* <GoogleMaps /> */}
-          {/* <CafeModel /> */}
-          {/* <OrbitControls />
-        <CafeModel /> */}
-          {/* <Environment preset="sunset" /> */}
         </ContextBridge>
       </Canvas>
     </Box>
@@ -72,10 +67,12 @@ export const ScenePanel = () => {
 };
 
 const SceneManager = () => {
-  // here we'll manage transitions between scenes...
+  // here we'll manage transitions between games...
   // for now assuem each scene knows if it should
   // render itself or not based off global routeProps
 
+  // right now this is happening in room scene but might need
+  // to do it at a channel level
   return (
     <RoomProvider>
       <RoomScene />
@@ -85,6 +82,7 @@ const SceneManager = () => {
 const Tile = defineHex({ dimensions: 30 });
 
 const RoomScene = () => {
+
   // render a box if there is a game...
   const { roomEntity } = useContext(RoomContext);
   const currentGameInstanceId = useEntitySelector(
@@ -96,14 +94,14 @@ const RoomScene = () => {
   const cells = Array.from(grid).map((cell) => {
     return cell.center;
   });
-  // const centers = grid.map((cell) => cell.center);
-  // console.log({ f });
+
 
   return currentGameInstanceId ? (
-    <mesh rotation={[10, 10, 0]}>
-      <boxBufferGeometry attach="geometry" args={[2, 2, 2]} />
-      <meshStandardMaterial attach="material" color={0xcc0000} />
-    </mesh>
+    <StrikersSceneManager gameInstanceId={currentGameInstanceId} />
+    // <mesh rotation={[10, 10, 0]}>
+    //   <boxBufferGeometry attach="geometry" args={[2, 2, 2]} />
+    //   <meshStandardMaterial attach="material" color={0xcc0000} />
+    // </mesh>
   ) : (
     <>
       {/* {grid.map((_cells: any, index: number | undefined) => {

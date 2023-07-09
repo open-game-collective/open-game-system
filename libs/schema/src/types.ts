@@ -22,6 +22,7 @@ import { LobbyGameConfigSchema } from './game-configuration';
 import {
   StrikersCardSchema,
   StrikersGameConfigDataSchema,
+  StrikersRosterPositionSchema,
 } from './game-configuration/strikers';
 import {
   CodebreakersGameCommandSchema,
@@ -39,6 +40,7 @@ import {
   StrikersGameEntitySchema,
   StrikersGameStateValueSchema,
   // StrikersLineupCommandSchema,
+  StrikersTeamSchema,
   StrikersLineupContextSchema,
   StrikersPlayerCommandSchema,
   StrikersPlayerContextSchema,
@@ -48,6 +50,8 @@ import {
   StrikersTurnContextSchema,
   StrikersTurnEntitySchema,
   StrikersTurnStateValueSchema,
+  StrikersBoardStateSchema,
+  StrikersBoardCardSchema,
 } from './games/strikers';
 import {
   BananaTradersGameCommandSchema,
@@ -629,6 +633,12 @@ export type StrikersGameMachine = StateMachine<
 >;
 export type StrikersGameConfigData = z.infer<
   typeof StrikersGameConfigDataSchema
+>;
+export type StrikersTeam = z.infer<typeof StrikersTeamSchema>;
+export type StrikersBoard = z.infer<typeof StrikersBoardStateSchema>;
+export type StrikersBoardCard = z.infer<typeof StrikersBoardCardSchema>;
+export type StrikersPlayerPosition = z.infer<
+  typeof StrikersRosterPositionSchema
 >;
 export type StrikersCard = z.infer<typeof StrikersCardSchema>;
 // export type StrikersLineupCommand = z.infer<typeof StrikersLineupCommandSchema>;

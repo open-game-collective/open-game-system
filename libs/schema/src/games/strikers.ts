@@ -52,17 +52,17 @@ class StrikersFieldHex extends defineHex({
 
 // const StrikersGridSchema = z.custom<GridAsJSON<StrikersFieldHex>>();
 
-export const KeeperPositionLiteral = z.literal('keeper');
-export const DefenderPositionLiteral = z.literal('defender');
-export const MidfielderPositionLiteral = z.literal('midfielder');
-export const ForwardPositionLiteral = z.literal('forward');
+// export const KeeperPositionLiteral = z.literal('keeper');
+// export const DefenderPositionLiteral = z.literal('defender');
+// export const MidfielderPositionLiteral = z.literal('midfielder');
+// export const ForwardPositionLiteral = z.literal('forward');
 
-export const StrikersPlayerPositionSchema = z.union([
-  KeeperPositionLiteral,
-  DefenderPositionLiteral,
-  MidfielderPositionLiteral,
-  ForwardPositionLiteral,
-]);
+// export const StrikersPlayerPositionSchema = z.union([
+//   KeeperPositionLiteral,
+//   DefenderPositionLiteral,
+//   MidfielderPositionLiteral,
+//   ForwardPositionLiteral,
+// ]);
 
 const PossessionValueSchema = z.number().min(0).max(20);
 
@@ -178,54 +178,48 @@ export const StrikersGameEntitySchema = EntityBaseSchema(
   StrikersGameStateValueSchema
 );
 
-export const StrikersGameContextSchema = z.object({
-  foo: z.string(),
-});
+export const StrikersTeamSchema = z.enum(['home', 'away']);
 
-const TeamSchema = z.enum(['home', 'away']);
+export const BoardCoordinatesSchema = z.tuple([z.number(), z.number()]);
 
-const PositionSchema = z.tuple([z.number(), z.number()]);
-
-const PlayerCardSchema = z.object({
-  team: TeamSchema,
+export const StrikersBoardCardSchema = z.object({
+  team: StrikersTeamSchema,
   cardId: CardIdSchema,
-  position: PositionSchema,
+  tilePosition: BoardCoordinatesSchema,
 });
 
-const BoardStateSchema = z.object({
-  ball: PositionSchema,
-  possession: z.enum(['home', 'away']).optional(),
-  players: z.array(PlayerCardSchema),
+export const StrikersBoardStateSchema = z.object({
+  ballPosition: BoardCoordinatesSchema,
+  possession: z.enum(['home', 'away']),
+  players: z.array(StrikersBoardCardSchema),
 });
 
-const HalfSchema = z.enum(['first', 'second', 'extra']);
-
-const MoveCommandSchema = z.object({
-  cardId: PositionSchema,
+export const StrikersGameContextSchema = z.object({
+  initialBoard: StrikersBoardStateSchema
 });
 
 const MoveActionSchema = z.object({
   actionType: z.literal('MOVE'),
   playerId: SnowflakeIdSchema,
-  cardId: PositionSchema,
-  startingBoardState: BoardStateSchema,
-  endingBoardState: BoardStateSchema,
+  cardId: CardIdSchema,
+  startBoardState: StrikersBoardStateSchema,
+  endBoardState: StrikersBoardStateSchema,
 });
 
 const ShootActionSchema = z.object({
   actionType: z.literal('SHOOT'),
   playerId: SnowflakeIdSchema,
-  cardId: PositionSchema,
-  startingBoardState: BoardStateSchema,
-  endingBoardState: BoardStateSchema,
+  cardId: CardIdSchema,
+  startingBoardState: StrikersBoardStateSchema,
+  endingBoardState: StrikersBoardStateSchema,
 });
 
 const PassActionSchema = z.object({
   actionType: z.literal('PASS'),
   playerId: SnowflakeIdSchema,
-  cardId: PositionSchema,
-  startingBoardState: BoardStateSchema,
-  endingBoardState: BoardStateSchema,
+  cardId: CardIdSchema,
+  startingBoardState: StrikersBoardStateSchema,
+  endingBoardState: StrikersBoardStateSchema,
 });
 
 const ActionsSchema = z.discriminatedUnion('actionType', [
@@ -236,7 +230,7 @@ const ActionsSchema = z.discriminatedUnion('actionType', [
 
 const StrikersTurnEntityPropsSchema = z.object({
   startedAt: z.date(),
-  side: TeamSchema,
+  side: StrikersTeamSchema,
   totalActionCount: z.number(),
   actions: z.array(ActionsSchema),
 });

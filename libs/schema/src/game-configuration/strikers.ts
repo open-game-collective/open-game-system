@@ -1,12 +1,12 @@
 import { SnowflakeIdSchema } from '@schema/common';
 import { z } from 'zod';
 
-const KeeperPositionLiteral = z.literal('keeper');
-const DefenderPositionLiteral = z.literal('defender');
-const MidfielderPositionLiteral = z.literal('midfielder');
-const ForwardPositionLiteral = z.literal('forward');
+const KeeperPositionLiteral = z.literal('GK');
+const DefenderPositionLiteral = z.literal('DEF');
+const MidfielderPositionLiteral = z.literal('MID');
+const ForwardPositionLiteral = z.literal('FWD');
 
-const StrikersPlayerPositionSchema = z.union([
+export const StrikersRosterPositionSchema = z.union([
   KeeperPositionLiteral,
   DefenderPositionLiteral,
   MidfielderPositionLiteral,
@@ -32,7 +32,7 @@ const StrikersPlayerCardSchema = z.object({
   id: z.string(),
   name: z.string(),
   team: z.string(),
-  position: z.enum(['GK', 'FWD', 'DEF', 'MID']),
+  rosterPosition: StrikersRosterPositionSchema,
   league: z.string(),
   year: z.number(),
   speed: z.number(),
