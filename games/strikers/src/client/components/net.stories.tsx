@@ -1,15 +1,15 @@
 import { Canvas } from '@react-three/fiber';
-import { SplashScene } from './splash-scene';
+import { Net } from './net';
 
 export default {
-  component: SplashScene,
+  component: Net,
 };
 
 export const Default = {
   render: () => {
     return (
       <Canvas style={{ background: '#eee', aspectRatio: '1' }}>
-        <SplashScene />
+        <Net />
       </Canvas>
     );
   },

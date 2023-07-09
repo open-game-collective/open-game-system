@@ -1,15 +1,15 @@
 import { Canvas } from '@react-three/fiber';
-import { SplashScene } from './splash-scene';
+import { PlayerCard } from './player-card';
 
 export default {
-  component: SplashScene,
+  component: PlayerCard,
 };
 
 export const Default = {
   render: () => {
     return (
       <Canvas style={{ background: '#eee', aspectRatio: '1' }}>
-        <SplashScene />
+        <PlayerCard />
       </Canvas>
     );
   },
