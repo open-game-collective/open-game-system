@@ -20,10 +20,9 @@ import { createSessionMachine } from './entities/session';
 // import { createTriggerMachine } from './entities/trigger';
 import { createTriggerMachine } from './entities/trigger';
 import { createUserMachine } from './entities/user';
-import { createStrikersGameMachine } from './entities/strikers-game';
-import { createStrikersPlayerMachine } from './entities/strikers-player';
-import { createStrikersTurnMachine } from './entities/strikers-turn';
-// import { createWorkflowMachine } from './entities/workflow';
+import { createStrikersGameMachine } from '@strikers/server/entities/strikers-game';
+import { createStrikersPlayerMachine } from '@strikers/server/entities/strikers-player';
+import { createStrikersTurnMachine } from '@strikers/server/entities/strikers-turn';
 
 type EntityMachineCreators = {
   [TSchemaType in keyof EntityMachineMap]: <

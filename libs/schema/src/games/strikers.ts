@@ -180,22 +180,24 @@ export const StrikersGameEntitySchema = EntityBaseSchema(
 
 export const StrikersTeamSchema = z.enum(['home', 'away']);
 
-export const BoardCoordinatesSchema = z.tuple([z.number(), z.number()]);
+// export const BoardCoordinatesSchema = z.tuple([z.number(), z.number()]);
+
+const TilePositionSchema = z.custom<HexCoordinates>();
 
 export const StrikersBoardCardSchema = z.object({
   team: StrikersTeamSchema,
   cardId: CardIdSchema,
-  tilePosition: BoardCoordinatesSchema,
+  tilePosition: TilePositionSchema,
 });
 
 export const StrikersBoardStateSchema = z.object({
-  ballPosition: BoardCoordinatesSchema,
-  possession: z.enum(['home', 'away']),
+  ballPosition: TilePositionSchema,
+  possession: StrikersTeamSchema,
   players: z.array(StrikersBoardCardSchema),
 });
 
 export const StrikersGameContextSchema = z.object({
-  initialBoard: StrikersBoardStateSchema
+  initialBoard: StrikersBoardStateSchema,
 });
 
 const MoveActionSchema = z.object({

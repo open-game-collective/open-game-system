@@ -1,3 +1,6 @@
+import { HexCoordinates } from "honeycomb-grid";
+import { FC } from "react";
+
 export const Net = () => {
   return (
     <mesh>

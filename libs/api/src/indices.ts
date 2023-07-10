@@ -1,10 +1,9 @@
-import { Entity, EntitySchemaType, SnowflakeId } from '@explorers-club/schema';
+import { Entity, EntityIndexEvent, SnowflakeId } from '@explorers-club/schema';
+import { FromArchetype, FromSubject, assert } from '@explorers-club/utils';
 import { EntitySchemas } from '@schema/entity';
-import { assert, FromArchetype, FromSubject } from '@explorers-club/utils';
 import { ArchetypeBucket, World } from 'miniplex';
 import { Observable, Subject } from 'rxjs';
 import { AnyFunction } from 'xstate';
-import { EntityIndexEvent } from '@explorers-club/schema';
 
 type IndexFunction = (entity: Entity) => string;
 
