@@ -1,4 +1,5 @@
 // import { createSchemaIndex, world } from '@explorers-club/api';
+import { waitForCondition } from '@api/world';
 import {
   Entity,
   StrikersGameCommand,
@@ -13,18 +14,10 @@ import type {
   StrikersPlayerEntity,
   StrikersPlayerPosition,
   StrikersTeam,
+  StrikersTurnEntity,
 } from '@schema/types';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
-
-// console.log("hi", { world, createSchemaIndex });
-
-// export const [strikersPlayersBySessionId] =
-//   createSchemaIndex<StrikersPlayerEntity>(
-//     world,
-//     'strikers_player',
-//     'sessionId'
-//   );
 
 export const createStrikersGameMachine = ({
   world,
@@ -34,66 +27,165 @@ export const createStrikersGameMachine = ({
   entity: Entity;
 }) => {
   assert(entity.schema === 'strikers_game', 'expected strikers_game entity');
-
-  // const LineupMachine = createMachine(
-  //   {
-  //     id: 'LineupSetupMachine',
-  //     initial: 'Initializing',
-  //     context: {
-  //       homeCardIds: [],
-  //       awayCardIds: [],
-  //     } satisfies StrikersLineupContext,
-  //     schema: {
-  //       // events: {} as WithSenderId<StrikersLineupCommand>,
-  //       context: {} as StrikersLineupContext,
-  //     },
-  //     states: {
-  //       Initializing: {
-  //         always: {
-  //           actions: 'initializeLineups',
-  //           target: 'Complete',
-  //         },
-  //       },
-  //       Complete: {
-  //         type: 'final',
-  //       },
-  //     },
-  //     predictableActionArguments: true,
-  //   },
-  //   {
-  //     actions: {
-  //       initializeLineups: assign((context, event) => {
-  //         context = initializeLineups(entity.config.cards);
-  //       }),
-  //     },
-  //   }
-  // );
   const initialBoard = initializeBoard(entity.config.cards);
 
-  return createMachine({
-    id: 'StrikersGameMachine',
-    initial: 'Playing',
-    schema: {
-      context: {} as StrikersGameContext,
-      events: {} as WithSenderId<StrikersGameCommand>,
-    },
-    context: {
-      initialBoard,
-    },
-    states: {
-      Playing: {
-        initial: 'FirstHalf',
-        states: {
-          FirstHalf: {},
-          Intermission: {},
-          SecondHalf: {},
+  return createMachine(
+    {
+      id: 'StrikersGameMachine',
+      type: 'parallel',
+      schema: {
+        context: {} as StrikersGameContext,
+        events: {} as WithSenderId<StrikersGameCommand>,
+      },
+      context: {
+        initialBoard,
+      },
+      states: {
+        RunStatus: {
+          initial: 'Running',
+          states: {
+            Running: {},
+            Resuming: {},
+            Paused: {},
+            Error: {},
+          },
+        },
+        PlayStatus: {
+          states: {
+            Regulation: {
+              initial: 'FirstHalf',
+              states: {
+                FirstHalf: {
+                  initial: 'NormalTime',
+                  states: {
+                    NormalTime: {
+                      invoke: {
+                        src: 'runTurn',
+                        onDone: [
+                          {
+                            target: 'NormalTime',
+                            cond: 'hasTimeRemainingInHalf',
+                          },
+                          {
+                            target: 'StoppageTime',
+                          },
+                        ],
+                      },
+                    },
+                    StoppageTime: {
+                      invoke: {
+                        src: 'runTurn',
+                        onDone: [
+                          {
+                            target: 'StoppageTime',
+                            cond: 'hasStoppageTimeRemaining',
+                          },
+                          {
+                            target: 'Complete',
+                          },
+                        ],
+                      },
+                    },
+                    Complete: {
+                      type: 'final',
+                    },
+                  },
+                },
+                Halftime: {
+                  on: {
+                    START: 'SecondHalf',
+                  },
+                },
+                SecondHalf: {
+                  initial: 'NormalTime',
+                  states: {
+                    NormalTime: {
+                      invoke: {
+                        src: 'runTurn',
+                        onDone: [
+                          {
+                            target: 'NormalTime',
+                            cond: 'hasTimeRemainingInHalf',
+                          },
+                          {
+                            target: 'StoppageTime',
+                          },
+                        ],
+                      },
+                    },
+                    StoppageTime: {
+                      invoke: {
+                        src: 'runTurn',
+                        onDone: [
+                          {
+                            target: 'StoppageTime',
+                            cond: 'hasStoppageTimeRemaining',
+                          },
+                          {
+                            target: 'Complete',
+                          },
+                        ],
+                      },
+                    },
+                    Complete: {
+                      type: 'final',
+                    },
+                  },
+                },
+              },
+            },
+            ExtraTime: {},
+          },
+        },
+        GameOver: {
+          type: 'final',
         },
       },
-      Complete: {},
+      predictableActionArguments: true,
     },
-    predictableActionArguments: true,
-  });
+    {
+      guards: {
+        hasTimeRemainingInHalf: (context, event, meta) => {
+          // todo... check which half we're in
+          return true;
+        },
+        hasStoppageTimeRemaining: (context, event) => {
+          // calcaulte based off # of turns played
+          return true;
+        },
+      },
+      services: {
+        runTurn: async () => {
+          // take the board from the previous turn and store it
+
+          // todo for resumes we might need to conditionally create the turn
+          // and store a reference to the current turn Id
+          const { createEntity } = await import('@api/ecs');
+          const turnEntity = createEntity<StrikersTurnEntity>({
+            schema: 'strikers_turn',
+            startedAt: new Date(),
+            side: 'home',
+            totalActionCount: 0,
+            actions: [],
+          });
+          world.add(turnEntity);
+          entity.turnsIds.push(turnEntity.id);
+
+          await waitForCondition(
+            turnEntity,
+            (entity) => entity.states.Complete === 'True'
+          );
+        },
+      },
+    }
+  );
 };
+
+// const waitUntilMatches = <TEntity extends Entity>(entity: TEntity, 0timeout?: number ) => {
+//   return new Promise((resolve) => {
+
+//   })
+// }
 
 type InitializeLineupService = (cards: StrikersCard[]) => StrikersBoard;
 

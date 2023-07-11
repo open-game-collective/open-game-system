@@ -11,6 +11,7 @@ import {
   StrikersGameEntity,
   StrikersPlayerEntity,
 } from '@schema/types';
+import { gameplaySettings, cardSettings } from '@strikers/config';
 import { createEntity } from 'libs/api/src/ecs';
 import * as cardData from '../../data/cards.json';
 
@@ -62,6 +63,8 @@ export const createStrikersGame = (
   const config = {
     lobbyConfig,
     playerIds: [p1Player.id, p2Player.id],
+    gameplaySettings,
+    cardSettings,
     cards,
     gameMode: 'quickplay',
     turnsPerHalf: 15,

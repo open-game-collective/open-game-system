@@ -21,7 +21,9 @@ import { ClientEventSchema } from './events/client';
 import { LobbyGameConfigSchema } from './game-configuration';
 import {
   StrikersCardSchema,
+  StrikersCardSettingsSchema,
   StrikersGameConfigDataSchema,
+  StrikersGameplaySettingsSchema,
   StrikersRosterPositionSchema,
 } from './game-configuration/strikers';
 import {
@@ -634,6 +636,10 @@ export type StrikersGameMachine = StateMachine<
 export type StrikersGameConfigData = z.infer<
   typeof StrikersGameConfigDataSchema
 >;
+export type StrikersCardSettings = z.infer<typeof StrikersCardSettingsSchema>;
+export type StrikersGameplaySettings = z.infer<
+  typeof StrikersGameplaySettingsSchema
+>;
 export type StrikersTeam = z.infer<typeof StrikersTeamSchema>;
 export type StrikersBoard = z.infer<typeof StrikersBoardStateSchema>;
 export type StrikersBoardCard = z.infer<typeof StrikersBoardCardSchema>;
@@ -674,7 +680,7 @@ export type StrikersTurnMachine = StateMachine<
 >;
 
 export type EntityCommand = z.infer<typeof EntityCommandSchema>;
-export type WithSenderId<TCommand extends EntityCommand> = TCommand & {
+export type WithSenderId<TCommand extends any> = TCommand & {
   senderId: SnowflakeId;
 };
 

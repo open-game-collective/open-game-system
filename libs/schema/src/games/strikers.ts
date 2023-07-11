@@ -124,8 +124,29 @@ const StrikersGameEntityPropSchema = z.object({
   turnsIds: z.array(SnowflakeIdSchema),
 });
 
+const PlayPeriodStateEnum = z.enum(['NormalTime', 'StoppageTime', 'Complete']);
+
+const FirstHalfSchema = z.object({
+  FirstHalf: PlayPeriodStateEnum,
+});
+const HalfTimeSchema = z.object({
+  Halftime: z.object({}),
+});
+const SecondHalfSchema = z.object({
+  SecondHalf: PlayPeriodStateEnum,
+});
+
+const RegulationSchema = z.object({
+  Regulation: z.union([FirstHalfSchema, HalfTimeSchema, SecondHalfSchema]),
+});
+
+const ExtraTimeSchema = z.object({
+  ExtraTime: PlayPeriodStateEnum,
+});
+
 export const StrikersGameStateValueSchema = z.object({
-  Status: z.enum(['Unitialized', 'Paused', 'Running', 'Complete']),
+  RunStatus: z.enum(['Paused', 'Running', 'Resuming', 'Error']),
+  PlayStatus: z.union([RegulationSchema, ExtraTimeSchema]),
 });
 
 const StartCommandSchema = z.object({
@@ -188,6 +209,7 @@ export const StrikersBoardCardSchema = z.object({
   team: StrikersTeamSchema,
   cardId: CardIdSchema,
   tilePosition: TilePositionSchema,
+  // activeModifiers: z.array(ModifiersSchema) add endurance and other modifiers here...
 });
 
 export const StrikersBoardStateSchema = z.object({
@@ -199,6 +221,15 @@ export const StrikersBoardStateSchema = z.object({
 export const StrikersGameContextSchema = z.object({
   initialBoard: StrikersBoardStateSchema,
 });
+
+// Actions
+// Short pass - a pass traveling to a player within 1-2 spaces of the current player. Cannot travel through defenders. Success threshold 5.
+// Long pass - a pass traveling to a player within 3-4 spaces of the current player. Cannot travel through defenders. Success threshold: 10.
+// Lob pass - a pass traveling over a defender to a player 2-4 spaces away. Success threshold: 10.
+// Through pass - a pass travelling along a line to a space. Success threshold is 3x the number of spaces it must travel. (allowing spaces to theoretically move 6 spaces).
+// Marking - if a player is within one space of another player, they can "mark" that player for 5 turns, following thei rmovements but not using endurance tokens.
+// Header - on a corner kick, the player that receives the ball can try a header. Threshold: 16.
+// Corner kick - when a corner kick is triggered, teams are allowed to 1 by 1 place their players near the goal. One player is selected to kick. A roll is determined to see if it goes in the center hex as planned. 13-20 puts you in that spot, otherwise 1-12 each puts you in a different hex around that middle hex
 
 const MoveActionSchema = z.object({
   actionType: z.literal('MOVE'),
@@ -231,6 +262,7 @@ const ActionsSchema = z.discriminatedUnion('actionType', [
 ]);
 
 const StrikersTurnEntityPropsSchema = z.object({
+  schema: StrikersTurnSchemaTypeLiteral,
   startedAt: z.date(),
   side: StrikersTeamSchema,
   totalActionCount: z.number(),
@@ -238,12 +270,32 @@ const StrikersTurnEntityPropsSchema = z.object({
 });
 
 export const StrikersTurnStateValueSchema = z.object({
-  Active: z.enum(['True', 'False']),
+  Complete: z.enum(['True', 'False']),
 });
 
-export const StrikersTurnCommandSchema = z.union([
-  StartCommandSchema,
-  LeaveCommandSchema,
+const StrikersMoveActionCommandSchema = z.object({
+  type: z.literal('MOVE'),
+  destination: TilePositionSchema,
+});
+
+const StrikersPassActionCommandSchema = z.object({
+  type: z.literal('PASS'),
+  destination: TilePositionSchema,
+});
+
+const StrikersShootActionCommandSchema = z.object({
+  type: z.literal('SHOOT'),
+});
+
+const StrikersRollCommandSchema = z.object({
+  type: z.literal('ROLL'),
+});
+
+export const StrikersTurnCommandSchema = z.discriminatedUnion('type', [
+  // StrikersMoveActionCommandSchema,
+  // StrikersPassActionCommandSchema,
+  StrikersShootActionCommandSchema,
+  StrikersRollCommandSchema,
 ]);
 
 export const StrikersTurnEntitySchema = EntityBaseSchema(

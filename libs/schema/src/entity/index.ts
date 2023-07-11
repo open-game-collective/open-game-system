@@ -61,6 +61,7 @@ export const EntitySchema = z.discriminatedUnion('schema', [
   MessageChannelEntitySchema,
   StrikersGameEntitySchema,
   StrikersPlayerEntitySchema,
+  StrikersTurnEntitySchema,
   //   BananaTradersGameEntitySchema,
   //   BananaTradersPlayerEntitySchema,
   //   CodebreakersGameEntitySchema,

@@ -19,6 +19,7 @@ import { enablePatches, produce, setAutoFreeze } from 'immer';
 import { Observable, ReplaySubject, map, mergeMap } from 'rxjs';
 import {
   AnyActorRef,
+  AnyFunction,
   InterpreterFrom,
   assign,
   createMachine,
@@ -66,7 +67,8 @@ export const createEntity = <TEntity extends Entity>(
 
   const next = (event: TEvent) => {
     for (const callback of subscriptions) {
-      callback(event as any); // todo fix TS not liking nested union types on event
+      const fn = callback as AnyFunction;
+      fn(event); // todo ts doesnt like this, not sure why
     }
   };
 
