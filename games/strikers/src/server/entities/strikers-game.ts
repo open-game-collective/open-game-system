@@ -11,7 +11,7 @@ import type {
   StrikersBoard,
   StrikersBoardCard,
   StrikersCard,
-  StrikersPlayerEntity,
+  StrikersGameStateValue,
   StrikersPlayerPosition,
   StrikersTeam,
   StrikersTurnEntity,
@@ -51,6 +51,7 @@ export const createStrikersGameMachine = ({
           },
         },
         PlayStatus: {
+          initial: 'Regulation',
           states: {
             Regulation: {
               initial: 'FirstHalf',
@@ -146,16 +147,19 @@ export const createStrikersGameMachine = ({
     {
       guards: {
         hasTimeRemainingInHalf: (context, event, meta) => {
-          // todo... check which half we're in
+          const stateValue = meta.state.value as StrikersGameStateValue;
+          stateValue.PlayStatus.Regulation.FirstHalf === 'NormalTime';
           return true;
         },
-        hasStoppageTimeRemaining: (context, event) => {
+        hasStoppageTimeRemaining: (context, event, meta) => {
+          console.log(meta);
           // calcaulte based off # of turns played
           return true;
         },
       },
       services: {
-        runTurn: async () => {
+        runTurn: async (_, event) => {
+          console.log('RUNNING TURN!');
           // take the board from the previous turn and store it
 
           // todo for resumes we might need to conditionally create the turn

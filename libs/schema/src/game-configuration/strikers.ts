@@ -112,7 +112,7 @@ const AbilityWeightSchema = z.object({
   rollWeight: z.number().int(),
 });
 
-const PossessionChartWeightsSchema = z.object({
+export const StrikersPossessionChartWeightsSchema = z.object({
   plusOneAction: AbilityWeightSchema, // add ones action for this turn
   plusTwoActions: AbilityWeightSchema, // adds two action for this turn
   plusFiveShortPass: AbilityWeightSchema, // adds +5 to a roll for a short pass
@@ -125,17 +125,14 @@ const PossessionChartWeightsSchema = z.object({
   plusFiveMark: AbilityWeightSchema, // adds +5 to the players attempt to mark an opponent to follow
 });
 
-const ShotOutcomesSchema = z.enum(['SAVE', 'CORNER', 'DEFLECT', 'GOAL']);
-
-const ShotWeightsSchema = z.object({
-  miss: z.number(),
+export const StrikersShotChartWeightsSchema = z.object({
   save: z.number(),
   corner: z.number(),
   deflect: z.number(),
   goal: z.number(),
 });
 
-const StrikersPlayerCardSchema = z.object({
+export const StrikersPlayerCardSchema = z.object({
   id: z.string(),
   name: z.string(),
   team: z.string(),
@@ -146,8 +143,8 @@ const StrikersPlayerCardSchema = z.object({
   speed: z.number(),
   endurance: z.number(),
   salary: z.number(),
-  possessionChartWeights: PossessionChartWeightsSchema,
-  shotWeights: ShotWeightsSchema,
+  possessionChartWeights: StrikersPossessionChartWeightsSchema,
+  shotChartWeights: StrikersShotChartWeightsSchema,
 });
 
 export const StrikersCardSchema = StrikersPlayerCardSchema;

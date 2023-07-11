@@ -11,28 +11,23 @@ export const createStrikersTurnMachine = ({
 }) => {
   return createMachine({
     id: 'StrikersTurnMachine',
-    initial: 'Setup',
+    initial: 'Complete',
     schema: {
       context: {} as StrikersTurnContext,
       events: {} as WithSenderId<StrikersTurnCommand>,
     },
     states: {
-      Setup: {
-        initial: 'Rosters',
+      Complete: {
+        initial: 'False',
         states: {
-          Rosters: {},
-          Lineups: {},
-          Pitch: {},
+          False: {
+            after: {
+              2000: 'True',
+            },
+          },
+          True: {},
         },
       },
-      Playing: {
-        initial: 'FirstHalf',
-        states: {
-          FirstHalf: {},
-          SecondHalf: {},
-        },
-      },
-      Complete: {},
     },
   });
 };

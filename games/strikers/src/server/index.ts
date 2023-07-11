@@ -19,7 +19,7 @@ export const createStrikersGame = (
   channelId: SnowflakeId,
   lobbyConfig: LobbyGameConfig
 ) => {
-  const cards = cardData.map((item) => StrikersCardSchema.parse(item));
+  // const cards = cardData.map((item) => StrikersCardSchema.parse(item));
   const channelEntity = entitiesById.get(channelId);
   assertChannelEntity(channelEntity);
 
@@ -65,7 +65,7 @@ export const createStrikersGame = (
     playerIds: [p1Player.id, p2Player.id],
     gameplaySettings,
     cardSettings,
-    cards,
+    cards: [],
     gameMode: 'quickplay',
     turnsPerHalf: 15,
     extraTime: {

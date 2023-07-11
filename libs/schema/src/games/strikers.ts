@@ -146,7 +146,13 @@ const ExtraTimeSchema = z.object({
 
 export const StrikersGameStateValueSchema = z.object({
   RunStatus: z.enum(['Paused', 'Running', 'Resuming', 'Error']),
-  PlayStatus: z.union([RegulationSchema, ExtraTimeSchema]),
+  PlayStatus: z.object({
+    Regulation: z.object({
+      FirstHalf: PlayPeriodStateEnum.optional(),
+      SecondHalf: PlayPeriodStateEnum.optional(),
+    }),
+    ExtraTime: PlayPeriodStateEnum.optional()
+  })
 });
 
 const StartCommandSchema = z.object({
@@ -292,8 +298,8 @@ const StrikersRollCommandSchema = z.object({
 });
 
 export const StrikersTurnCommandSchema = z.discriminatedUnion('type', [
-  // StrikersMoveActionCommandSchema,
-  // StrikersPassActionCommandSchema,
+  StrikersMoveActionCommandSchema,
+  StrikersPassActionCommandSchema,
   StrikersShootActionCommandSchema,
   StrikersRollCommandSchema,
 ]);
