@@ -56,6 +56,11 @@ import {
   StrikersTurnStateValueSchema,
   StrikersBoardStateSchema,
   StrikersBoardCardSchema,
+  StrikersEffectEntitySchema,
+  StrikersEffectStateValueSchema,
+  StrikersEffectCommandSchema,
+  StrikersEffectContextSchema,
+  StrikersEffectDataSchema,
 } from './games/strikers';
 import {
   BananaTradersGameCommandSchema,
@@ -377,6 +382,10 @@ export type EntityMachine =
   | {
       type: 'strikers_player';
       machine: StrikersPlayerMachine;
+    }
+  | {
+      type: 'strikers_effect';
+      machine: StrikersEffectMachine;
     };
 
 export type EntityMachineMap = IndexByType<EntityMachine>;
@@ -673,6 +682,22 @@ export type StrikersPlayerMachine = StateMachine<
   StrikersPlayerStateSchema,
   WithSenderId<StrikersPlayerCommand>
 >;
+
+export type StrikersEffectEntity = z.infer<typeof StrikersEffectEntitySchema>;
+export type StrikersEffectStateValue = z.infer<
+  typeof StrikersEffectStateValueSchema
+>;
+export type StrikersEffectCommand = z.infer<typeof StrikersEffectCommandSchema>;
+export type StrikersEffectStateSchema =
+  StateSchemaFromStateValue<StrikersEffectStateValue>;
+export type StrikersEffectContext = z.infer<typeof StrikersEffectContextSchema>;
+export type StrikersEffectMachine = StateMachine<
+  StrikersEffectContext,
+  StrikersEffectStateSchema,
+  WithSenderId<StrikersEffectCommand>
+>;
+
+export type StrikersEffectData = z.infer<typeof StrikersEffectDataSchema>;
 
 export type StrikersTurnEntity = z.infer<typeof StrikersTurnEntitySchema>;
 export type StrikersTurnStateValue = z.infer<

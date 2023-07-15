@@ -3,7 +3,7 @@ import {
   CodebreakersPlayerEntitySchema,
 } from '@schema/games/codebreakers';
 import {
-  StrikersGameCommandSchema,
+  StrikersEffectEntitySchema,
   StrikersGameEntitySchema,
   StrikersPlayerEntitySchema,
   StrikersTurnEntitySchema,
@@ -50,6 +50,7 @@ export const EntitySchemas = {
   strikers_game: StrikersGameEntitySchema,
   strikers_player: StrikersPlayerEntitySchema,
   strikers_turn: StrikersTurnEntitySchema,
+  strikers_effect: StrikersEffectEntitySchema,
 };
 
 export const EntitySchema = z.discriminatedUnion('schema', [
@@ -60,8 +61,9 @@ export const EntitySchema = z.discriminatedUnion('schema', [
   TriggerEntitySchema,
   MessageChannelEntitySchema,
   StrikersGameEntitySchema,
-  StrikersPlayerEntitySchema,
   StrikersTurnEntitySchema,
+  StrikersPlayerEntitySchema,
+  StrikersEffectEntitySchema,
   //   BananaTradersGameEntitySchema,
   //   BananaTradersPlayerEntitySchema,
   //   CodebreakersGameEntitySchema,

@@ -2,6 +2,15 @@ import { StrikersCardSettings, StrikersGameplaySettings } from '@schema/types';
 
 export const gameplaySettings = {
   rollThresholds: {
+    PENALTY_KICK: {
+      value: 10,
+    },
+    DIRECT_KICK: {
+      value: 10,
+    },
+    INDIRECT_KICK: {
+      value: 10,
+    },
     SHORT_PASS: {
       value: 5,
     },
@@ -24,6 +33,12 @@ export const gameplaySettings = {
       value: 3,
     },
   },
+  speedThresholds: {
+    S: 5,
+    A: 4,
+    B: 3,
+    C: 2,
+  },
 } satisfies StrikersGameplaySettings;
 
 export const cardSettings = {
@@ -35,8 +50,8 @@ export const cardSettings = {
   MID_POSSESSION_MAX: 13,
   FWD_POSSESSION_MIN: 3,
   FWD_POSSESSION_MAX: 14,
-  ENDURANCE_MIN: 4,
-  ENDURANCE_MAX: 6,
+  STAMINA_MIN: 4,
+  STAMINA_MAX: 6,
   SALARY_MIN: 3500,
   SALARY_MAX: 13500,
 } satisfies StrikersCardSettings;

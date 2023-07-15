@@ -159,9 +159,6 @@ export const createStrikersGameMachine = ({
       },
       services: {
         runTurn: async (_, event) => {
-          console.log('RUNNING TURN!');
-          // take the board from the previous turn and store it
-
           // todo for resumes we might need to conditionally create the turn
           // and store a reference to the current turn Id
           const { createEntity } = await import('@api/ecs');
@@ -169,8 +166,10 @@ export const createStrikersGameMachine = ({
             schema: 'strikers_turn',
             startedAt: new Date(),
             side: 'home',
+            playerId: '',
             totalActionCount: 0,
-            actions: [],
+            modifiers: [],
+            effects: [],
           });
           world.add(turnEntity);
           entity.turnsIds.push(turnEntity.id);
@@ -218,6 +217,7 @@ const initializeBoard: InitializeLineupService = (cards) => {
       homeTeam.push({
         team: 'home',
         cardId: card.id,
+        stamina: card.endurance,
         tilePosition: getTilePositionForPlayer(
           card.rosterPosition,
           'home',
@@ -231,6 +231,7 @@ const initializeBoard: InitializeLineupService = (cards) => {
       awayTeam.push({
         team: 'away',
         cardId: card.id,
+        stamina: card.endurance,
         tilePosition: getTilePositionForPlayer(
           card.rosterPosition,
           'away',

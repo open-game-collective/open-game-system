@@ -26,7 +26,7 @@ import {
   interpret,
 } from 'xstate';
 import { generateSnowflakeId } from './ids';
-import { machineMap } from './machines';
+import { entityMachineMap } from './machines';
 import { channelsById, entitiesById, world } from './server/state';
 // import { eventTriggerDispatchMachine } from './services/event-trigger-dispatch.service';
 import { World } from 'miniplex';
@@ -151,7 +151,7 @@ export const createEntity = <TEntity extends Entity>(
   } as unknown as TEntity; // todo fix hack, pretty sure this works though
 
   const proxy = new Proxy(entity, handler);
-  const machine = machineMap[entityProps.schema]({
+  const machine = entityMachineMap[entityProps.schema]({
     world,
     entity: proxy,
     channel: channelSubject,

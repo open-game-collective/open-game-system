@@ -17,12 +17,12 @@ import { createLittleVigilantePlayerMachine } from './entities/little-vigilante-
 import { createMessageChannelMachine } from './entities/messsage-channel';
 import { createRoomMachine } from './entities/room';
 import { createSessionMachine } from './entities/session';
-// import { createTriggerMachine } from './entities/trigger';
-import { createTriggerMachine } from './entities/trigger';
-import { createUserMachine } from './entities/user';
 import { createStrikersGameMachine } from '@strikers/server/entities/strikers-game';
 import { createStrikersPlayerMachine } from '@strikers/server/entities/strikers-player';
 import { createStrikersTurnMachine } from '@strikers/server/entities/strikers-turn';
+import { createStrikersEffectMachine } from '@strikers/server/entities/strikers-effect';
+import { createTriggerMachine } from './entities/trigger';
+import { createUserMachine } from './entities/user';
 
 type EntityMachineCreators = {
   [TSchemaType in keyof EntityMachineMap]: <
@@ -35,7 +35,7 @@ type EntityMachineCreators = {
   }) => Extract<EntityMachine, { type: TSchemaType }>['machine'];
 };
 
-export const machineMap: EntityMachineCreators = {
+export const entityMachineMap: EntityMachineCreators = {
   connection: createConnectionMachine,
   session: createSessionMachine,
   room: createRoomMachine,
@@ -51,6 +51,7 @@ export const machineMap: EntityMachineCreators = {
   strikers_game: createStrikersGameMachine,
   strikers_player: createStrikersPlayerMachine,
   strikers_turn: createStrikersTurnMachine,
+  strikers_effect: createStrikersEffectMachine,
   trigger: createTriggerMachine,
 };
 

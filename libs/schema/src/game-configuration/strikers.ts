@@ -16,21 +16,27 @@ export const StrikersRosterPositionSchema = z.union([
 // These settings are used by the card generation algorithm
 // to create the cards following distributions.
 export const StrikersCardSettingsSchema = z.object({
-  GK_POSSESSION_MIN: z.number(),
-  GK_POSSESSION_MAX: z.number(),
-  DEF_POSSESSION_MIN: z.number(),
-  DEF_POSSESSION_MAX: z.number(),
-  MID_POSSESSION_MIN: z.number(),
-  MID_POSSESSION_MAX: z.number(),
-  FWD_POSSESSION_MIN: z.number(),
-  FWD_POSSESSION_MAX: z.number(),
-  ENDURANCE_MIN: z.number(),
-  ENDURANCE_MAX: z.number(),
-  SALARY_MIN: z.number(),
-  SALARY_MAX: z.number(),
+  GK_POSSESSION_MIN: z.number().default(0),
+  GK_POSSESSION_MAX: z.number().default(14),
+  DEF_POSSESSION_MIN: z.number().default(4),
+  DEF_POSSESSION_MAX: z.number().default(12),
+  MID_POSSESSION_MIN: z.number().default(4),
+  MID_POSSESSION_MAX: z.number().default(13),
+  FWD_POSSESSION_MIN: z.number().default(4),
+  FWD_POSSESSION_MAX: z.number().default(14),
+  STAMINA_MIN: z.number().default(5),
+  STAMINA_MAX: z.number().default(10),
+  SALARY_MIN: z.number().default(5000),
+  SALARY_MAX: z.number().default(13000),
 });
 
 export const StrikersGameplaySettingsSchema = z.object({
+  speedThresholds: z.object({
+    S: z.number().default(5),
+    A: z.number().default(4),
+    B: z.number().default(3),
+    C: z.number().default(2),
+  }),
   rollThresholds: z.object({
     // Tackles attempts occur when a defender moves on to the same space as the player with the ball
     // differences in control
@@ -46,13 +52,25 @@ export const StrikersGameplaySettingsSchema = z.object({
 
     // If successful, the ball changes possession.
     TACKLE: z.object({
-      value: z.number(),
+      value: z.number().default(15),
     }),
 
     // Marking occurs when a defnder moves on to the same space as an opposing player who doesn't have the ball
     // The same roll calculation that applies to tackling applies to marking, but with typically a lower value.
     MARKING: z.object({
-      value: z.number(),
+      value: z.number().default(15),
+    }),
+
+    PENALTY_KICK: z.object({
+      value: z.number().default(15),
+    }),
+
+    INDIRECT_KICK: z.object({
+      value: z.number().default(18),
+    }),
+
+    DIRECT_KICK: z.object({
+      value: z.number().default(3),
     }),
 
     // A short pass is one that goes to a player within 1-2 spaces of the player who is passing.
@@ -140,7 +158,7 @@ export const StrikersPlayerCardSchema = z.object({
   league: z.string(),
   year: z.number(),
   possession: z.number(),
-  speed: z.number(),
+  speed: z.enum(['S', 'A', 'B', 'C']),
   endurance: z.number(),
   salary: z.number(),
   possessionChartWeights: StrikersPossessionChartWeightsSchema,

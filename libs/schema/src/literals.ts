@@ -11,6 +11,7 @@ export const BananaTradersGameSchemaTypeLiteral = z.literal(
 );
 export const StrikersGameSchemaTypeLiteral = z.literal('strikers_game');
 export const StrikersTurnSchemaTypeLiteral = z.literal('strikers_turn');
+export const StrikersEffectSchemaTypeLiteral = z.literal('strikers_effect');
 export const StrikersPlayerSchemaTypeLiteral = z.literal('strikers_player');
 export const BananaTradersPlayerSchemaTypeLiteral = z.literal(
   'banana_traders_player'
