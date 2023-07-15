@@ -1,44 +1,41 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
+import strikersLogo from '../images/strikers_tcg.jpg';
 ---
 
-<Layout title="Welcome to Astro.">
+<Layout title="Strikers: The Beautiful Trading Card Game™️">
   <main>
-    <h1>Welcome to <span class="text-gradient">Astro</span></h1>
-    <p class="instructions">
-      To get started, open the directory <code>src/pages</code> in your project.<br
-      />
-      <strong>Code Challenge:</strong> Tweak the "Welcome to Astro" message above.
+    <img
+      style={{ width: '100%' }}
+      src={strikersLogo}
+      alt="Strikers: The Beautiful Trading Card Game™️"
+    />
+    <p style={{ margin: '32px 0px', fontSize: '24px', textAlign: 'center' }}>
+      Available starting <span style={{ fontWeight: 'bold' }}>October 2023</span
+      >
     </p>
-    <ul role="list" class="link-card-grid">
-      <Card
-        href="https://docs.astro.build/"
-        title="Documentation"
-        body="Learn how Astro works and explore the official API docs."
-      />
-      <Card
-        href="https://astro.build/integrations/"
-        title="Integrations"
-        body="Supercharge your project with new frameworks and libraries."
-      />
-      <Card
-        href="https://astro.build/themes/"
-        title="Themes"
-        body="Explore a galaxy of community-built starter themes."
-      />
-      <Card
-        href="https://astro.build/chat/"
-        title="Astro Community"
-        body="Come say hi to our amazing Astro Discord community. ❤️"
-      />
-      <Card href="https://nx.dev/" title="Nx" body="Learn more about Nx." />
-      <Card
-        href="https://nrwlcommunity.slack.com/"
-        title="Nrwl Community Slack"
-        body="Come chat in the Nrwl Community Slack. ❤️"
-      />
-    </ul>
+    <form
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        maxWidth: '360px',
+        margin: '0 auto',
+      }}
+    >
+      <span>Join our subscriber list for updates</span>
+      <fieldset
+        style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+      >
+        <label for="email" aria-label="email">Email</label>
+        <input
+          name="email"
+          aria-label="email"
+          placeholder="l.messi@goat.com"
+          type="email"
+        />
+        <button type="submit">Submit</button>
+      </fieldset>
+    </form>
   </main>
 </Layout>
 
