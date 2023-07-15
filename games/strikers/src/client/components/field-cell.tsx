@@ -8,5 +8,6 @@ interface Props {
 
 export const FieldCell: FC<Props> = ({ children }) => {
   // todo calc position...
-  return <group>{children}</group>;
+  // return <group>{children}</group>;
+  return <group position={[[]]}></group>
 };

@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { Field } from './field';
 import { FieldCell } from './field-cell';
-import { Environment, OrbitControls } from '@react-three/drei';
+import { Environment, MapControls, OrbitControls } from '@react-three/drei';
 
 export default {
   component: Field,
@@ -17,7 +17,7 @@ export const Default = {
 
     return (
       <Canvas style={{ background: '#eee', aspectRatio: '1' }}>
-        <OrbitControls />
+        <MapControls />
         <ambientLight />
         <pointLight />
         <Field>

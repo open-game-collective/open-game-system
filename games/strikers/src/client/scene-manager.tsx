@@ -7,11 +7,13 @@ import { useFrame } from '@react-three/fiber';
 import { assertEntitySchema } from '@explorers-club/utils';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
 import { useStore } from '@nanostores/react';
-import { MapControls } from '@react-three/drei';
+import { MapControls, OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { FC, createContext, useEffect, useRef, useState } from 'react';
 import { SplashScene } from './scenes/splash-scene';
+import { FieldCell } from './components/field-cell';
+import { Field } from './components/field';
 
 const StrikersContext = createContext({
   gameEntity: {} as StrikersGameEntity,
@@ -37,22 +39,42 @@ export const StrikersSceneManager: FC<{
 
   return (
     <StrikersContext.Provider value={{ gameEntity, playerEntity: undefined }}>
-      <SplashScene />
+      {/* <SplashScene /> */}
+      <GameScene />
     </StrikersContext.Provider>
   );
 };
 
 const Tile = defineHex({ dimensions: 30 });
 
-export const StrikersGameScene = () => {
-  // const [grid] = useState(new Grid(Tile, rectangle({ width: 25, height: 15 })));
-  // const cells = Array.from(grid).map((cell) => {
-  //   return cell;
-  // });
+const GameScene = () => {
+  const [grid] = useState(new Grid(Tile, rectangle({ width: 25, height: 15 })));
+  const cells = Array.from(grid).map((cell) => {
+    return cell;
+  });
 
   return (
     <>
-      <MapControls screenSpacePanning={true} />
+      {/* <MapControls screenSpacePanning={true} /> */}
+      <OrbitControls />
+      <Field>
+        {cells.map((cell) => {
+          return (
+            <FieldCell tilePosition={{
+              q: undefined,
+              r: 0,
+              s: 0
+            }}>
+              <></>
+            </FieldCell>
+          );
+        })}
+        {/* {cells.map((cell) => {
+          return <FieldCell>
+            <></>
+            <FieldCell />
+        })} */}
+      </Field>
       <SplashScene />
       {/* {cells.map((cell) => {
         return (

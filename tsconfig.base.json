@@ -18,9 +18,9 @@
     "baseUrl": ".",
     "paths": {
       "@3d/*": ["libs/components/src/3d/*"],
+      "@api/*": ["libs/api/src/*"],
       "@atoms/*": ["libs/components/src/atoms/*"],
       "@context/*": ["libs/components/src/context/*"],
-      "@api/*": ["libs/api/src/*"],
       "@explorers-club/api": ["libs/api/src/index.ts"],
       "@explorers-club/api-client": ["libs/api/src/client"],
       "@explorers-club/chat": ["libs/chat/src/index.ts"],
