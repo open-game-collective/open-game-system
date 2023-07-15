@@ -1,8 +1,8 @@
 import { entitiesById } from '@api/index';
 import {
   Entity,
-  StrikersEffectEntity,
   StrikersEffectData,
+  StrikersEffectEntity,
   WithSenderId,
 } from '@explorers-club/schema';
 import { assertEntitySchema, assertEventType } from '@explorers-club/utils';
@@ -24,120 +24,127 @@ export const createStrikersTurnMachine = ({
   return createMachine(
     {
       id: 'StrikersTurnMachine',
+      type: 'parallel',
       schema: {
         context: {} as StrikersTurnContext,
         events: {} as WithSenderId<StrikersTurnCommand>,
       },
       states: {
-        InProgress: {
-          initial: 'WaitingForInput',
-          onDone: 'Complete',
+        Status: {
+          initial: 'InProgress',
           states: {
-            WaitingForInput: {
-              on: {
-                MOVE: {
-                  target: 'Moving',
+            InProgress: {
+              initial: 'WaitingForInput',
+              onDone: 'Complete',
+              states: {
+                WaitingForInput: {
+                  on: {
+                    MOVE: {
+                      target: 'Moving',
+                    },
+                    PASS: {
+                      target: 'Passing',
+                    },
+                    SHOOT: {
+                      target: 'Shooting',
+                    },
+                  },
                 },
-                PASS: {
-                  target: 'Passing',
-                },
-                SHOOT: {
-                  target: 'Shooting',
-                },
-              },
-            },
-            Moving: {
-              invoke: {
-                src: 'runEffect',
-                meta: (
-                  _: StrikersTurnContext,
-                  event: WithSenderId<StrikersTurnCommand>
-                ) => {
-                  assertEventType(event, 'MOVE');
-                  // todo: get playerId from event.senderId
-                  // todo perform move, fix from/to
+                Moving: {
+                  invoke: {
+                    src: 'runEffect',
+                    meta: (
+                      _: StrikersTurnContext,
+                      event: WithSenderId<StrikersTurnCommand>
+                    ) => {
+                      assertEventType(event, 'MOVE');
+                      // todo: get playerId from event.senderId
+                      // todo perform move, fix from/to
 
-                  return {
-                    type: 'MOVE',
-                    category: 'ACTION',
-                    cardId: event.cardId,
-                    fromPosition: event.target,
-                    toPosition: event.target,
-                  } satisfies StrikersEffectData;
+                      return {
+                        type: 'MOVE',
+                        category: 'ACTION',
+                        cardId: event.cardId,
+                        fromPosition: event.target,
+                        toPosition: event.target,
+                      } satisfies StrikersEffectData;
+                    },
+                    onDone: 'ActionComplete',
+                    onError: 'Error',
+                  },
                 },
-                onDone: 'ActionComplete',
-                onError: 'Error',
-              },
-            },
-            Passing: {
-              invoke: {
-                src: 'runEffect',
-                meta: (
-                  _: StrikersTurnContext,
-                  event: WithSenderId<StrikersTurnCommand>
-                ) => {
-                  assertEventType(event, 'PASS');
-                  // todo fix these values
+                Passing: {
+                  invoke: {
+                    src: 'runEffect',
+                    meta: (
+                      _: StrikersTurnContext,
+                      event: WithSenderId<StrikersTurnCommand>
+                    ) => {
+                      assertEventType(event, 'PASS');
+                      // todo fix these values
 
-                  return {
-                    type: 'PASS',
-                    category: 'ACTION',
-                    fromCardId: '',
-                    fromPosition: event.target,
-                    toCardId: '',
-                    toPosition: event.target,
-                  } satisfies StrikersEffectData;
+                      return {
+                        type: 'PASS',
+                        category: 'ACTION',
+                        fromCardId: '',
+                        fromPosition: event.target,
+                        toCardId: '',
+                        toPosition: event.target,
+                      } satisfies StrikersEffectData;
+                    },
+                    onDone: 'ActionComplete',
+                    onError: 'Error',
+                  },
                 },
-                onDone: 'ActionComplete',
-                onError: 'Error',
-              },
-            },
-            Shooting: {
-              invoke: {
-                src: 'runEffect',
-                meta: (
-                  _: StrikersTurnContext,
-                  event: WithSenderId<StrikersTurnCommand>
-                ) => {
-                  assertEventType(event, 'SHOOT');
-                  // todo fix these values
+                Shooting: {
+                  invoke: {
+                    src: 'runEffect',
+                    meta: (
+                      _: StrikersTurnContext,
+                      event: WithSenderId<StrikersTurnCommand>
+                    ) => {
+                      assertEventType(event, 'SHOOT');
+                      // todo fix these values
 
-                  return {
-                    type: 'SHOOT',
-                    category: 'ACTION',
-                    fromCardId: '',
-                    fromPosition: event.target,
-                    toCardId: '',
-                    toPosition: event.target,
-                  } satisfies StrikersEffectData;
+                      return {
+                        type: 'SHOOT',
+                        category: 'ACTION',
+                        fromCardId: '',
+                        fromPosition: event.target,
+                        toCardId: '',
+                        toPosition: event.target,
+                      } satisfies StrikersEffectData;
+                    },
+                    onDone: 'ActionComplete',
+                    onError: 'Error',
+                  },
                 },
-                onDone: 'ActionComplete',
-                onError: 'Error',
+                ActionComplete: {
+                  always: [
+                    {
+                      target: 'WaitingForInput',
+                      cond: 'hasActionsRemaining',
+                    },
+                    {
+                      target: 'NoMoreActions',
+                    },
+                  ],
+                },
+                NoMoreActions: {
+                  type: 'final',
+                },
+                Error: {
+                  entry: console.error,
+                },
               },
             },
-            ActionComplete: {
-              always: [
-                {
-                  target: 'WaitingForInput',
-                  cond: 'hasActionsRemaining',
-                },
-                {
-                  target: 'NoMoreActions',
-                },
-              ],
-            },
-            NoMoreActions: {
+            Complete: {
               type: 'final',
-            },
-            Error: {
-              entry: console.error,
             },
           },
         },
-        Complete: {
-          type: 'final',
-        },
       },
+      predictableActionArguments: true,
     },
     {
       services: {

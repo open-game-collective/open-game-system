@@ -45,7 +45,7 @@ import {
   StrikersGameStateValueSchema,
   // StrikersLineupCommandSchema,
   StrikersTeamSchema,
-  StrikersLineupContextSchema,
+  // StrikersLineupContextSchema,
   StrikersPlayerCommandSchema,
   StrikersPlayerContextSchema,
   StrikersPlayerEntitySchema,
@@ -661,7 +661,7 @@ export type StrikersPlayerPosition = z.infer<
 export type StrikersCard = z.infer<typeof StrikersCardSchema>;
 // export type StrikersBoardCoordinates = z.infer<typeof BoardCoordinatesSchema>;
 // export type StrikersLineupCommand = z.infer<typeof StrikersLineupCommandSchema>;
-export type StrikersLineupContext = z.infer<typeof StrikersLineupContextSchema>;
+// export type StrikersLineupContext = z.infer<typeof StrikersLineupContextSchema>;
 export type StrikersPossessionChartWeights = z.infer<
   typeof StrikersPossessionChartWeightsSchema
 >;

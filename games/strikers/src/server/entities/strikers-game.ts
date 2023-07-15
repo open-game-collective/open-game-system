@@ -162,12 +162,17 @@ export const createStrikersGameMachine = ({
           // todo for resumes we might need to conditionally create the turn
           // and store a reference to the current turn Id
           const { createEntity } = await import('@api/ecs');
+
+          const index = entity.turnsIds.length % 2;
+          const playerId = entity.config.playerIds[index];
+          assert(playerId, 'expected playerId but not foudn');
+
           const turnEntity = createEntity<StrikersTurnEntity>({
             schema: 'strikers_turn',
             startedAt: new Date(),
             side: 'home',
-            playerId: '',
-            totalActionCount: 0,
+            playerId,
+            totalActionCount: entity.config.gameplaySettings.actionsPerTurn,
             modifiers: [],
             effects: [],
           });
@@ -176,7 +181,7 @@ export const createStrikersGameMachine = ({
 
           await waitForCondition(
             turnEntity,
-            (entity) => entity.states.Complete === 'True'
+            (entity) => entity.states.Status === 'Complete'
           );
         },
       },

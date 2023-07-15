@@ -1,6 +1,7 @@
 import { StrikersCardSettings, StrikersGameplaySettings } from '@schema/types';
 
 export const gameplaySettings = {
+  actionsPerTurn: 4,
   rollThresholds: {
     PENALTY_KICK: {
       value: 10,

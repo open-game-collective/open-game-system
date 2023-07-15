@@ -1,19 +1,14 @@
 import { entitiesById, generateSnowflakeId, world } from '@explorers-club/api';
 import { assert, assertChannelEntity } from '@explorers-club/utils';
 import {
-  StrikersCardSchema,
-  StrikersGameConfigDataSchema,
-} from '@schema/game-configuration/strikers';
-import {
   LobbyGameConfig,
   SnowflakeId,
   StrikersGameConfigData,
   StrikersGameEntity,
   StrikersPlayerEntity,
 } from '@schema/types';
-import { gameplaySettings, cardSettings } from '@strikers/config';
+import { cardSettings, gameplaySettings } from '@strikers/config';
 import { createEntity } from 'libs/api/src/ecs';
-import * as cardData from '../../data/cards.json';
 
 export const createStrikersGame = (
   channelId: SnowflakeId,

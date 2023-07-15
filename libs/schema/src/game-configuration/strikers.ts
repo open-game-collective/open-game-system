@@ -31,6 +31,7 @@ export const StrikersCardSettingsSchema = z.object({
 });
 
 export const StrikersGameplaySettingsSchema = z.object({
+  actionsPerTurn: z.number().default(4),
   speedThresholds: z.object({
     S: z.number().default(5),
     A: z.number().default(4),
