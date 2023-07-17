@@ -136,6 +136,11 @@ const fullPlayerInfo = [
   },
 ];
 
+export const TwoPlayer = Template.bind({});
+TwoPlayer.args = {
+  numPlayers: 2,
+};
+
 export const ThreePlayer = Template.bind({});
 ThreePlayer.args = {
   numPlayers: 3,
