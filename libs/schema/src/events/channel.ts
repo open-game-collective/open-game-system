@@ -2,41 +2,54 @@ import { z } from 'zod';
 import { SnowflakeIdSchema } from '../common';
 import {
   DebugEventTypeLiteral,
-  JoinEventTypeLiteral,
-  LeaveEventTypeLiteral,
   LogEventTypeLiteral,
   MessageEventTypeLiteral,
 } from '../literals';
 import { EventBaseSchema } from './base';
-import { ConnectEventSchema, DisconnectEventSchema } from '@schema/lib/room';
+import { RoomMessageEventSchema } from '@schema/lib/room';
 
-export const MessageEventSchema = EventBaseSchema(
-  MessageEventTypeLiteral,
-  z.object({
-    sender: SnowflakeIdSchema,
-    content: z.string(),
-  })
-);
+const ConnectMessageComponentLiteral = z.literal('CONNECT_MESSAGE');
+const DisconnectMessageComponentLiteral = z.literal('DISCONNECT_MESSAGE');
+const StartingGameMessageComponentLiteral = z.literal('STARTING_GAME_MESSAGE');
+
+export const MessageComponentTypeSchema = z.union([
+  ConnectMessageComponentLiteral,
+  DisconnectMessageComponentLiteral,
+  StartingGameMessageComponentLiteral,
+]);
+
+// const ConnectMessagePropsSchema = z.object({
+//   type: ConnectMessageComponentLiteral,
+//   name: z.string(),
+// });
+
+// const DisconnectMessagePropsSchema = z.object({
+//   type: DisconnectMessageComponentLiteral,
+//   name: z.string(),
+// });
+
+// const MessageContentSchema = z.discriminatedUnion('type', [
+//   ConnectMessagePropsSchema,
+//   DisconnectMessagePropsSchema,
+// ]);
+
+// export const MessageEventSchema = EventBaseSchema(
+//   MessageEventTypeLiteral,
+//   z.object({
+//     sender: SnowflakeIdSchema,
+//     contents: z.object({
+//       sender: SnowflakeIdSchema,
+//       recipient: SnowflakeIdSchema.optional(),
+//       content: z.array(MessageContentSchema),
+//     }),
+//   })
+// );
 
 export const LogEventSchema = EventBaseSchema(
   LogEventTypeLiteral,
   z.object({
     level: z.enum(['DEBUG', 'INFO', 'ERROR']),
     content: z.string(),
-  })
-);
-
-export const JoinEventSchema = EventBaseSchema(
-  JoinEventTypeLiteral,
-  z.object({
-    subjectId: SnowflakeIdSchema,
-  })
-);
-
-export const LeaveEventSchema = EventBaseSchema(
-  LeaveEventTypeLiteral,
-  z.object({
-    subjectId: SnowflakeIdSchema,
   })
 );
 
@@ -49,10 +62,6 @@ export const DebugEventSchema = EventBaseSchema(
 
 export const ChannelEventSchema = z.union([
   LogEventSchema,
-  MessageEventSchema,
-  JoinEventSchema,
-  LeaveEventSchema,
   DebugEventSchema,
-  ConnectEventSchema,
-  DisconnectEventSchema,
+  RoomMessageEventSchema,
 ]);

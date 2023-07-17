@@ -78,14 +78,6 @@ export const RoomStateValueSchema = z.object({
 //   content: z.string(),
 // });
 
-const MessageEventSchema = EventBaseSchema(
-  MessageEventTypeLiteral,
-  z.object({
-    sender: SnowflakeIdSchema,
-    content: z.string(),
-  })
-);
-
 export const LogEventSchema = EventBaseSchema(
   LogEventTypeLiteral,
   z.object({
@@ -106,40 +98,43 @@ export const DebugEventSchema = EventBaseSchema(
     content: z.string(),
   })
 );
-// export type DebugEvent = z.infer<typeof DebugEventSchema>;
 
-export const JoinEventSchema = EventBaseSchema(
-  JoinEventTypeLiteral,
-  z.object({
-    subjectId: SnowflakeIdSchema,
-  })
-);
+const ConnectMessageComponentLiteral = z.literal('CONNECT_MESSAGE');
+const DisconnectMessageComponentLiteral = z.literal('DISCONNECT_MESSAGE');
+const StartingGameMessageComponentLiteral = z.literal('STARTING_GAME_MESSAGE');
 
-export const ConnectEventSchema = EventBaseSchema(
-  ConnectEventTypeLiteral,
-  z.object({
-    subjectId: SnowflakeIdSchema,
-  })
-);
+export const MessageComponentType = z.union([
+  ConnectMessageComponentLiteral,
+  DisconnectMessageComponentLiteral,
+  StartingGameMessageComponentLiteral,
+]);
 
-export const DisconnectEventSchema = EventBaseSchema(
-  DisconnectEventTypeLiteral,
-  z.object({
-    subjectId: SnowflakeIdSchema,
-  })
-);
+const ConnectMessagePropsSchema = z.object({
+  type: ConnectMessageComponentLiteral,
+  name: z.string(),
+});
 
-export const LeaveEventSchema = EventBaseSchema(
-  LeaveEventTypeLiteral,
+const DisconnectMessagePropsSchema = z.object({
+  type: DisconnectMessageComponentLiteral,
+  name: z.string(),
+});
+
+const MessageContentSchema = z.discriminatedUnion('type', [
+  ConnectMessagePropsSchema,
+  DisconnectMessagePropsSchema,
+]);
+
+export const RoomMessageEventSchema = EventBaseSchema(
+  MessageEventTypeLiteral,
   z.object({
-    subjectId: SnowflakeIdSchema,
+    senderId: SnowflakeIdSchema,
+    recipientId: SnowflakeIdSchema.optional(),
+    contents: z.array(MessageContentSchema),
   })
 );
 
 export const RoomEventSchema = z.discriminatedUnion('type', [
-  MessageEventSchema,
-  JoinEventSchema,
-  LeaveEventSchema,
-  ConnectEventSchema,
-  DisconnectEventSchema,
+  RoomMessageEventSchema,
+  LogEventSchema,
+  DebugEventSchema,
 ]);

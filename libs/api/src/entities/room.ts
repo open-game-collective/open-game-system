@@ -1,8 +1,6 @@
 import type {
-  ConnectEvent,
-  DisconnectEvent,
   LobbyGameConfig,
-  StrikersGameConfigData,
+  RoomMessageEvent,
   WithSenderId,
 } from '@explorers-club/schema';
 import {
@@ -11,18 +9,13 @@ import {
   RoomCommand,
   RoomContext,
   RoomEvent,
-  StrikersGameEntity,
-  StrikersPlayerEntity,
 } from '@explorers-club/schema';
 import { assertEntitySchema } from '@explorers-club/utils';
 import { createStrikersGame } from '@strikers/server';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
 import { createMachine } from 'xstate';
-import { createEntity } from '../ecs';
-import { generateSnowflakeId } from '../ids';
 import { entitiesById } from '../server/state';
-import { assert } from 'console';
 // import { generateSnowflakeId } from '../ids';
 
 export const createRoomMachine = ({
@@ -66,6 +59,9 @@ export const createRoomMachine = ({
 
               // todo: some new joined the room, log a message
               // by sending a message ot the channel
+              // roomChannel.next({
+              //   type: 'CONNECT',
+              // } as CreateEventProps<ConnectEvent>);
 
               // roomChannel.next({
               //   type: 'CONNECT',
@@ -85,10 +81,22 @@ export const createRoomMachine = ({
               ),
             ];
 
-            roomChannel.next({
-              type: 'DISCONNECT',
-              subjectId: event.senderId,
-            } as CreateEventProps<DisconnectEvent>);
+            const connectEvent = {
+              type: 'MESSAGE',
+              senderId: roomEntity.id,
+              contents: [
+                {
+                  type: 'DISCONNECT_MESSAGE',
+                  name: 'Foobar',
+                },
+              ],
+            } satisfies CreateEventProps<RoomMessageEvent>;
+            roomChannel.next(connectEvent);
+
+            // roomChannel.next({
+            //   type: 'M',
+            //   subjectId: event.senderId,
+            // } as CreateEventProps<DisconnectEvent>);
           },
         },
       },
@@ -130,13 +138,16 @@ export const createRoomMachine = ({
 
                   const lobbyGameConfig = {
                     p1SessionId: roomEntity.allSessionIds[0],
-                    p2SessionId: roomEntity.allSessionIds[1]
+                    p2SessionId: roomEntity.allSessionIds[1],
                   } satisfies LobbyGameConfig;
 
                   let gameEntity: Entity;
                   switch (roomEntity.gameId) {
                     case 'strikers':
-                      gameEntity = createStrikersGame(roomEntity.id, lobbyGameConfig);
+                      gameEntity = createStrikersGame(
+                        roomEntity.id,
+                        lobbyGameConfig
+                      );
                       break;
                     default:
                       throw new Error(

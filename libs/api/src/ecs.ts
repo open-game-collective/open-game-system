@@ -137,8 +137,8 @@ export const createEntity = <TEntity extends Entity>(
   const channelObservable = channelSubject.pipe(
     map((event) => {
       return {
+        id: event.id || generateSnowflakeId(),
         ...event,
-        id: generateSnowflakeId(),
         channelId: id,
       } as ChannelEvent;
     })

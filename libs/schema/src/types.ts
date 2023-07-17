@@ -16,7 +16,11 @@ import {
   EntitySchemas,
   GameEntitySchema,
 } from './entity';
-import { ChannelEventSchema, MessageEventSchema } from './events/channel';
+import {
+  ChannelEventSchema,
+  MessageComponentTypeSchema,
+  // MessageEventSchema,
+} from './events/channel';
 import { ClientEventSchema } from './events/client';
 import { LobbyGameConfigSchema } from './game-configuration';
 import {
@@ -39,28 +43,28 @@ import {
   CodebreakersPlayerStateValueSchema,
 } from './games/codebreakers';
 import {
+  StrikersBoardCardSchema,
+  StrikersEffectCommandSchema,
+  StrikersEffectContextSchema,
+  StrikersEffectDataSchema,
+  StrikersEffectEntitySchema,
+  StrikersEffectStateValueSchema,
   StrikersGameCommandSchema,
   StrikersGameContextSchema,
   StrikersGameEntitySchema,
+  StrikersGameStateSchema,
   StrikersGameStateValueSchema,
-  // StrikersLineupCommandSchema,
-  StrikersTeamSchema,
   // StrikersLineupContextSchema,
   StrikersPlayerCommandSchema,
   StrikersPlayerContextSchema,
   StrikersPlayerEntitySchema,
   StrikersPlayerStateValueSchema,
+  // StrikersLineupCommandSchema,
+  StrikersTeamSchema,
   StrikersTurnCommandSchema,
   StrikersTurnContextSchema,
   StrikersTurnEntitySchema,
   StrikersTurnStateValueSchema,
-  StrikersGameStateSchema,
-  StrikersBoardCardSchema,
-  StrikersEffectEntitySchema,
-  StrikersEffectStateValueSchema,
-  StrikersEffectCommandSchema,
-  StrikersEffectContextSchema,
-  StrikersEffectDataSchema,
 } from './games/strikers';
 import {
   BananaTradersGameCommandSchema,
@@ -95,15 +99,12 @@ import {
   MessageTemplateSchema,
 } from './lib/message-channel';
 import {
-  ConnectEventSchema,
   DebugEventSchema,
-  DisconnectEventSchema,
-  JoinEventSchema,
-  LeaveEventSchema,
   LogEventSchema,
   RoomCommandSchema,
   RoomContextSchema,
   RoomEntitySchema,
+  RoomMessageEventSchema,
   RoomEventSchema,
   RoomStateValueSchema,
 } from './lib/room';
@@ -230,6 +231,7 @@ export type RoomMachine = StateMachine<
   RoomStateSchema,
   WithSenderId<RoomCommand>
 >;
+export type RoomMessageEvent = z.infer<typeof RoomMessageEventSchema>;
 
 export type MessageChannelStateSchema =
   StateSchemaFromStateValue<MessageChannelStateValue>;
@@ -273,11 +275,11 @@ export type TriggerMachine = StateMachine<
   TriggerCommand
 >;
 
-export type LeaveEvent = z.infer<typeof LeaveEventSchema>;
-export type JoinEvent = z.infer<typeof JoinEventSchema>;
-export type ConnectEvent = z.infer<typeof ConnectEventSchema>;
-export type DisconnectEvent = z.infer<typeof DisconnectEventSchema>;
-export type MessageEvent = z.infer<typeof MessageEventSchema>;
+// export type LeaveEvent = z.infer<typeof LeaveEventSchema>;
+// export type JoinEvent = z.infer<typeof JoinEventSchema>;
+// export type ConnectEvent = z.infer<typeof ConnectEventSchema>;
+// export type DisconnectEvent = z.infer<typeof DisconnectEventSchema>;
+// export type MessageEvent = z.infer<typeof MessageEventSchema>;
 export type LogEvent = z.infer<typeof LogEventSchema>;
 export type DebugEvent = z.infer<typeof DebugEventSchema>;
 export type ChannelEvent = z.infer<typeof ChannelEventSchema>;
@@ -288,6 +290,7 @@ export type EntityEvent = Parameters<Parameters<Entity['subscribe']>[0]>[0];
 export type EntitySchemaType = keyof typeof EntitySchemas;
 
 export type ChannelEntity = z.infer<typeof ChannelEntitySchema>;
+export type MessageComponentType = z.infer<typeof MessageComponentTypeSchema>;
 export type GameEntity = z.infer<typeof GameEntitySchema>;
 
 export interface Service {
@@ -464,8 +467,8 @@ export type InitialEntityProps<TEntity extends Entity> = Omit<
 type SE = InitialEntityProps<StrikersGameEntity>;
 
 export type CreateEventProps<TEvent extends ChannelEvent> = Omit<
-  TEvent,
-  'id' | 'channelId'
+  MakeOptional<TEvent, 'id'>,
+  'channelId'
 >;
 
 export type NewRoomContext = z.infer<typeof NewRoomContextSchema>;
