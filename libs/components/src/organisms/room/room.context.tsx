@@ -15,10 +15,10 @@ export const RoomContext = createContext(
 export const RoomProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { entityStoreRegistry } = useContext(WorldContext);
   const connectionEntity = useStore(
-    entityStoreRegistry.myInitializedConnectionEntity
+    entityStoreRegistry.myConnectionEntity
   );
   const currentChannelId = useEntityStoreSelector(
-    entityStoreRegistry.myInitializedConnectionEntity,
+    entityStoreRegistry.myConnectionEntity,
     (entity) => entity.currentChannelId
   );
 

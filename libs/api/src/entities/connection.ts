@@ -8,6 +8,7 @@ import {
   SessionEntity,
   WithSenderId,
 } from '@explorers-club/schema';
+import { assign as assignImmer } from '@xstate/immer';
 import type { RoomCommand, SessionCommand } from '@schema/types';
 import { assert, assertEventType } from '@explorers-club/utils';
 import {
@@ -108,11 +109,22 @@ export const createConnectionMachine = ({
         events: {} as WithSenderId<ConnectionCommand>, // warning sendinerId not present for initialize
       },
       context: {
-        // supabaseClient: undefined,
         reconnectCount: -1,
         chatServiceRef: undefined,
       },
       states: {
+        Chat: {
+          initial: 'Running',
+          entry: assign({
+            chatServiceRef: spawn(
+              createChatMachine({ connectionEntity }),
+              'chatService'
+            ) as ConnectionContext['chatServiceRef'],
+          }),
+          states: {
+            Running: {},
+          },
+        },
         Route: {
           initial: connectionEntity.initialRouteProps.name,
           on: {
@@ -189,10 +201,10 @@ export const createConnectionMachine = ({
                     onError: 'Error',
                   },
                 },
-                Error: {},
-                Initialized: {
-                  entry: ['spawnChatService'],
+                Error: {
+                  entry: console.error,
                 },
+                Initialized: {},
               },
             },
           },
@@ -211,117 +223,21 @@ export const createConnectionMachine = ({
                 },
                 onDone: {
                   target: 'True',
-                  // actions: assignImmer<
-                  //   ConnectionContext,
-                  //   DoneInvokeEvent<InitializedConnectionContext>
-                  // >((context, { data }) => {
-                  //   // context.location = data.location;
-                  //   // context.deviceId = data.deviceId;
-                  //   context.supabaseClient = data.supabaseClient;
-                  // }),
+                  actions: assignImmer<
+                    ConnectionContext,
+                    DoneInvokeEvent<{
+                      chatServiceRef: ConnectionContext['chatServiceRef'];
+                    }>
+                  >((context, { data }) => {
+                    context.chatServiceRef = data.chatServiceRef;
+                  }),
                 },
                 src: async (context, event) => {
-                  // assertEventType(event, 'INITIALIZE');
-                  // any further async initializaiton here...
-                  // let supabaseSession: Session;
-                  // // If returning user, get session
-                  // if (authTokens) {
-                  //   const { data, error } =
-                  //     await supabaseClient.auth.setSession({
-                  //       access_token: authTokens.accessToken,
-                  //       refresh_token: authTokens.refreshToken,
-                  //     });
-                  //   if (error) {
-                  //     throw new TRPCError({
-                  //       code: 'INTERNAL_SERVER_ERROR',
-                  //       message: error.message,
-                  //       cause: error,
-                  //     });
-                  //   }
-                  //   if (!data.session) {
-                  //     throw new TRPCError({
-                  //       code: 'UNAUTHORIZED',
-                  //       message:
-                  //         'Not able to get supabase session with authTokens',
-                  //     });
-                  //   }
-                  //   supabaseSession = data.session;
-                  // } else {
-                  //   // Create the user if not exists
-                  //   const { data, error } = await supabaseClient.auth.signUp({
-                  //     email: `anon-${generateRandomString()}@explorers.club`,
-                  //     password: `${generateRandomString()}33330`,
-                  //   });
-                  //   if (error) {
-                  //     throw new TRPCError({
-                  //       code: 'INTERNAL_SERVER_ERROR',
-                  //       message: error.message,
-                  //       cause: error,
-                  //     });
-                  //   }
-                  //   if (!data.session) {
-                  //     throw new TRPCError({
-                  //       code: 'INTERNAL_SERVER_ERROR',
-                  //       message: 'Expected session but was missing',
-                  //     });
-                  //   }
-                  //   supabaseSession = data.session;
-                  //   await supabaseClient.auth.setSession({
-                  //     access_token: data.session.access_token,
-                  //     refresh_token: data.session.refresh_token,
-                  //   });
-                  //   // Create user entity if doesn't already exist
-                  //   const userEntity = usersById.get(supabaseSession.user.id);
-                  //   if (!userEntity) {
-                  //     const START_NUMBER = 1000; // fake for now, use real db number later
-                  //     const serialNumber = START_NUMBER + usersById.size + 1;
-                  //     const userEntity = createEntity<UserEntity>({
-                  //       serialNumber,
-                  //       schema: 'user',
-                  //       discriminator: serialNumber,
-                  //       name: 'Miner',
-                  //     });
-                  //     world.add(userEntity);
-                  //     // sessionEntity.userId = userEntity.id;
-                  //   }
-                  // }
-                  // const userId = supabaseSession.user.id;
-                  // sessionEntity = sessionsByUserId.get(userId) as
-                  //   | SessionEntity
-                  //   | undefined;
-                  // // If session exists set it on the connection
-                  // if (sessionEntity) {
-                  //   world.addComponent(
-                  //     connectionEntity,
-                  //     'sessionId',
-                  //     sessionEntity.id
-                  //   );
-                  // } else {
-                  //   // Otherwise make a new session
-                  //   sessionEntity = createEntity<SessionEntity>({
-                  //     schema: 'session',
-                  //     userId,
-                  //     name: 'Miner #48572',
-                  //   });
-                  //   // add the session Id to the connection
-                  //   world.addComponent(
-                  //     connectionEntity,
-                  //     'sessionId',
-                  //     sessionEntity.id
-                  //   );
-                  //   world.add(sessionEntity);
-                  // }
-                  // const deviceId = event.deviceId || generateSnowflakeId();
-                  // Do I need to use addComponent
-                  // connectionEntity.deviceId = deviceId;
-                  // connectionEntity.accessToken = accessToken
-                  // connectionEntity.authTokens = {
-                  //   accessToken: supabaseSession.access_token,
-                  //   refreshToken: supabaseSession.refresh_token,
-                  // };
-                  // return {
-                  //   chatServiceRef
-                  // } satisfies InitializedConnectionContext;
+                  const chatServiceRef = spawn(
+                    createChatMachine({ connectionEntity }),
+                    'chatService'
+                  ) as ConnectionContext['chatServiceRef'];
+                  return { chatServiceRef };
                 },
               },
             },
@@ -377,7 +293,9 @@ export const createConnectionMachine = ({
                 },
               },
             },
-            Error: {},
+            Error: {
+              entry: console.error,
+            },
             Denied: {},
           },
         },
@@ -386,7 +304,7 @@ export const createConnectionMachine = ({
     },
     {
       services: {
-        connectToRoom: async () => {
+        connectToRoom: async (context) => {
           const url = new URL(connectionEntity.currentUrl);
           const slug = url.pathname.split('/')[1];
           assert(slug, 'error parsing slug from currentUrl');
@@ -407,6 +325,26 @@ export const createConnectionMachine = ({
             type: 'CONNECT',
             senderId: connectionEntity.id,
           } satisfies RoomCommand);
+
+          assert(
+            context.chatServiceRef,
+            "expected chatService to be defined but wasn't"
+          );
+
+          // Join the chat room
+          // todo: is this still used? or just use message_channel entity now
+          // context.chatServiceRef.send({
+          //   type: 'JOIN_CHANNEL',
+          //   channelId: roomEntity.id,
+          // });
+
+          // // Join the game room if there is one
+          // if (roomEntity.gameId) {
+          //   context.chatServiceRef.send({
+          //     type: 'JOIN_CHANNEL',
+          //     channelId: roomEntity.gameId,
+          //   });
+          // }
 
           connectionEntity.currentChannelId = roomEntity.id;
           connectionEntity.allChannelIds = [
@@ -458,24 +396,6 @@ export const createConnectionMachine = ({
         //   //     channelId: roomEntity.gameId,
         //   //   });
         //   // }
-
-        //   // todo clean up ref
-        //   // wasnt able to get assign on entry to be called so gave up
-        //   // spawn(
-        //   //   chatMachine.withContext({
-        //   //     roomSlug: connectionEntity.currentRoomSlug,
-        //   //   }),
-        //   //   'chatService'
-        //   // );
-        //   // chatService.join()
-        // },
-        spawnChatService: assign({
-          chatServiceRef: () =>
-            spawn(
-              createChatMachine({ connectionEntity }),
-              'chatService'
-            ) as ConnectionContext['chatServiceRef'],
-        }),
 
         setCurrentLocation: (_, event) => {
           const parsedEvent = SetCurrentLocationEventSchema.parse(event);

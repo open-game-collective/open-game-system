@@ -12,7 +12,6 @@ export const useEntityStoreSelector = <TEntity extends Entity, TResult>(
   const subscribe = (onStoreChange: () => void) => {
     let unsub: Function | undefined;
     return store.listen((entity) => {
-      console.log('ENTITY CHANGIN!', entity);
       if (!entity) {
         if (unsub) {
           unsub();
@@ -23,9 +22,7 @@ export const useEntityStoreSelector = <TEntity extends Entity, TResult>(
 
       unsub = entity.subscribe(() => {
         const nextValue = selector(entity);
-        // console.log({ nextValue }, entity);
         if (value !== nextValue) {
-          // console.log('updating', value);
           value = nextValue;
           onStoreChange();
         }
@@ -34,7 +31,6 @@ export const useEntityStoreSelector = <TEntity extends Entity, TResult>(
       const nextValue = selector(entity);
       if (value !== nextValue) {
         value = nextValue;
-        // console.log('updating', value);
         onStoreChange();
       }
     });

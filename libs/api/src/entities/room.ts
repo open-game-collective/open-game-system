@@ -57,6 +57,18 @@ export const createRoomMachine = ({
                 sessionId,
               ];
 
+              const connectEvent = {
+                type: 'MESSAGE',
+                senderId: roomEntity.id,
+                contents: [
+                  {
+                    type: 'CONNECT_MESSAGE',
+                    name: 'Foobar',
+                  },
+                ],
+              } satisfies CreateEventProps<RoomMessageEvent>;
+              roomChannel.next(connectEvent);
+
               // todo: some new joined the room, log a message
               // by sending a message ot the channel
               // roomChannel.next({
@@ -81,7 +93,7 @@ export const createRoomMachine = ({
               ),
             ];
 
-            const connectEvent = {
+            const disconnectEvent = {
               type: 'MESSAGE',
               senderId: roomEntity.id,
               contents: [
@@ -91,7 +103,7 @@ export const createRoomMachine = ({
                 },
               ],
             } satisfies CreateEventProps<RoomMessageEvent>;
-            roomChannel.next(connectEvent);
+            roomChannel.next(disconnectEvent);
 
             // roomChannel.next({
             //   type: 'M',

@@ -65,6 +65,7 @@ export const createMessageChannelMachine = ({
             invoke: {
               src: async () => {
                 channel.subscribe((event) => {
+                  console.log('MESSAGER ADDED', event);
                   messageChannelEntity.messages = [
                     ...messageChannelEntity.messages,
                     event,

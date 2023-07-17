@@ -73,10 +73,10 @@ const NewRoomPanel = () => {
 const RoomPanel = () => {
   const { entityStoreRegistry } = useContext(WorldContext);
   const connectionEntity = useStore(
-    entityStoreRegistry.myInitializedConnectionEntity
+    entityStoreRegistry.myConnectionEntity
   );
   const currentChannelId = useEntityStoreSelector(
-    entityStoreRegistry.myInitializedConnectionEntity,
+    entityStoreRegistry.myConnectionEntity,
     (entity) => entity.currentChannelId
   );
 
