@@ -132,16 +132,16 @@ const AbilityWeightSchema = z.object({
 });
 
 export const StrikersPossessionChartWeightsSchema = z.object({
-  plusOneAction: AbilityWeightSchema, // add ones action for this turn
-  plusTwoActions: AbilityWeightSchema, // adds two action for this turn
-  plusFiveShortPass: AbilityWeightSchema, // adds +5 to a roll for a short pass
-  plusThreeAnyPass: AbilityWeightSchema, // adds +3 to any roll for pass
-  plusFiveHeader: AbilityWeightSchema, // adds +5 to any roll for header
-  plusFiveLongPass: AbilityWeightSchema, // adds +5 to any long pass roll
-  plusFiveThroughpass: AbilityWeightSchema, // +5 to any through pass roll
-  plusFiveLobPass: AbilityWeightSchema, // adds +5 any lob pass roll
-  plusFiveAssist: AbilityWeightSchema, // adds +5 to the shot of player who receives pass
-  plusFiveMark: AbilityWeightSchema, // adds +5 to the players attempt to mark an opponent to follow
+  plusOneAction: AbilityWeightSchema.optional(), // add ones action for this turn
+  plusTwoActions: AbilityWeightSchema.optional(), // adds two action for this turn
+  plusFiveShortPass: AbilityWeightSchema.optional(), // adds +5 to a roll for a short pass
+  plusThreeAnyPass: AbilityWeightSchema.optional(), // adds +3 to any roll for pass
+  plusFiveHeader: AbilityWeightSchema.optional(), // adds +5 to any roll for header
+  plusFiveLongPass: AbilityWeightSchema.optional(), // adds +5 to any long pass roll
+  plusFiveThroughpass: AbilityWeightSchema.optional(), // +5 to any through pass roll
+  plusFiveLobPass: AbilityWeightSchema.optional(), // adds +5 any lob pass roll
+  plusFiveAssist: AbilityWeightSchema.optional(), // adds +5 to the shot of player who receives pass
+  plusFiveMark: AbilityWeightSchema.optional(), // adds +5 to the players attempt to mark an opponent to follow
 });
 
 export const StrikersShotChartWeightsSchema = z.object({

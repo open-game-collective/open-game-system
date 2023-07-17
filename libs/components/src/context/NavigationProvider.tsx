@@ -39,7 +39,7 @@ import { FC, ReactNode, createContext, useEffect, useState } from 'react';
         return '/';
       case 'Login':
         return '/login';
-      case 'NewRoom':
+      case 'New':
         return '/new';
       case 'Room':
         return `/${entity.currentRoomSlug}`;

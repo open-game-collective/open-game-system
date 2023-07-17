@@ -17,7 +17,7 @@ import {
 import {
   HomeRoutePropsSchema,
   LoginRoutePropsSchema,
-  NewRoomRoutePropsSchema,
+  NewRoutePropsSchema,
   RoomRoutePropsSchema,
 } from '@schema/common';
 import * as jwt from 'jsonwebtoken';
@@ -126,7 +126,7 @@ export const createConnectionMachine = ({
               {
                 target: 'Route.NewRoom',
                 cond: (_, event) =>
-                  NewRoomRoutePropsSchema.safeParse(event.route).success,
+                  NewRoutePropsSchema.safeParse(event.route).success,
                 actions: ['setCurrentLocation'],
               },
               {
@@ -492,7 +492,7 @@ export const createConnectionMachine = ({
             case 'Login':
               connectionEntity.currentUrl = '/login';
               break;
-            case 'NewRoom':
+            case 'New':
               connectionEntity.currentUrl = '/new';
               break;
             case 'Room':

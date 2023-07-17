@@ -38,7 +38,7 @@ export const createStrikersGameMachine = ({
         events: {} as WithSenderId<StrikersGameCommand>,
       },
       context: {
-        initialBoard,
+        foo: '',
       },
       states: {
         RunStatus: {

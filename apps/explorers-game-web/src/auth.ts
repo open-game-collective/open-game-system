@@ -84,7 +84,7 @@ export const initAccessToken = (
       });
   }
 
-  return accessToken;
+  return { accessToken, connectionId };
 };
 
 // todo do we still need refreshToken now? when?

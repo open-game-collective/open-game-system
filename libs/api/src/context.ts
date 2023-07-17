@@ -83,7 +83,6 @@ export const createContextHTTP = async (
   const { sub, sessionId, deviceId, initialRouteProps, url } =
     parseAccessToken(accessToken);
 
-  console.log('creating connection', sub);
   const connectionEntity = createEntity<ConnectionEntity>({
     id: sub,
     schema: 'connection',
@@ -96,7 +95,6 @@ export const createContextHTTP = async (
     initialRouteProps,
   });
   world.add(connectionEntity);
-  console.log('connection created', sub);
 
   return {
     connectionEntity,

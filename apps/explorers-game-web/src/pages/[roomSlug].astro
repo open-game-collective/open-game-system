@@ -7,11 +7,16 @@ import type { RouteProps } from '@schema/types';
 const { roomSlug } = Astro.params;
 assert(roomSlug, 'expected roomSlug but not found');
 const routeProps = { name: 'Room', roomSlug: roomSlug } satisfies RouteProps;
-const accessToken = initAccessToken(Astro.cookies, routeProps, Astro.url.href);
+const { accessToken, connectionId } = initAccessToken(
+  Astro.cookies,
+  routeProps,
+  Astro.url.href
+);
 ---
 
 <Layout
   title={`#${roomSlug} @ explorers cafe & market`}
   routeProps={routeProps}
   accessToken={accessToken}
+  connectionId={connectionId}
 />

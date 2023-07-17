@@ -16,7 +16,6 @@ import type {
 } from '@explorers-club/schema';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createWSClient, loggerLink, wsLink } from '@trpc/client';
-import * as objectify from 'geoposition-to-object';
 import { enablePatches } from 'immer';
 import { World } from 'miniplex';
 import { atom } from 'nanostores';
@@ -37,8 +36,8 @@ enablePatches();
 export const ApplicationProvider: FC<{
   trpcUrl: string;
   initialRouteProps: RouteProps;
-  // initialPersistentProps: PersistentProps;
-}> = ({ trpcUrl, initialRouteProps }) => {
+  connectionId: string;
+}> = ({ trpcUrl, initialRouteProps, connectionId }) => {
   const [world] = useState(new World<Entity>());
   const [routeStore] = useState(atom<RouteProps>(initialRouteProps));
 
@@ -92,12 +91,11 @@ export const ApplicationProvider: FC<{
         <QueryClientProvider client={queryClient}>
           <LayoutProvider>
             <WorldProvider world={world}>
-              <ConnectionProvider
-                // initialRouteProps={initialRouteProps}
-                // initialPersistentProps={initialPersistentProps}
+              <ConnectionContext.Provider
+                value={{ myConnectionId: connectionId }}
               >
                 <App initialRouteProps={initialRouteProps} />
-              </ConnectionProvider>
+              </ConnectionContext.Provider>
             </WorldProvider>
           </LayoutProvider>
         </QueryClientProvider>
@@ -109,87 +107,6 @@ export const ApplicationProvider: FC<{
 export const ConnectionContext = createContext(
   {} as { myConnectionId?: SnowflakeId }
 );
-
-// const persistentStore = atom<Required<PersistentProps>>({
-
-// })
-
-const ConnectionProvider: FC<{
-  children: ReactNode;
-  // initialRouteProps: RouteProps;
-  // initialPersistentProps: PersistentProps;
-}> = memo(({ children }) => {
-  const { entitiesById, world } = useContext(WorldContext);
-  const initializedRef = useRef<boolean>(false);
-
-  const { client } = trpc.useContext();
-  const [myConnectionId, setMyConnectionId] = useState<
-    SnowflakeId | undefined
-  >();
-
-  /**
-   * Initializes the connection with websocket server
-   */
-  useLayoutEffect(() => {
-    // If we already fetched it dont do it again
-    if (initializedRef.current) {
-      return;
-    }
-    initializedRef.current = true;
-
-    // let timer: NodeJS.Timeout;
-    // const { accessToken, refreshToken, deviceId } = initialPersistentProps;
-
-    // const authTokens =
-    //   accessToken && refreshToken
-    //     ? {
-    //         refreshToken,
-    //         accessToken,
-    //       }
-    //     : undefined;
-
-    // client.connection.initialize
-    //   .mutate({ deviceId, authTokens, initialRouteProps })
-    //   .then(async (connectionId) => {
-    //     const entity = (await waitForCondition<ConnectionEntity>(
-    //       world,
-    //       entitiesById,
-    //       connectionId,
-    //       (entity) => entity.states.Initialized === 'True'
-    //     )) as InitializedConnectionEntity;
-
-    //     navigator.geolocation.watchPosition((p) => {
-    //       const position = objectify(p);
-
-    //       entity.send({
-    //         type: 'UPDATE_GEOLOCATION_POSITION',
-    //         position,
-    //       });
-    //       // console.log(position);
-    //     });
-
-    //     // entity.send()
-
-    //     // todo listen for my connection entity and persist it`
-    //     // persistentStore.set({
-    //     //   refreshToken: entity.authTokens.refreshToken,
-    //     //   accessToken: entity.authTokens.accessToken,
-    //     //   deviceId: entity.deviceId,
-    //     // });
-
-    //     setMyConnectionId(connectionId);
-    //   });
-    // return () => {
-    //   clearInterval(timer);
-    // };
-  }, [client]);
-
-  return (
-    <ConnectionContext.Provider value={{ myConnectionId }}>
-      {children}
-    </ConnectionContext.Provider>
-  );
-});
 
 // const getCurrentRouteFromState = (entity: ConnectionEntity) => {
 //   switch (entity.states.Route) {

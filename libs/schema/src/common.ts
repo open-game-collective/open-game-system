@@ -53,7 +53,7 @@ export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
 
 export const RouteNameSchema = z.enum([
   'Home',
-  'NewRoom',
+  'New',
   'Room',
   'Login',
   'NotFound',
@@ -68,8 +68,8 @@ export const LoginRoutePropsSchema = z.object({
   name: z.literal('Login'),
 });
 
-export const NewRoomRoutePropsSchema = z.object({
-  name: z.literal('NewRoom'),
+export const NewRoutePropsSchema = z.object({
+  name: z.literal('New'),
 });
 
 export const RoomRoutePropsSchema = z.object({
@@ -79,7 +79,7 @@ export const RoomRoutePropsSchema = z.object({
 
 export const RoutePropsSchema = z.union([
   HomeRoutePropsSchema,
-  NewRoomRoutePropsSchema,
+  NewRoutePropsSchema,
   RoomRoutePropsSchema,
   LoginRoutePropsSchema,
 ]);

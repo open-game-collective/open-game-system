@@ -6,11 +6,6 @@ import { useStore } from '@nanostores/react';
 import { Chat, ChatContext } from '@organisms/Chat';
 import { FC, useContext } from 'react';
 import { TopNav } from './TopNav';
-// import {
-//   isMainPanelFocusedStore,
-//   isMainSceneFocusedStore,
-// } from '../global/layout';
-// import { currentRouteStore } from '../global/navigation';
 import { ApplicationContext } from '@context/ApplicationContext';
 import { LayoutContext } from '@context/LayoutContext';
 import { WorldContext } from '@context/WorldProvider';

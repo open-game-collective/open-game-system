@@ -1,12 +1,15 @@
+import { ApiRouter, generateSnowflakeId, transformer } from '@api/client';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Grid } from '@atoms/Grid';
 import { Heading } from '@atoms/Heading';
-import { ApplicationProvider } from './ApplicationProvider';
 import type { RouteProps } from '@explorers-club/schema';
 import { generateRandomString } from '@explorers-club/utils';
-import type { Meta, Story } from '@storybook/react';
+import type { Story } from '@storybook/react';
+import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
+import * as jose from 'jose';
 import { FC, useEffect, useState } from 'react';
+import { ApplicationProvider } from './ApplicationProvider';
 // import { App } from "../components/App";
 
 const meta = {
@@ -20,51 +23,38 @@ export default meta;
 
 // type Story = StoryObj<typeof meta>;
 
-const RoomWrapper: FC<{ slug: string; myUserId: string }> = (props) => {
+const RoomWrapper: FC<{ slug: string }> = (props) => {
   const { slug, myUserId } = props;
-  // const [store, setStore] = useState<LittleVigilanteStore | null>(null);
-  // const [event$] = useState<Subject<LittleVigilanteServerEvent>>(new Subject());
-
-  // useEffect(() => {
-  //   joinAndCreateStore(roomId, myUserId, event$)
-  //     .then(setStore)
-  //     .catch(console.error);
-  // }, [roomId, myUserId, setStore, event$]);
-
-  // if (!store) {
-  // eslint-disable-next-line react/jsx-no-useless-fragment
-  //   return <></>;
-  // }
   const routeProps = {
     name: 'Room',
     roomSlug: slug,
   } satisfies RouteProps;
+  const [creds, setCreds] = useState<
+    { connectionId: string; accessToken: string } | undefined
+  >(undefined);
+
+  useEffect(() => {
+    (async () => {
+      const creds = await initAccessToken(
+        { name: 'Room', roomSlug: slug } satisfies RouteProps,
+        `http://localhost:3000/${slug}`
+      );
+      setCreds(creds);
+    })();
+  }, [setCreds]);
+
+  if (!creds) {
+    return <></>;
+  }
+  console.log(creds);
 
   return (
     <ApplicationProvider
-      trpcUrl={'ws://localhost:3001'}
+      trpcUrl={`ws://localhost:3001/?accessToken=${creds.accessToken}`}
       initialRouteProps={routeProps}
-      initialPersistentProps={{
-        refreshToken: undefined,
-        accessToken: undefined,
-        deviceId: undefined,
-      }}
+      connectionId={creds.connectionId}
     />
   );
-
-  {
-    /* return (
-    <LittleVigilanteContext.Provider
-      value={{ store, myUserId, event$, gameId: roomId }}
-    >
-      <ChatServiceProvider>
-        <Flex direction="column" css={{ width: '100%', minHeight: '100%' }}>
-          <LittleVigilanteRoomComponent />
-        </Flex>
-      </ChatServiceProvider>
-    </LittleVigilanteContext.Provider>
-  ); */
-  }
 };
 
 const Template: Story<{
@@ -76,29 +66,6 @@ const Template: Story<{
 
   useEffect(() => {
     (async () => {
-      // const colyseusClient = new Colyseus.Client('ws://localhost:2567');
-      // let room: Room<LittleVigilanteState>;
-      // const options: OnCreateOptions = {
-      //   roomId,
-      //   playerInfo,
-      //   votingTimeSeconds,
-      //   discussionTimeSeconds,
-      //   roundsToPlay: 3,
-      //   rolesToExclude: ['butler'],
-      // };
-      // try {
-      //   room = await colyseusClient.create<LittleVigilanteState>(
-      //     'little_vigilante',
-      //     options
-      //   );
-      //   room.onMessage('*', (event: LittleVigilanteServerEvent) => {
-      //     // just a no-op so we don't get warnings logs
-      //   });
-      // } catch (ex) {
-      //   console.error(ex);
-      //   return;
-      // }
-      // await new Promise((resolve) => room.onStateChange.once(resolve));
       setInitialized(true);
     })();
   }, [setInitialized, playerInfo, slug]);
@@ -106,7 +73,6 @@ const Template: Story<{
   return initialized ? (
     <Grid
       css={{
-        // height: '100vh',
         gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
         gridAutoRows: '700px',
         border: '4px dashed red',
@@ -124,7 +90,7 @@ const Template: Story<{
             // overflow: 'auto',
           }}
         >
-          <RoomWrapper slug={slug} myUserId={userId} />
+          <RoomWrapper slug={slug} />
         </Flex>
       ))}
     </Grid>
@@ -198,4 +164,49 @@ SevenPlayer.args = {
 export const EightPlayer = Template.bind({});
 EightPlayer.args = {
   numPlayers: 8,
+};
+
+const alg = 'HS256';
+
+const initAccessToken = async (routeProps: RouteProps, url: string) => {
+  const deviceId = generateSnowflakeId();
+  const sessionId = generateSnowflakeId();
+
+  const connectionId = generateSnowflakeId();
+
+  const jwt = new jose.SignJWT({
+    deviceId,
+    sessionId,
+    initialRouteProps: routeProps,
+    url,
+  })
+    .setProtectedHeader({ alg })
+    .setSubject(connectionId)
+    .setExpirationTime('1d')
+    .setJti('ACCESS_TOKEN')
+    .setIssuer('STORYBOOK');
+  const secret = new TextEncoder().encode('my_private_key');
+
+  const accessToken = await jwt.sign(secret);
+
+  const client = createTRPCProxyClient<ApiRouter>({
+    transformer,
+    links: [
+      httpBatchLink({
+        url: `http://127.0.0.1:3001/trpc`,
+        // You can pass any HTTP headers you wish here
+        async headers() {
+          return {
+            authorization: `Bearer ${accessToken}`,
+            connectionId: connectionId,
+          };
+        },
+      }),
+    ],
+  });
+
+  // Send a first heartbeat over HTTP to create the connection entity
+  await client.connection.heartbeat.mutate();
+
+  return { accessToken, connectionId };
 };

@@ -54,7 +54,7 @@ import {
   StrikersTurnContextSchema,
   StrikersTurnEntitySchema,
   StrikersTurnStateValueSchema,
-  StrikersBoardStateSchema,
+  StrikersGameStateSchema,
   StrikersBoardCardSchema,
   StrikersEffectEntitySchema,
   StrikersEffectStateValueSchema,
@@ -653,7 +653,7 @@ export type StrikersGameplaySettings = z.infer<
   typeof StrikersGameplaySettingsSchema
 >;
 export type StrikersTeam = z.infer<typeof StrikersTeamSchema>;
-export type StrikersBoard = z.infer<typeof StrikersBoardStateSchema>;
+export type StrikersBoard = z.infer<typeof StrikersGameStateSchema>;
 export type StrikersBoardCard = z.infer<typeof StrikersBoardCardSchema>;
 export type StrikersPlayerPosition = z.infer<
   typeof StrikersRosterPositionSchema

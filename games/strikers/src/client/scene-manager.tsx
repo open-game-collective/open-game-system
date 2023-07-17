@@ -57,7 +57,7 @@ const GameScene = () => {
     <>
       {/* <MapControls screenSpacePanning={true} /> */}
       <OrbitControls />
-      <Field>
+      {/* <Field grid={undefined}>
         {cells.map((cell) => {
           return (
             <FieldCell tilePosition={{
@@ -68,13 +68,13 @@ const GameScene = () => {
               <></>
             </FieldCell>
           );
-        })}
+        })} */}
         {/* {cells.map((cell) => {
           return <FieldCell>
             <></>
             <FieldCell />
         })} */}
-      </Field>
+      {/* </Field> */}
       <SplashScene />
       {/* {cells.map((cell) => {
         return (

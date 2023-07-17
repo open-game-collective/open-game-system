@@ -16,10 +16,31 @@ const CardIdSchema = z.string();
 
 // const PlayerIdSchema = z.string();
 
+export const StrikersTeamSchema = z.enum(['home', 'away']);
+
+const TilePositionSchema = z.custom<HexCoordinates>();
+
+const StaminaSchema = z.number();
+
+export const StrikersBoardCardSchema = z.object({
+  team: StrikersTeamSchema,
+  cardId: CardIdSchema,
+  tilePosition: TilePositionSchema,
+  stamina: StaminaSchema,
+  // activeModifiers: z.array(ModifiersSchema) add endurance and other modifiers here...
+});
+
+export const StrikersGameStateSchema = z.object({
+  ballPosition: TilePositionSchema,
+  possession: StrikersTeamSchema,
+  players: z.array(StrikersBoardCardSchema),
+});
+
 const StrikersGameEntityPropSchema = z.object({
   schema: StrikersGameSchemaTypeLiteral,
   gameId: StrikersGameIdLiteral,
   config: StrikersGameConfigDataSchema,
+  gameState: StrikersGameStateSchema,
   turnsIds: z.array(SnowflakeIdSchema),
 });
 
@@ -80,30 +101,8 @@ export const StrikersGameEntitySchema = EntityBaseSchema(
   StrikersGameStateValueSchema
 );
 
-export const StrikersTeamSchema = z.enum(['home', 'away']);
-
-// export const BoardCoordinatesSchema = z.tuple([z.number(), z.number()]);
-
-const TilePositionSchema = z.custom<HexCoordinates>();
-
-const StaminaSchema = z.number();
-
-export const StrikersBoardCardSchema = z.object({
-  team: StrikersTeamSchema,
-  cardId: CardIdSchema,
-  tilePosition: TilePositionSchema,
-  stamina: StaminaSchema,
-  // activeModifiers: z.array(ModifiersSchema) add endurance and other modifiers here...
-});
-
-export const StrikersBoardStateSchema = z.object({
-  ballPosition: TilePositionSchema,
-  possession: StrikersTeamSchema,
-  players: z.array(StrikersBoardCardSchema),
-});
-
 export const StrikersGameContextSchema = z.object({
-  initialBoard: StrikersBoardStateSchema,
+  foo: z.string(),
 });
 
 // Actions
