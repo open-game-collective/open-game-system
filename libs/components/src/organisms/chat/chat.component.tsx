@@ -1,5 +1,6 @@
 import { Avatar } from '@atoms/Avatar';
 import { Badge } from '@atoms/Badge';
+import { useEntitySelector } from '@hooks/useEntitySelector';
 import { Box } from '@atoms/Box';
 import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
@@ -19,6 +20,7 @@ import {
   useState,
 } from 'react';
 import { ChatContext } from './chat.context';
+import { assertEntitySchema } from '@explorers-club/utils';
 
 type PlainMessageEvent = {
   type: 'PLAIN_MESSAGE';
@@ -103,8 +105,34 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
 };
 
 const ChatMessageList = () => {
-
   const scrollViewRef = useRef<HTMLDivElement | null>(null);
+  const { roomEntity, connectionEntity } = useContext(ChatContext);
+
+  const channelEntityIds = useEntitySelector(
+    connectionEntity,
+    (entity) => entity.chatService?.context.channelEntityIds
+  );
+
+  if (!channelEntityIds) {
+    return <div>loading messages</div>;
+  }
+
+  const messageChannelId = channelEntityIds[roomEntity.id];
+
+  const messages = useEntityIdSelector(messageChannelId, (entity) => {
+    if (!entity) {
+      return undefined;
+    }
+    assertEntitySchema(entity, 'message_channel');
+    return entity.messages;
+  });
+  console.log({ messages });
+
+  // roomEntity.id[channelEntityIds];
+
+  // useEntityIdSelector()
+
+  // console.log({ channelEntityIds });
 
   useEffect(() => {
     let isScrolled = false;
@@ -287,6 +315,7 @@ const ChatMessage: FC<{ event: ChatEvent; index: number }> = ({
   event,
   index,
 }) => {
+  console.log(event);
   switch (event.type) {
     case 'PLAIN_MESSAGE':
       return <PlainMessage event={event} index={index} />;

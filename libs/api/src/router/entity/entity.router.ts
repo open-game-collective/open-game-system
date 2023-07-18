@@ -311,6 +311,10 @@ const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
     return false;
   }
 
+  if ('connectionId' in entity && entity.connectionId !== connectionEntity.id) {
+    return false;
+  }
+
   // todo implement access checks here
   // ie (if room === "public") return true
   // each entity schema can have it's own function for implement access control

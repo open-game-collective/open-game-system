@@ -83,9 +83,7 @@ const ChatPanel = () => {
   const { isMainPanelFocusedStore } = useContext(LayoutContext);
   const mainPanelFocused = useStore(isMainPanelFocusedStore);
   const { entityStoreRegistry } = useContext(WorldContext);
-  const connectionEntity = useStore(
-    entityStoreRegistry.myInitializedConnectionEntity
-  );
+  const connectionEntity = useStore(entityStoreRegistry.myConnectionEntity);
   const roomEntityStore = useCurrentChannelEntityStore();
   const roomEntity = useStore(roomEntityStore);
 
@@ -93,8 +91,12 @@ const ChatPanel = () => {
     return null;
   }
 
-  if (!connectionEntity || !roomEntity) {
-    return <div>placeholder</div>;
+  if (!connectionEntity) {
+    return <div>Connecting</div>;
+  }
+
+  if (!roomEntity) {
+    return <div>Finding Room</div>;
   }
 
   return (

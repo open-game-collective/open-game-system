@@ -9,6 +9,7 @@ import {
   SnowflakeIdSchema,
   StateSchemaFromStateValue,
 } from './common';
+import { MessageContentBlockSchema } from './blocks';
 import {
   ChannelEntitySchema,
   EntityCommandSchema,
@@ -280,6 +281,7 @@ export type TriggerMachine = StateMachine<
 // export type ConnectEvent = z.infer<typeof ConnectEventSchema>;
 // export type DisconnectEvent = z.infer<typeof DisconnectEventSchema>;
 // export type MessageEvent = z.infer<typeof MessageEventSchema>;
+export type MessageContentBlock = z.infer<typeof MessageContentBlockSchema>;
 export type LogEvent = z.infer<typeof LogEventSchema>;
 export type DebugEvent = z.infer<typeof DebugEventSchema>;
 export type ChannelEvent = z.infer<typeof ChannelEventSchema>;

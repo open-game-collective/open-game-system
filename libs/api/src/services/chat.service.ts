@@ -17,7 +17,6 @@ export const createChatMachine = <TMessage extends ChannelEvent>({
 }: {
   connectionEntity: ConnectionEntity;
 }) => {
-
   const chatMachine = createMachine({
     id: 'ChatMachine',
     initial: 'Running',
@@ -34,7 +33,6 @@ export const createChatMachine = <TMessage extends ChannelEvent>({
           JOIN_CHANNEL: {
             actions: assign({
               channelEntityIds: (context, event) => {
-                console.log('JOIN', event);
                 // Create a message channel eentity if we don't already have one
                 if (!context.channelEntityIds[event.channelId]) {
                   const entity = createEntity<MessageChannelEntity>({
@@ -43,11 +41,13 @@ export const createChatMachine = <TMessage extends ChannelEvent>({
                     parentId: event.channelId,
                     connectionId: connectionEntity.id,
                   });
+
                   world.add(entity);
+                  const entityId = entity.id;
 
                   return {
                     ...context.channelEntityIds,
-                    [event.channelId]: connectionEntity.id,
+                    [event.channelId]: entityId,
                   };
                 }
 
