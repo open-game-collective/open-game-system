@@ -74,12 +74,12 @@ export const createConnectionMachine = ({
       connectionId: connectionEntity.id,
     } as SessionCommand);
   } else {
-    console.log(
-      'creating',
-      connectionEntity.sessionId,
-      'on',
-      connectionEntity.id
-    );
+    // console.log(
+    //   'creating',
+    //   connectionEntity.sessionId,
+    //   'on',
+    //   connectionEntity.id
+    // );
     sessionEntity = createEntity<SessionEntity>({
       id: connectionEntity.sessionId,
       schema: 'session',
@@ -116,10 +116,11 @@ export const createConnectionMachine = ({
         Chat: {
           initial: 'Running',
           entry: assign({
-            chatServiceRef: spawn(
-              createChatMachine({ connectionEntity }),
-              'chatService'
-            ) as ConnectionContext['chatServiceRef'],
+            chatServiceRef: () =>
+              spawn(
+                createChatMachine({ connectionEntity }),
+                'chatService'
+              ) as ConnectionContext['chatServiceRef'],
           }),
           states: {
             Running: {},
@@ -209,41 +210,6 @@ export const createConnectionMachine = ({
             },
           },
         },
-        Initialized: {
-          initial: 'Initializing',
-          states: {
-            Error: {},
-            Initializing: {
-              invoke: {
-                onError: {
-                  target: 'Error',
-                  actions: (_, event) => {
-                    console.warn(event);
-                  },
-                },
-                onDone: {
-                  target: 'True',
-                  actions: assignImmer<
-                    ConnectionContext,
-                    DoneInvokeEvent<{
-                      chatServiceRef: ConnectionContext['chatServiceRef'];
-                    }>
-                  >((context, { data }) => {
-                    context.chatServiceRef = data.chatServiceRef;
-                  }),
-                },
-                src: async (context, event) => {
-                  const chatServiceRef = spawn(
-                    createChatMachine({ connectionEntity }),
-                    'chatService'
-                  ) as ConnectionContext['chatServiceRef'];
-                  return { chatServiceRef };
-                },
-              },
-            },
-            True: {},
-          },
-        },
         Connected: {
           initial: 'No',
           states: {
@@ -304,12 +270,12 @@ export const createConnectionMachine = ({
     },
     {
       services: {
-        connectToRoom: async (context) => {
+        connectToRoom: async ({ chatServiceRef }) => {
           const url = new URL(connectionEntity.currentUrl);
           const slug = url.pathname.split('/')[1];
           assert(slug, 'error parsing slug from currentUrl');
 
-          let roomEntity = roomsBySlug.get(slug);
+          let roomEntity: RoomEntity | undefined = roomsBySlug.get(slug);
           if (!roomEntity) {
             roomEntity = createEntity<RoomEntity>({
               schema: 'room',
@@ -317,7 +283,7 @@ export const createConnectionMachine = ({
               hostSessionId: connectionEntity.sessionId,
               allSessionIds: [],
               gameId: 'strikers',
-            });
+            }) as RoomEntity;
             world.add(roomEntity);
           }
 
@@ -327,30 +293,34 @@ export const createConnectionMachine = ({
           } satisfies RoomCommand);
 
           assert(
-            context.chatServiceRef,
+            chatServiceRef,
             "expected chatService to be defined but wasn't"
           );
 
           // Join the chat room
-          // todo: is this still used? or just use message_channel entity now
-          // context.chatServiceRef.send({
-          //   type: 'JOIN_CHANNEL',
-          //   channelId: roomEntity.id,
-          // });
+          const roomEntityId = roomEntity.id;
+          const gameEntityId = roomEntity.currentGameInstanceId;
+          chatServiceRef.send({
+            type: 'JOIN_CHANNEL',
+            channelId: roomEntityId,
+          });
+
+          let allChannelIds = [...connectionEntity.allChannelIds, roomEntityId];
 
           // // Join the game room if there is one
-          // if (roomEntity.gameId) {
-          //   context.chatServiceRef.send({
-          //     type: 'JOIN_CHANNEL',
-          //     channelId: roomEntity.gameId,
-          //   });
-          // }
+          if (gameEntityId) {
+            chatServiceRef.send({
+              type: 'JOIN_CHANNEL',
+              channelId: gameEntityId,
+            });
 
-          connectionEntity.currentChannelId = roomEntity.id;
-          connectionEntity.allChannelIds = [
-            ...connectionEntity.allChannelIds,
-            roomEntity.id,
-          ];
+            allChannelIds = [...allChannelIds, gameEntityId];
+          }
+
+          const currentChannelId = gameEntityId ? gameEntityId : roomEntityId;
+
+          connectionEntity.currentChannelId = currentChannelId;
+          connectionEntity.allChannelIds = allChannelIds;
         },
       },
       actions: {

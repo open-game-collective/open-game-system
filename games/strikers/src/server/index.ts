@@ -45,13 +45,13 @@ export const createStrikersGame = (
   //   'expected userId on session when starting game for p2'
   // );
 
-  const p1Player = createEntity<StrikersPlayerEntity>({
+  const p1PlayerEntity = createEntity<StrikersPlayerEntity>({
     schema: 'strikers_player',
     sessionIds: [p1SessionEntity.id],
     gameEntityId,
   });
 
-  const p2Player = createEntity<StrikersPlayerEntity>({
+  const p2PlayerEntity = createEntity<StrikersPlayerEntity>({
     schema: 'strikers_player',
     sessionIds: [p2SessionEntity.id],
     gameEntityId,
@@ -110,7 +110,7 @@ export const createStrikersGame = (
 
   const config = {
     lobbyConfig,
-    playerIds: [p1Player.id, p2Player.id],
+    playerIds: [p1PlayerEntity.id, p2PlayerEntity.id],
     gameplaySettings,
     cardSettings,
     cards,
@@ -148,6 +148,8 @@ export const createStrikersGame = (
     turnsIds: [],
   });
 
+  world.add(p1PlayerEntity);
+  world.add(p2PlayerEntity);
   world.add(gameEntity);
   return gameEntity;
 };

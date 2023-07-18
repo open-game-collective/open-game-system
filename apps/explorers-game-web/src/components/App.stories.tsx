@@ -35,18 +35,21 @@ const RoomWrapper: FC<{ slug: string }> = (props) => {
 
   useEffect(() => {
     (async () => {
-      const creds = await initAccessToken(
-        { name: 'Room', roomSlug: slug } satisfies RouteProps,
-        `http://localhost:3000/${slug}`
-      );
-      setCreds(creds);
+      try {
+        const creds = await initAccessToken(
+          { name: 'Room', roomSlug: slug } satisfies RouteProps,
+          `http://localhost:3000/${slug}`
+        );
+        setCreds(creds);
+      } catch (ex) {
+        console.error(ex);
+      }
     })();
   }, [setCreds]);
 
   if (!creds) {
     return <></>;
   }
-  console.log(creds);
 
   return (
     <ApplicationProvider
