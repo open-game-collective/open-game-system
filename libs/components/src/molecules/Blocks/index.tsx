@@ -1,16 +1,16 @@
 import React from 'react';
 import { z } from 'zod';
 import {
-  PlainMessageBlockProps,
-  UserJoinedBlockProps,
-  PlayerConnectedBlockProps,
-  PlayerDisconnectedBlockProps,
+  PlainMessageBlockSchema,
+  UserJoinedBlockSchema,
+  PlayerConnectedBlockSchema,
+  PlayerDisconnectedBlockSchema,
   MessageContentBlockSchema,
 } from '@schema/blocks';
 
 // Define React components using inferred Zod schema types
 
-const PlainMessageBlock: React.FC<z.infer<typeof PlainMessageBlockProps>> = ({
+const PlainMessageBlock: React.FC<z.infer<typeof PlainMessageBlockSchema>> = ({
   avatarId,
   message,
   timestamp,
@@ -21,7 +21,7 @@ const PlainMessageBlock: React.FC<z.infer<typeof PlainMessageBlockProps>> = ({
   <div>{message}</div>
 );
 
-const UserJoinedBlock: React.FC<z.infer<typeof UserJoinedBlockProps>> = ({
+const UserJoinedBlock: React.FC<z.infer<typeof UserJoinedBlockSchema>> = ({
   avatarId,
   username,
   timestamp,
@@ -31,14 +31,14 @@ const UserJoinedBlock: React.FC<z.infer<typeof UserJoinedBlockProps>> = ({
 );
 
 const PlayerConnectedBlock: React.FC<
-  z.infer<typeof PlayerConnectedBlockProps>
+  z.infer<typeof PlayerConnectedBlockSchema>
 > = ({ playerId, username, timestamp }) => (
   // Replace with your component logic
   <div>{username} connected</div>
 );
 
 const PlayerDisconnectedBlock: React.FC<
-  z.infer<typeof PlayerDisconnectedBlockProps>
+  z.infer<typeof PlayerDisconnectedBlockSchema>
 > = ({ playerId, username, timestamp }) => (
   // Replace with your component logic
   <div>{username} disconnected</div>
@@ -52,7 +52,7 @@ const componentMap = {
   PlayerDisconnected: PlayerDisconnectedBlock,
 } as const;
 
-export const MessageContentBlockRenderer: React.FC<{
+export const MessageContentBlock: React.FC<{
   block: z.infer<typeof MessageContentBlockSchema>;
 }> = ({ block }) => {
   const Component = componentMap[block.type];
@@ -63,5 +63,5 @@ export const MessageContentBlockRenderer: React.FC<{
   }
 
   // Render the component, passing the block props as component props
-  return <Component {...(block.props as any)} />;
+  return <Component {...(block as any)} />;
 };

@@ -62,8 +62,10 @@ export const createRoomMachine = ({
                 senderId: roomEntity.id,
                 contents: [
                   {
-                    type: 'CONNECT_MESSAGE',
-                    name: 'Foobar',
+                    type: 'PlayerConnected',
+                    playerId: 'foo',
+                    username: 'foobar',
+                    timestamp: new Date().toString(),
                   },
                 ],
               } satisfies CreateEventProps<RoomMessageEvent>;
@@ -98,8 +100,15 @@ export const createRoomMachine = ({
               senderId: roomEntity.id,
               contents: [
                 {
-                  type: 'DISCONNECT_MESSAGE',
-                  name: 'Foobar',
+                  type: 'PlayerDisconnected',
+                  playerId: 'foobar',
+                  username: 'foobar2',
+                  timestamp: new Date().toString(),
+                  // props: {
+                  //   playerId: 'foo',
+                  //   username: 'foobar',
+                  //   timestamp: 'hello',
+                  // },
                 },
               ],
             } satisfies CreateEventProps<RoomMessageEvent>;

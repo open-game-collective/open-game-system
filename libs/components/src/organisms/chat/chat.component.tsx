@@ -13,6 +13,7 @@ import * as ScrollArea from '@radix-ui/react-scroll-area';
 import {
   FC,
   FormEventHandler,
+  createContext,
   useCallback,
   useContext,
   useEffect,
@@ -20,7 +21,8 @@ import {
   useState,
 } from 'react';
 import { ChatContext } from './chat.context';
-import { assertEntitySchema } from '@explorers-club/utils';
+import { assert, assertEntitySchema } from '@explorers-club/utils';
+import { MessageContentBlock } from '@molecules/Blocks';
 
 type PlainMessageEvent = {
   type: 'PLAIN_MESSAGE';
@@ -35,7 +37,7 @@ export const Chat = () => {
   // const { createEntityStore } = useContext(WorldContext);
 
   return (
-    <Flex direction="column" css={{ width: '100%', minHeight: '100%' }}>
+    <Flex direction="column" css={{ width: '100%' }}>
       {/* <Flex css={{ p: '$3' }} justify="between">
         <Caption css={{ flexGrow: 1 }}>Chat</Caption>
         <CountdownTimer />
@@ -88,7 +90,7 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
   }, []);
 
   return (
-    <Flex direction="column" css={{ background: '$primary6' }}>
+    <Flex direction="column" css={{ border: '4px solid $primary6' }}>
       {/* <ChatSuggestionsSlider /> */}
       <form onSubmit={handleSubmit}>
         <TextField
@@ -105,7 +107,6 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
 };
 
 const ChatMessageList = () => {
-  const scrollViewRef = useRef<HTMLDivElement | null>(null);
   const { roomEntity, connectionEntity } = useContext(ChatContext);
 
   const channelEntityIds = useEntitySelector(
@@ -118,7 +119,17 @@ const ChatMessageList = () => {
   }
 
   const messageChannelId = channelEntityIds[roomEntity.id];
+  if (!messageChannelId) {
+    return <div>Loading Message channel</div>;
+  }
 
+  return <MessageChannel messageChannelId={messageChannelId} />;
+};
+
+const MessageChannel: FC<{ messageChannelId: SnowflakeId }> = ({
+  messageChannelId,
+}) => {
+  const scrollViewRef = useRef<HTMLDivElement | null>(null);
   const messages = useEntityIdSelector(messageChannelId, (entity) => {
     if (!entity) {
       return undefined;
@@ -126,13 +137,6 @@ const ChatMessageList = () => {
     assertEntitySchema(entity, 'message_channel');
     return entity.messages;
   });
-  console.log({ messages });
-
-  // roomEntity.id[channelEntityIds];
-
-  // useEntityIdSelector()
-
-  // console.log({ channelEntityIds });
 
   useEffect(() => {
     let isScrolled = false;
@@ -188,7 +192,9 @@ const ChatMessageList = () => {
     // };
   }, [scrollViewRef]);
 
-  const events = [] as ChatEvent[];
+  if (!messages || !messages.length) {
+    return <div>no messages</div>;
+  }
 
   return (
     <Flex
@@ -201,13 +207,12 @@ const ChatMessageList = () => {
         // height: '200px',
         // minHeight: '100%',
         minHeight: '250px',
-        background: '$primary9',
+        border: '4px solid $primary3',
         // flexGrow: 1,
-        // position: 'relative',
+        position: 'relative',
       }}
     >
       <Flex
-        // ref={scrollViewRef}
         direction="column"
         gap="1"
         css={{
@@ -216,15 +221,38 @@ const ChatMessageList = () => {
           bottom: 0,
           left: 0,
           right: 0,
-          zIndex: -1,
+          zIndex: 10,
         }}
       >
         <ChatRoot>
           <ChatViewport ref={scrollViewRef}>
             <Flex direction="column" gap="2">
-              {events.map((event, index) => (
-                <ChatMessage key={event.id} index={index} event={event} />
-              ))}
+              {messages.map((message, index) => {
+                switch (message.type) {
+                  case 'MESSAGE':
+                    return (
+                      <ChatMessage
+                        key={message.id}
+                        index={index}
+                        messageChannelId={messageChannelId}
+                        messageId={message.id}
+                      />
+                    );
+                  case 'DEBUG':
+                    throw new Error('DEBUG message type not implemented');
+                  case 'LOG':
+                    throw new Error('LOG message type not implemented');
+                  default:
+                    throw new Error(
+                      'message type not implemented for' + message
+                    );
+                }
+
+                // if (message.type === "MESSAGE") {
+
+                // } else if (message.type)
+                return <div key={index}>{message.type}</div>;
+              })}
             </Flex>
             <TypingIndicator />
             {/* Anchor from https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/ */}
@@ -238,6 +266,7 @@ const ChatMessageList = () => {
     </Flex>
   );
 };
+
 const ChatScrollThumb = styled(ScrollArea.ScrollAreaThumb, {
   flex: 1,
   background: '$primary9',
@@ -311,112 +340,111 @@ const TypingIndicator = () => {
   );
 };
 
-const ChatMessage: FC<{ event: ChatEvent; index: number }> = ({
-  event,
-  index,
-}) => {
-  console.log(event);
-  switch (event.type) {
-    case 'PLAIN_MESSAGE':
-      return <PlainMessage event={event} index={index} />;
-    // case 'JOIN':
-    //   return <JoinMessage event={event} />;
-    // case 'RESUME':
-    //   return <ResumeMessage event={event} />;
-    // case 'PAUSE':
-    //   return <PauseMessage event={event} />;
-    // case 'DISCONNECT':
-    //   return <DisconnectMessage event={event} />;
-    // case 'ROLE_ASSIGNMENT':
-    //   return <RoleAssignmentMessage event={event} />;
-    // case 'TARGET_ROLE':
-    //   return <PlayerTargetRoleMessage event={event} />;
-    // case 'ARREST':
-    //   return <ArrestMessage event={event} />;
-    // case 'SWAP':
-    //   return <SwapMessage event={event} />;
-    // case 'CALL_VOTE':
-    //   return <CalledVoteMessage event={event} />;
-    default:
-      console.warn('missing component for message type: ' + event.type);
-      return null;
-  }
-};
-
-const ChatAvatar: FC<{ senderEntityId: SnowflakeId }> = () => {
-  return <Avatar />;
-};
-
-const PlainMessage: FC<{ event: PlainMessageEvent; index: number }> = ({
-  event,
-  index,
-}) => {
-  // const userId = UserSenderSchema.safeParse(sender).success
-  //   ? UserSenderSchema.parse(sender).userId
-  //   : null;
-  const isContinued = false; // todo move to hook;
-
-  return (
-    <Flex align="start" gap="1" css={{ mb: '$1' }}>
-      <Box css={isContinued ? { height: '1px', opacity: 0 } : {}}>
-        <ChatAvatar senderEntityId={event.senderEntityId} />
-      </Box>
-      <Flex direction="column" gap="1">
-        {/* <MessageCaption /> */}
-        <SenderName event={event} index={index} />
-        {/* {!isContinued &&
-          (userId ? (
-            <Caption variant={colorBySlotNumber[players[userId].slotNumber]}>
-              {players[userId].name}
-              <Caption variant="low_contrast" css={{ display: 'inline' }}>
-                {hostIds.includes(userId) && ' • host'}
-              </Caption>
-            </Caption>
-          ) : (
-            <Caption>Game{isPrivate && ' • private'}</Caption>
-          ))} */}
-        <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>
-          <MessageComponent message={event.message} />
-        </Text>
-      </Flex>
-    </Flex>
-  );
-};
-
-const SenderName: FC<{ event: ChatEvent; index: number }> = ({ event }) => {
-  const isContinued = false; // todo move to hook;
-  const isHost = false;
-  const isPrivate = false;
-
-  const name = useEntityIdSelector(event.senderEntityId, (entity: Entity) => {
-    if (entity.schema === 'room') {
-      return entity.slug;
-    } else {
-      return 'todo: implement as user.name';
+const ChatMessage: FC<{
+  messageId: string;
+  messageChannelId: SnowflakeId;
+  index: number;
+}> = ({ messageId, messageChannelId, index }) => {
+  const message = useEntityIdSelector(messageChannelId, (entity) => {
+    if (!entity) {
+      return undefined;
     }
+    assertEntitySchema(entity, 'message_channel');
+    return entity.messages.find((message) => message.id == messageId);
   });
 
-  return !isContinued ? (
-    <Caption>
-      {name}
-      {isHost && (
-        <Caption variant="low_contrast" css={{ display: 'inline' }}>
-          • host'
-        </Caption>
-      )}
-    </Caption>
-  ) : (
-    <Caption>Game{isPrivate && ' • private'}</Caption>
+  if (!message) {
+    return <div>placeholder</div>;
+  }
+
+  assert(
+    message.type === 'MESSAGE',
+    'expected chat message to be of type message'
+  );
+
+  return (
+    <>
+      {message.contents.map((block, index) => (
+        <MessageContentBlock key={index} block={block} />
+      ))}
+    </>
   );
 };
 
-const MessageComponent: FC<{ message: string }> = ({ message }) => {
-  return (
-    <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>
-      <MessageComponent message={message} />
-    </Text>
-  );
-};
+// const ChatAvatar: FC<{ senderEntityId: SnowflakeId }> = () => {
+//   return <Avatar />;
+// };
+
+// const PlainMessage: FC<{ event: PlainMessageEvent; index: number }> = ({
+//   event,
+//   index,
+// }) => {
+//   // const userId = UserSenderSchema.safeParse(sender).success
+//   //   ? UserSenderSchema.parse(sender).userId
+//   //   : null;
+//   const isContinued = false; // todo move to hook;
+
+//   return (
+//     <Flex align="start" gap="1" css={{ mb: '$1' }}>
+//       <Box css={isContinued ? { height: '1px', opacity: 0 } : {}}>
+//         <ChatAvatar senderEntityId={event.senderEntityId} />
+//       </Box>
+//       <Flex direction="column" gap="1">
+//         {/* <MessageCaption /> */}
+//         <SenderName event={event} index={index} />
+//         {/* {!isContinued &&
+//           (userId ? (
+//             <Caption variant={colorBySlotNumber[players[userId].slotNumber]}>
+//               {players[userId].name}
+//               <Caption variant="low_contrast" css={{ display: 'inline' }}>
+//                 {hostIds.includes(userId) && ' • host'}
+//               </Caption>
+//             </Caption>
+//           ) : (
+//             <Caption>Game{isPrivate && ' • private'}</Caption>
+//           ))} */}
+//         <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>
+//           <MessageComponent message={event.message} />
+//         </Text>
+//       </Flex>
+//     </Flex>
+//   );
+// };
+
+// const SenderName: FC<{ event: ChatEvent; index: number }> = ({ event }) => {
+//   const isContinued = false; // todo move to hook;
+//   const isHost = false;
+//   const isPrivate = false;
+
+//   const name = useEntityIdSelector(event.senderEntityId, (entity: Entity) => {
+//     if (entity.schema === 'room') {
+//       return entity.slug;
+//     } else {
+//       return 'todo: implement as user.name';
+//     }
+//   });
+
+//   return !isContinued ? (
+//     <Caption>
+//       {name}
+//       {isHost && (
+//         <Caption variant="low_contrast" css={{ display: 'inline' }}>
+//           • host'
+//         </Caption>
+//       )}
+//     </Caption>
+//   ) : (
+//     <Caption>Game{isPrivate && ' • private'}</Caption>
+//   );
+// };
+
+// const MessageComponent: FC<{ message: string }> = ({ message }) => {
+//   return (
+//     <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>
+//       <MessageComponent message={message} />
+//     </Text>
+//   );
+// };
 
 // const Message: FC<{
 //   event: MessageEvent;

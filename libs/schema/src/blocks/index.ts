@@ -1,7 +1,21 @@
 import { z } from 'zod';
 
 // Block props schemas
-export const PlainMessageBlockProps = z.object({
+// export const PlainMessageBlockProps = z.object({
+// });
+
+// export const UserJoinedBlockProps = z.object({
+// });
+
+// export const PlayerConnectedBlockProps = z.object({
+// });
+
+// export const PlayerDisconnectedBlockSchema = z.object({
+// });
+
+// Individual block schemas
+export const PlainMessageBlockSchema = z.object({
+  type: z.literal('PlainMessage'),
   avatarId: z.string(),
   message: z.string(),
   timestamp: z.string(),
@@ -9,47 +23,29 @@ export const PlainMessageBlockProps = z.object({
   textColor: z.string().optional(),
 });
 
-export const UserJoinedBlockProps = z.object({
+export const UserJoinedBlockSchema = z.object({
+  type: z.literal('UserJoined'),
   avatarId: z.string(),
   username: z.string(),
   timestamp: z.string(),
 });
 
-export const PlayerConnectedBlockProps = z.object({
-  playerId: z.string(),
-  username: z.string(),
-  timestamp: z.string(),
-});
-
-export const PlayerDisconnectedBlockProps = z.object({
-  playerId: z.string(),
-  username: z.string(),
-  timestamp: z.string(),
-});
-
-// Individual block schemas
-const PlainMessageBlockSchema = z.object({
-  type: z.literal('PlainMessage'),
-  props: PlainMessageBlockProps,
-});
-
-const UserJoinedBlockSchema = z.object({
-  type: z.literal('UserJoined'),
-  props: UserJoinedBlockProps,
-});
-
-const PlayerConnectedBlockSchema = z.object({
+export const PlayerConnectedBlockSchema = z.object({
   type: z.literal('PlayerConnected'),
-  props: PlayerConnectedBlockProps,
+  playerId: z.string(),
+  username: z.string(),
+  timestamp: z.string(),
 });
 
-const PlayerDisconnectedBlockSchema = z.object({
+export const PlayerDisconnectedBlockSchema = z.object({
   type: z.literal('PlayerDisconnected'),
-  props: PlayerDisconnectedBlockProps,
+  playerId: z.string(),
+  username: z.string(),
+  timestamp: z.string(),
 });
 
 // Union of all block schemas
-export const MessageContentBlockSchema = z.union([
+export const MessageContentBlockSchema = z.discriminatedUnion("type", [
   PlainMessageBlockSchema,
   UserJoinedBlockSchema,
   PlayerConnectedBlockSchema,

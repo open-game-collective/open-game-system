@@ -1,20 +1,12 @@
-import { AnyInterpreter, StateMachine } from 'xstate';
+import { AnyInterpreter } from 'xstate';
 import { z } from 'zod';
-import {
-  SlugSchema,
-  SnowflakeIdSchema,
-  StateSchemaFromStateValue,
-} from '../common';
+import { SlugSchema, SnowflakeIdSchema } from '../common';
 import { GameConfigurationSchema } from '../configuration';
 import { EntityBaseSchema } from '../entity/base';
 import { EventBaseSchema } from '../events/base';
 import {
-  ConnectEventTypeLiteral,
-  DisconnectEventTypeLiteral,
   DebugEventTypeLiteral,
   GameIdLiteralSchema,
-  JoinEventTypeLiteral,
-  LeaveEventTypeLiteral,
   LogEventTypeLiteral,
   MessageEventTypeLiteral,
   RoomSchemaTypeLiteral,
@@ -99,37 +91,55 @@ export const DebugEventSchema = EventBaseSchema(
   })
 );
 
-const ConnectMessageComponentLiteral = z.literal('CONNECT_MESSAGE');
-const DisconnectMessageComponentLiteral = z.literal('DISCONNECT_MESSAGE');
-const StartingGameMessageComponentLiteral = z.literal('STARTING_GAME_MESSAGE');
-
-export const MessageComponentType = z.union([
-  ConnectMessageComponentLiteral,
-  DisconnectMessageComponentLiteral,
-  StartingGameMessageComponentLiteral,
-]);
-
-const ConnectMessagePropsSchema = z.object({
-  type: ConnectMessageComponentLiteral,
-  name: z.string(),
+const PlainMessageBlockSchema = z.object({
+  type: z.literal('PlainMessage'),
+  avatarId: z.string(),
+  message: z.string(),
+  timestamp: z.string(),
+  textSize: z.number().optional(),
+  textColor: z.string().optional(),
 });
 
-const DisconnectMessagePropsSchema = z.object({
-  type: DisconnectMessageComponentLiteral,
-  name: z.string(),
+const UserJoinedBlockSchema = z.object({
+  type: z.literal('UserJoined'),
+  avatarId: z.string(),
+  username: z.string(),
+  timestamp: z.string(),
 });
 
-const MessageContentSchema = z.discriminatedUnion('type', [
-  ConnectMessagePropsSchema,
-  DisconnectMessagePropsSchema,
+const PlayerConnectedBlockSchema = z.object({
+  type: z.literal('PlayerConnected'),
+  playerId: z.string(),
+  username: z.string(),
+  timestamp: z.string(),
+});
+
+const PlayerDisconnectedBlockSchema = z.object({
+  type: z.literal('PlayerDisconnected'),
+  playerId: z.string(),
+  username: z.string(),
+  timestamp: z.string(),
+});
+
+// Union of all block schemas
+export const MessageContentBlockSchema = z.discriminatedUnion('type', [
+  PlainMessageBlockSchema,
+  UserJoinedBlockSchema,
+  PlayerConnectedBlockSchema,
+  PlayerDisconnectedBlockSchema,
 ]);
+
+// const MessageContentSchema = z.discriminatedUnion('type', [
+//   ConnectMessagePropsSchema,
+//   DisconnectMessagePropsSchema,
+// ]);
 
 export const RoomMessageEventSchema = EventBaseSchema(
   MessageEventTypeLiteral,
   z.object({
     senderId: SnowflakeIdSchema,
     recipientId: SnowflakeIdSchema.optional(),
-    contents: z.array(MessageContentSchema),
+    contents: z.array(MessageContentBlockSchema),
   })
 );
 
