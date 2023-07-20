@@ -91,7 +91,7 @@ export const DebugEventSchema = EventBaseSchema(
   })
 );
 
-const PlainMessageBlockSchema = z.object({
+export const PlainMessageBlockSchema = z.object({
   type: z.literal('PlainMessage'),
   avatarId: z.string(),
   message: z.string(),
@@ -100,24 +100,31 @@ const PlainMessageBlockSchema = z.object({
   textColor: z.string().optional(),
 });
 
-const UserJoinedBlockSchema = z.object({
+export const UserJoinedBlockSchema = z.object({
   type: z.literal('UserJoined'),
   avatarId: z.string(),
+  slug: z.string(),
   username: z.string(),
   timestamp: z.string(),
 });
 
-const PlayerConnectedBlockSchema = z.object({
+export const PlayerConnectedBlockSchema = z.object({
   type: z.literal('PlayerConnected'),
   playerId: z.string(),
   username: z.string(),
   timestamp: z.string(),
 });
 
-const PlayerDisconnectedBlockSchema = z.object({
+export const PlayerDisconnectedBlockSchema = z.object({
   type: z.literal('PlayerDisconnected'),
   playerId: z.string(),
   username: z.string(),
+  timestamp: z.string(),
+});
+
+export const StartGameBlockSchema = z.object({
+  type: z.literal('StartGame'),
+  gameId: z.string(),
   timestamp: z.string(),
 });
 
@@ -127,6 +134,7 @@ export const MessageContentBlockSchema = z.discriminatedUnion('type', [
   UserJoinedBlockSchema,
   PlayerConnectedBlockSchema,
   PlayerDisconnectedBlockSchema,
+  StartGameBlockSchema,
 ]);
 
 // const MessageContentSchema = z.discriminatedUnion('type', [

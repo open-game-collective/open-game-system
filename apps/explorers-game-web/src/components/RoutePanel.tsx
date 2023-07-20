@@ -10,8 +10,8 @@ import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
 import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
 import { useStore } from '@nanostores/react';
 import { NewRoomFlow } from '@organisms/new-room-flow';
-import { Room } from '@organisms/room';
-import { RoomProvider } from '@organisms/room/room.context';
+import { Channel } from '@organisms/channel';
+import { ChannelProvider } from '@organisms/channel/channel.context';
 import { MouseEventHandler, useCallback, useContext } from 'react';
 
 export const RoutePanel = () => {
@@ -19,9 +19,9 @@ export const RoutePanel = () => {
   const currentRoute = useStore(routeStore);
 
   return (
-    <Box css={{ p: '$3' }}>
+    <Box css={{ border: '4px solid grey' }}>
       {currentRoute.name === 'Home' && <HomePanel />}
-      {currentRoute.name === 'NewRoom' && <NewRoomPanel />}
+      {currentRoute.name === 'New' && <NewRoomPanel />}
       {currentRoute.name === 'Login' && <LoginPanel />}
       {currentRoute.name === 'Room' && <RoomPanel />}
     </Box>
@@ -38,7 +38,7 @@ const HomePanel = () => {
         event.preventDefault();
         entity.send({
           type: 'NAVIGATE',
-          route: { name: 'NewRoom' },
+          route: { name: 'New' },
         });
       }
     },
@@ -72,9 +72,7 @@ const NewRoomPanel = () => {
 // TODO make this common to be able to use in HTML and canvas
 const RoomPanel = () => {
   const { entityStoreRegistry } = useContext(WorldContext);
-  const connectionEntity = useStore(
-    entityStoreRegistry.myConnectionEntity
-  );
+  const connectionEntity = useStore(entityStoreRegistry.myConnectionEntity);
   const currentChannelId = useEntityStoreSelector(
     entityStoreRegistry.myConnectionEntity,
     (entity) => entity.currentChannelId
@@ -94,8 +92,8 @@ const RoomPanel = () => {
   }
 
   return (
-    <RoomProvider>
-      <Room />
-    </RoomProvider>
+    <ChannelProvider>
+      <Channel />
+    </ChannelProvider>
   );
 };

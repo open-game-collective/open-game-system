@@ -38,12 +38,6 @@ export const Chat = () => {
 
   return (
     <Flex direction="column" css={{ width: '100%' }}>
-      {/* <Flex css={{ p: '$3' }} justify="between">
-        <Caption css={{ flexGrow: 1 }}>Chat</Caption>
-        <CountdownTimer />
-      </Flex>
-      <ChatMessageList />
-      <ChatInput disabled={!!disabled} /> */}
       <ChatMessageList />
       <ChatInput disabled={false} />
     </Flex>

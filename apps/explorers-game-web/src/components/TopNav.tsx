@@ -34,11 +34,11 @@ export const TopNav = () => {
       }}
     >
       {!isMenuOpen && (
-        <IconButton variant="ghost" size="3" onClick={handlePressMenu}>
+        <IconButton variant="ghost" size="1" onClick={handlePressMenu}>
           <HamburgerMenuIcon />
         </IconButton>
       )}
-      <IconButton variant="ghost" size="3">
+      <IconButton variant="ghost" size="1">
         <PersonIcon />
       </IconButton>
       {/* <img style={{ height: '42px' }} src={logoRef} alt="Explorers Logo" /> */}

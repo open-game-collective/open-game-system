@@ -1,14 +1,13 @@
-import React from 'react';
-import { z } from 'zod';
 import {
+  MessageContentBlockSchema,
   PlainMessageBlockSchema,
-  UserJoinedBlockSchema,
   PlayerConnectedBlockSchema,
   PlayerDisconnectedBlockSchema,
-  MessageContentBlockSchema,
-} from '@schema/blocks';
-
-// Define React components using inferred Zod schema types
+  StartGameBlockSchema,
+  UserJoinedBlockSchema,
+} from '@schema/lib/room';
+import React from 'react';
+import { z } from 'zod';
 
 const PlainMessageBlock: React.FC<z.infer<typeof PlainMessageBlockSchema>> = ({
   avatarId,
@@ -25,16 +24,21 @@ const UserJoinedBlock: React.FC<z.infer<typeof UserJoinedBlockSchema>> = ({
   avatarId,
   username,
   timestamp,
+  slug,
 }) => (
   // Replace with your component logic
-  <div>{username} joined</div>
+  <div>
+    <strong>{username}</strong> joined {slug}
+  </div>
 );
 
 const PlayerConnectedBlock: React.FC<
   z.infer<typeof PlayerConnectedBlockSchema>
 > = ({ playerId, username, timestamp }) => (
   // Replace with your component logic
-  <div>{username} connected</div>
+  <div>
+    <strong>{username}</strong> connected
+  </div>
 );
 
 const PlayerDisconnectedBlock: React.FC<
@@ -44,12 +48,21 @@ const PlayerDisconnectedBlock: React.FC<
   <div>{username} disconnected</div>
 );
 
+const StartGameBlock: React.FC<z.infer<typeof StartGameBlockSchema>> = ({
+  gameId,
+  timestamp,
+}) => (
+  // Replace with your component logic
+  <div>start game when two players are here.</div>
+);
+
 // The component map
 const componentMap = {
   PlainMessage: PlainMessageBlock,
   UserJoined: UserJoinedBlock,
   PlayerConnected: PlayerConnectedBlock,
   PlayerDisconnected: PlayerDisconnectedBlock,
+  StartGame: StartGameBlock,
 } as const;
 
 export const MessageContentBlock: React.FC<{

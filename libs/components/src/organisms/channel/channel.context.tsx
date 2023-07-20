@@ -5,18 +5,16 @@ import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
 import { useStore } from '@nanostores/react';
 import { FC, ReactNode, createContext, useContext } from 'react';
 
-export const RoomContext = createContext(
+export const ChannelContext = createContext(
   {} as {
     connectionEntity: ConnectionEntity;
     roomEntity: RoomEntity;
   }
 );
 
-export const RoomProvider: FC<{ children: ReactNode }> = ({ children }) => {
+export const ChannelProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { entityStoreRegistry } = useContext(WorldContext);
-  const connectionEntity = useStore(
-    entityStoreRegistry.myConnectionEntity
-  );
+  const connectionEntity = useStore(entityStoreRegistry.myConnectionEntity);
   const currentChannelId = useEntityStoreSelector(
     entityStoreRegistry.myConnectionEntity,
     (entity) => entity.currentChannelId
@@ -37,8 +35,8 @@ export const RoomProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }
 
   return (
-    <RoomContext.Provider value={{ connectionEntity, roomEntity }}>
+    <ChannelContext.Provider value={{ connectionEntity, roomEntity }}>
       {children}
-    </RoomContext.Provider>
+    </ChannelContext.Provider>
   );
 };

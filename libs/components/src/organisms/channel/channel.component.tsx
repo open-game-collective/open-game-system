@@ -4,16 +4,18 @@ import { enablePatches } from 'immer';
 import { FC, useCallback, useContext } from 'react';
 import { Flex } from '@atoms/Flex';
 import { Text } from '@atoms/Text';
-import { RoomContext } from './room.context';
+import { ChannelContext } from './channel.context';
 import { useEntitySelector } from '@hooks/useEntitySelector';
 import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
 import { RoomEntity, SnowflakeId } from '@schema/types';
+import { IconButton } from '@atoms/IconButton';
+import { ChevronDownIcon, FrameIcon, SizeIcon } from '@radix-ui/react-icons';
 enablePatches();
 
-export const Room = () => {
-  const { roomEntity } = useContext(RoomContext);
-  const connectPlayerCount = useEntitySelector(
+export const Channel = () => {
+  const { roomEntity } = useContext(ChannelContext);
+  const connectedCount = useEntitySelector(
     roomEntity,
     (entity) => entity.allSessionIds.length
   );
@@ -23,15 +25,34 @@ export const Room = () => {
   );
 
   const selectedGameId = useEntitySelector(roomEntity, (state) => state.gameId);
-
-  return !!currentGameInstanceId ? (
-    <GameInstancePanel gameInstanceId={currentGameInstanceId} />
-  ) : (
-    <Flex gap="2" css={{ p: '$2', gap: '$2' }} direction="column">
-      <Heading size="2">#{roomEntity.slug}</Heading>
-      <Heading>{roomEntity.gameId}</Heading>
-      <Text>{connectPlayerCount} connected</Text>
-      {selectedGameId ? <GameConfigPanel /> : <SelectGamePanel />}
+  return (
+    <Flex
+      css={{ px: '$2', background: '#eee' }}
+      direction="row"
+      gap="2"
+      align="center"
+      justify="between"
+    >
+      <IconButton css={{ backgroundColor: 'white' }} variant="stroke" size="3">
+        <FrameIcon />
+      </IconButton>
+      <Flex
+        gap="1"
+        css={{ p: '$2', background: 'rgba(0,0,0,.05)', flex: '1' }}
+        direction="column"
+      >
+        <Heading size="1">#{roomEntity.slug}</Heading>
+        <Text>{connectedCount} connected</Text>
+        {/* {selectedGameId ? <GameConfigPanel /> : <SelectGamePanel />} */}
+      </Flex>
+      <Flex>
+        <IconButton size="1">
+          <ChevronDownIcon />
+        </IconButton>
+        <IconButton size="1">
+          <SizeIcon />
+        </IconButton>
+      </Flex>
     </Flex>
   );
 };
@@ -43,7 +64,7 @@ const GameInstancePanel: FC<{ gameInstanceId: SnowflakeId }> = ({
 };
 
 const GameConfigPanel = () => {
-  const { roomEntity } = useContext(RoomContext);
+  const { roomEntity } = useContext(ChannelContext);
   const selectedGameId = useEntitySelector(roomEntity, (state) => state.gameId);
   const numPlayers = useEntitySelector(
     roomEntity,
@@ -58,7 +79,6 @@ const GameConfigPanel = () => {
 
   return (
     <Box>
-      <div>Game {selectedGameId}</div>
       <Button disabled={numPlayers !== 2} onClick={handlePressStart}>
         Start
       </Button>

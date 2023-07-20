@@ -1,9 +1,6 @@
 // import { isMainSceneFocusedStore } from '../global/layout';
 import { Box } from '@atoms/Box';
-import {
-  OrbitControls,
-  useContextBridge,
-} from '@react-three/drei';
+import { OrbitControls, useContextBridge } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 // import { GoogleMaps } from './GoogleMaps';
 import { WorldContext } from '@context/WorldProvider';
@@ -18,7 +15,10 @@ import { useEntitySelector } from '@hooks/useEntitySelector';
 import { useCurrentGameEntityStore } from '@hooks/useCurrentGameEntityStore';
 import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
 import type { RoomEntity } from '@schema/types';
-import { RoomContext, RoomProvider } from '@organisms/room/room.context';
+import {
+  ChannelContext,
+  ChannelProvider,
+} from '@organisms/channel/channel.context';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { StrikersSceneManager } from '../../../../games/strikers/src/client/scene-manager';
@@ -73,15 +73,15 @@ const SceneManager = () => {
   // right now this is happening in room scene but might need
   // to do it at a channel level
   return (
-    <RoomProvider>
-      <RoomScene />
-    </RoomProvider>
+    <ChannelProvider>
+      <ChannelScene />
+    </ChannelProvider>
   );
 };
 
-const RoomScene = () => {
+const ChannelScene = () => {
   // render a box if there is a game...
-  const { roomEntity } = useContext(RoomContext);
+  const { roomEntity } = useContext(ChannelContext);
   const currentGameInstanceId = useEntitySelector(
     roomEntity,
     (entity) => entity.currentGameInstanceId

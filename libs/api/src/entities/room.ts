@@ -45,42 +45,54 @@ export const createRoomMachine = ({
       on: {
         CONNECT: {
           actions: async (_, event) => {
-            console.log(event);
             const connectionEntity = entitiesById.get(event.senderId);
             assertEntitySchema(connectionEntity, 'connection');
 
             const { sessionId } = connectionEntity;
 
+            /**
+             * If this is person first time here, send join
+             */
             if (!roomEntity.allSessionIds.includes(sessionId)) {
               roomEntity.allSessionIds = [
                 ...roomEntity.allSessionIds,
                 sessionId,
               ];
 
-              const connectEvent = {
+              const joinMessage = {
                 type: 'MESSAGE',
                 senderId: roomEntity.id,
                 contents: [
                   {
-                    type: 'PlayerConnected',
-                    playerId: 'foo',
+                    type: 'UserJoined',
+                    avatarId: 'foo',
                     username: 'foobar',
+                    slug: `#${roomEntity.slug}`,
                     timestamp: new Date().toString(),
                   },
                 ],
               } satisfies CreateEventProps<RoomMessageEvent>;
-              roomChannel.next(connectEvent);
+              roomChannel.next(joinMessage);
 
-              // todo: some new joined the room, log a message
-              // by sending a message ot the channel
-              // roomChannel.next({
-              //   type: 'CONNECT',
-              // } as CreateEventProps<ConnectEvent>);
+              if (roomEntity.allSessionIds.length === 1) {
+                // Should the recipient by a session or a userId?
+                // Probably a userId
+                // but this is fine for now
 
-              // roomChannel.next({
-              //   type: 'CONNECT',
-              //   subjectId: event.senderId,
-              // } as CreateEventProps<ConnectEvent>);
+                const startGameMessage = {
+                  type: 'MESSAGE',
+                  senderId: roomEntity.id,
+                  recipientId: roomEntity.allSessionIds[0],
+                  contents: [
+                    {
+                      type: 'StartGame',
+                      gameId: 'strikers',
+                      timestamp: new Date().toString(),
+                    },
+                  ],
+                } satisfies CreateEventProps<RoomMessageEvent>;
+                roomChannel.next(startGameMessage);
+              }
             }
           },
         },

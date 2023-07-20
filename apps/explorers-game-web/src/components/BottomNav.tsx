@@ -11,23 +11,25 @@ import { useCallback, useContext } from 'react';
 import { useStore } from '@nanostores/react';
 
 export const BottomNav = () => {
-  const { isMenuOpenStore } = useContext(LayoutContext);
-  const handlePressMenu = useCallback(() => {
-    if (isMenuOpenStore.get()) {
-      isMenuOpenStore.set(false);
-    } else {
-      isMenuOpenStore.set(true);
-    }
-  }, [isMenuOpenStore]);
+  const isBottomNavOpen = false;
+  // const { isMenuOpenStore } = useContext(LayoutContext);
+  // const handlePressMenu = useCallback(() => {
+  //   if (isMenuOpenStore.get()) {
+  //     isMenuOpenStore.set(false);
+  //   } else {
+  //     isMenuOpenStore.set(true);
+  //   }
+  // }, [isMenuOpenStore]);
 
-  const isMenuOpen = useStore(isMenuOpenStore);
+  // const isMenuOpen = useStore(isMenuOpenStore);
 
-  return (
+  return isBottomNavOpen ? (
     <Flex
       justify="between"
       align="center"
       css={{
-        background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5))',
+        background:
+          'linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5))',
         position: 'absolute',
         border: '4px dashed yellow',
         bottom: '0',
@@ -41,5 +43,7 @@ export const BottomNav = () => {
         <ThickArrowLeftIcon />
       </IconButton>
     </Flex>
+  ) : (
+    <></>
   );
 };
