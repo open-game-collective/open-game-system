@@ -1,14 +1,13 @@
-import { Avatar } from '@atoms/Avatar';
 import { Badge } from '@atoms/Badge';
-import { useEntitySelector } from '@hooks/useEntitySelector';
-import { Box } from '@atoms/Box';
 import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
-import { Text } from '@atoms/Text';
 import { TextField } from '@atoms/TextField';
-import { Entity, SnowflakeId } from '@explorers-club/schema';
+import { MessageChannelEntity, SnowflakeId } from '@explorers-club/schema';
 import { styled } from '@explorers-club/styles';
+import { assert, assertEntitySchema } from '@explorers-club/utils';
 import { useEntityIdSelector } from '@hooks/useEntityIdSelector';
+import { useEntitySelector } from '@hooks/useEntitySelector';
+import { MessageContent } from '@molecules/Blocks';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
 import {
   FC,
@@ -21,8 +20,10 @@ import {
   useState,
 } from 'react';
 import { ChatContext } from './chat.context';
-import { assert, assertEntitySchema } from '@explorers-club/utils';
-import { MessageContent } from '@molecules/Blocks';
+import { WorldContext } from '@context/WorldProvider';
+import { useCurrentMessageChannelEntityStore } from '@hooks/useCurrentMessageChannelEntityStore';
+import { Atom, ReadableAtom, WritableAtom } from 'nanostores';
+import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
 
 type PlainMessageEvent = {
   type: 'PLAIN_MESSAGE';
@@ -100,6 +101,12 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
   );
 };
 
+const MessageChannelContext = createContext(
+  {} as {
+    messageChannelEntityStore: ReadableAtom<MessageChannelEntity | null>;
+  }
+);
+
 const ChatMessageList = () => {
   const { roomEntity, connectionEntity } = useContext(ChatContext);
 
@@ -112,25 +119,58 @@ const ChatMessageList = () => {
     return <div>loading messages</div>;
   }
 
-  const messageChannelId = channelEntityIds[roomEntity.id];
-  if (!messageChannelId) {
-    return <div>Loading Message channel</div>;
-  }
+  const messageChannelEntityStore = useCurrentMessageChannelEntityStore();
+  // const messageChannelId = channelEntityIds[roomEntity.id];
+  // const messageChannelEntity = useEntitySelector((entity) => {
+  //   return true;
+  // })
+  // const messageIds = useEntitySelector(messageChannelEntity, (entity) => {});
+  // const messageIds = useEntityIdSelector(messageChannelId, (entity) => {
+  //   if (!entity) {
+  //     return undefined;
+  //   }
+  //   assertEntitySchema(entity, 'message_channel');
 
-  return <MessageChannel messageChannelId={messageChannelId} />;
+  //   // todo this might be causing extra re-renders?
+  //   const messageIds = entity.messages.map((message) => message.id);
+  //   console.log({ messageIds });
+  //   return messageIds;
+  // });
+
+  // const messageChannelEntity = entitiesById.get(messageChannelId);
+  // assertEntitySchema(messageChannelEntity, 'message_channel');
+
+  return (
+    <MessageChannelContext.Provider value={{ messageChannelEntityStore }}>
+      <MessageChannel />
+    </MessageChannelContext.Provider>
+  );
 };
 
-const MessageChannel: FC<{ messageChannelId: SnowflakeId }> = ({
-  messageChannelId,
-}) => {
-  const scrollViewRef = useRef<HTMLDivElement | null>(null);
-  const messages = useEntityIdSelector(messageChannelId, (entity) => {
-    if (!entity) {
-      return undefined;
+const MessageChannel = () => {
+  const { messageChannelEntityStore } = useContext(MessageChannelContext);
+  const messageIds = useEntityStoreSelector(
+    messageChannelEntityStore,
+    (entity) => {
+      console.log('ESS', entity);
+      return entity.messages.map((message) => message.id);
     }
-    assertEntitySchema(entity, 'message_channel');
-    return entity.messages;
-  });
+  );
+  const scrollViewRef = useRef<HTMLDivElement | null>(null);
+
+  // const messageIds = useEntitySelector(messageChannelEntity, (entity) => {});
+  // const messageIds = useEntityIdSelector(messageChannelId, (entity) => {
+  //   if (!entity) {
+  //     return undefined;
+  //   }
+  //   assertEntitySchema(entity, 'message_channel');
+
+  //   // todo this might be causing extra re-renders?
+  //   const messageIds = entity.messages.map((message) => message.id);
+  //   console.log({ messageIds });
+  //   return messageIds;
+  // });
+  // console.log('rendering', { messageIds });
 
   useEffect(() => {
     let isScrolled = false;
@@ -186,7 +226,7 @@ const MessageChannel: FC<{ messageChannelId: SnowflakeId }> = ({
     // };
   }, [scrollViewRef]);
 
-  if (!messages || !messages.length) {
+  if (!messageIds || !messageIds.length) {
     return <div>no messages</div>;
   }
 
@@ -221,31 +261,14 @@ const MessageChannel: FC<{ messageChannelId: SnowflakeId }> = ({
         <ChatRoot>
           <ChatViewport ref={scrollViewRef}>
             <Flex direction="column" gap="2">
-              {messages.map((message, index) => {
-                switch (message.type) {
-                  case 'MESSAGE':
-                    return (
-                      <ChatMessage
-                        key={message.id}
-                        index={index}
-                        messageChannelId={messageChannelId}
-                        messageId={message.id}
-                      />
-                    );
-                  case 'DEBUG':
-                    throw new Error('DEBUG message type not implemented');
-                  case 'LOG':
-                    throw new Error('LOG message type not implemented');
-                  default:
-                    throw new Error(
-                      'message type not implemented for' + message
-                    );
-                }
-
-                // if (message.type === "MESSAGE") {
-
-                // } else if (message.type)
-                return <div key={index}>{message.type}</div>;
+              {messageIds.map((messageId, index) => {
+                return (
+                  <ChatMessage
+                    key={messageId}
+                    index={index}
+                    messageId={messageId}
+                  />
+                );
               })}
             </Flex>
             <TypingIndicator />
@@ -336,16 +359,18 @@ const TypingIndicator = () => {
 
 const ChatMessage: FC<{
   messageId: string;
-  messageChannelId: SnowflakeId;
   index: number;
-}> = ({ messageId, messageChannelId, index }) => {
-  const message = useEntityIdSelector(messageChannelId, (entity) => {
-    if (!entity) {
-      return undefined;
-    }
-    assertEntitySchema(entity, 'message_channel');
-    return entity.messages.find((message) => message.id == messageId);
-  });
+}> = ({ messageId, index }) => {
+  const { messageChannelEntityStore } = useContext(MessageChannelContext);
+  const messageChannelId = useEntityStoreSelector(
+    messageChannelEntityStore,
+    (entity) => entity.id
+  );
+
+  const message = useEntityStoreSelector(
+    messageChannelEntityStore,
+    (entity) => entity.messages[index]
+  );
 
   if (!message) {
     return <div>placeholder</div>;
@@ -359,7 +384,7 @@ const ChatMessage: FC<{
   return (
     <>
       {message.contents.map((block, index) => (
-        <MessageContent key={index} block={block} event={message} />
+        <MessageContent key={index} block={block} message={message} />
       ))}
     </>
   );

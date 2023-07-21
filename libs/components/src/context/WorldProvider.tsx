@@ -2,16 +2,17 @@ import { trpc } from '@explorers-club/api-client';
 import {
   ConnectionEntity,
   Entity,
+  EntityChangeEvent,
   EntityCommand,
   InitializedConnectionEntity,
   SnowflakeId,
   SyncedEntityProps,
 } from '@explorers-club/schema';
-import { useStore } from '@nanostores/react';
+import { AnyFunction, assert } from '@explorers-club/utils';
 import { applyPatch } from 'fast-json-patch';
-import { Atom, WritableAtom, atom } from 'nanostores';
 import { createIndex } from 'libs/api/src/world';
 import { World } from 'miniplex';
+import { Atom, WritableAtom, atom } from 'nanostores';
 import {
   FC,
   ReactNode,
@@ -98,8 +99,11 @@ export const WorldProvider: FC<{
       };
 
       const next = (event: TEvent) => {
+        console.log('subscriptions');
         for (const callback of subscriptions) {
-          callback(event as any); // todo fix TS not liking nested union types on event
+          const fn = callback as AnyFunction; // hack fix for ts complaining about typ ecomplex
+          console.log('calling', event, fn);
+          fn(event);
         }
       };
       nextFnById.set(id, next);
@@ -159,19 +163,21 @@ export const WorldProvider: FC<{
                 const component = pathParts[1] as keyof typeof entity;
                 world.removeComponent(entity, component);
               } else {
+                console.log('applying patch to', entity);
                 applyPatch(entity, change.patches);
               }
             }
 
             const next = nextFnById.get(entity.id);
-            if (!next) {
-              throw new Error('expected next function for entity ' + entity.id);
-            }
+            assert(
+              next,
+              'expected next function to exist for entity ' + entity.id
+            );
 
             next({
               type: 'CHANGE',
               patches: change.patches,
-            });
+            } as any as EntityChangeEvent);
           }
         }
       },
@@ -180,6 +186,7 @@ export const WorldProvider: FC<{
     return sub.unsubscribe;
   }, [client, createEntity, nextFnById, world]);
 
+  // is this being used?
   const useEntitySelector = useCallback(
     <T extends Entity, R>(id: SnowflakeId, selector: Selector<T, R>) => {
       const getSnapshot = () => {
@@ -248,7 +255,6 @@ export const WorldProvider: FC<{
           // console.log('store', store.get());
           // console.log('query', query, query(addedEntity));
           if (!store.get() && query(addedEntity as TEntity)) {
-            console.log('SETTING!');
             store.set(addedEntity as TEntity);
           }
 

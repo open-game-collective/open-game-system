@@ -157,6 +157,7 @@ import {
   ChatContextSchema,
   ChatStateValueSchema,
 } from './services/chat';
+import { EntityChangeEventSchema } from './entity/base';
 
 export type ChatContext = z.infer<typeof ChatContextSchema>;
 export type ChatCommand = z.infer<typeof ChatCommandSchema>;
@@ -303,6 +304,7 @@ export type SnowflakeId = z.infer<typeof SnowflakeIdSchema>;
 
 export type Entity = z.infer<typeof EntitySchema>;
 export type EntityEvent = Parameters<Parameters<Entity['subscribe']>[0]>[0];
+export type EntityChangeEvent = z.infer<typeof EntityChangeEventSchema>;
 export type EntitySchemaType = keyof typeof EntitySchemas;
 
 export type ChannelEntity = z.infer<typeof ChannelEntitySchema>;
@@ -429,7 +431,7 @@ export type EventFromEntity<TEntity extends Entity> = Parameters<
 //   prevValue: TEntity[keyof TEntity];
 // };
 
-interface EntityChangeEvent<TEntity extends Entity> {
+interface EntityIndexChangeEvent<TEntity extends Entity> {
   type: 'CHANGE';
   data: TEntity;
   patches: Operation[];
@@ -451,7 +453,7 @@ type EntityIndexRemoveEvent<TEntity extends Entity> = {
 };
 
 export type EntityIndexEvent<TEntity extends Entity> =
-  | EntityChangeEvent<TEntity>
+  | EntityIndexChangeEvent<TEntity>
   | EntityIndexInitEvent<TEntity>
   | EntityIndexAddEvent<TEntity>
   | EntityIndexRemoveEvent<TEntity>;

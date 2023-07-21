@@ -75,7 +75,7 @@ const EntityTransitionStateEventSchema = z.object({
   type: z.literal('TRANSITION'),
 });
 
-const EntityChangeEventSchema = z.object({
+export const EntityChangeEventSchema = z.object({
   type: z.literal('CHANGE'),
   patches: z.array(z.custom<Operation>()),
 });
