@@ -102,9 +102,8 @@ export const PlainMessageBlockSchema = z.object({
 
 export const UserJoinedBlockSchema = z.object({
   type: z.literal('UserJoined'),
-  avatarId: z.string(),
+  userId: SnowflakeIdSchema,
   slug: z.string(),
-  username: z.string(),
   timestamp: z.string(),
 });
 

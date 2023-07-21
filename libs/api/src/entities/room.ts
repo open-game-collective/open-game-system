@@ -49,6 +49,8 @@ export const createRoomMachine = ({
             assertEntitySchema(connectionEntity, 'connection');
 
             const { sessionId } = connectionEntity;
+            const sessionEntity = entitiesById.get(sessionId);
+            assertEntitySchema(sessionEntity, 'session');
 
             /**
              * If this is person first time here, send join
@@ -65,8 +67,7 @@ export const createRoomMachine = ({
                 contents: [
                   {
                     type: 'UserJoined',
-                    avatarId: 'foo',
-                    username: 'foobar',
+                    userId: sessionEntity.userId,
                     slug: `#${roomEntity.slug}`,
                     timestamp: new Date().toString(),
                   },

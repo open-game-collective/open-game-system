@@ -1,8 +1,9 @@
-import { assertType } from '@explorers-club/utils';
+import { assertEntitySchema, assertType } from '@explorers-club/utils';
 import { MessageContentBlock, MessageEvent } from '@schema/types';
 import { StrikersStartGameBlock } from '@strikers/client/components/ui/message-blocks/start-game-block';
 import React, { useContext } from 'react';
 import { BlockContext } from './block.context';
+import { useEntityIdSelector } from '@hooks/useEntityIdSelector';
 
 const PlainMessageBlock = () => {
   const { block } = useContext(BlockContext);
@@ -18,12 +19,17 @@ const PlainMessageBlock = () => {
 const UserJoinedBlock = () => {
   const { block } = useContext(BlockContext);
   assertType(block, 'UserJoined');
-  const { username, slug } = block;
+  const { userId, slug } = block;
+
+  const name = useEntityIdSelector(userId, (entity) => {
+    assertEntitySchema(entity, 'user');
+    return entity.name || `Player ${entity.serialNumber}`;
+  });
 
   return (
     // Replace with your component logic
     <div>
-      <strong>{username}</strong> joined {slug}
+      <strong>{name}</strong> joined {slug}
     </div>
   );
 };
