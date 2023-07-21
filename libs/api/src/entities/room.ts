@@ -79,10 +79,15 @@ export const createRoomMachine = ({
                 // Probably a userId
                 // but this is fine for now
 
+                const recipientSession = entitiesById.get(
+                  roomEntity.allSessionIds[0]
+                );
+                assertEntitySchema(recipientSession, 'session');
+
                 const startGameMessage = {
                   type: 'MESSAGE',
                   senderId: roomEntity.id,
-                  recipientId: roomEntity.allSessionIds[0],
+                  recipientId: recipientSession.userId,
                   contents: [
                     {
                       type: 'StartGame',

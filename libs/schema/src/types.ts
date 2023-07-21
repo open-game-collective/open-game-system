@@ -20,6 +20,7 @@ import {
 import {
   ChannelEventSchema,
   MessageComponentTypeSchema,
+  MessageEventSchema,
   // MessageEventSchema,
 } from './events/channel';
 import { ClientEventSchema } from './events/client';
@@ -109,6 +110,11 @@ import {
   RoomEventSchema,
   RoomStateValueSchema,
   MessageContentBlockSchema,
+  PlayerDisconnectedBlockSchema,
+  UserJoinedBlockSchema,
+  PlayerConnectedBlockSchema,
+  PlainMessageBlockSchema,
+  StartGameBlockSchema,
 } from './lib/room';
 import {
   SessionCommandSchema,
@@ -283,9 +289,15 @@ export type TriggerMachine = StateMachine<
 // export type DisconnectEvent = z.infer<typeof DisconnectEventSchema>;
 // export type MessageEvent = z.infer<typeof MessageEventSchema>;
 export type MessageContentBlock = z.infer<typeof MessageContentBlockSchema>;
+export type PlayerDisconnectedBlock = z.infer<typeof PlayerDisconnectedBlockSchema>;
+export type PlayerConnectedBlock = z.infer<typeof PlayerConnectedBlockSchema>;
+export type UserJoinedBlock = z.infer<typeof UserJoinedBlockSchema>;
+export type PlainMessageBlock = z.infer<typeof PlainMessageBlockSchema>;
+export type StartGameBlock = z.infer<typeof StartGameBlockSchema>;
 
 export type LogEvent = z.infer<typeof LogEventSchema>;
 export type DebugEvent = z.infer<typeof DebugEventSchema>;
+export type MessageEvent = z.infer<typeof MessageEventSchema>;
 export type ChannelEvent = z.infer<typeof ChannelEventSchema>;
 export type SnowflakeId = z.infer<typeof SnowflakeIdSchema>;
 

@@ -6,6 +6,7 @@ import {
   NewRoomContext,
   RoomEntity,
   SessionEntity,
+  UserEntity,
   WithSenderId,
 } from '@explorers-club/schema';
 import { assign as assignImmer } from '@xstate/immer';
@@ -47,6 +48,14 @@ import { entitiesById } from '../server/state';
 //   throw new Error('missing supabase configuration');
 // }
 
+const getSerialNumber = (() => {
+  let count = 0;
+  return () => {
+    count = count + 1;
+    return count;
+  };
+})();
+
 export const createConnectionMachine = ({
   world,
   entity,
@@ -74,15 +83,18 @@ export const createConnectionMachine = ({
       connectionId: connectionEntity.id,
     } as SessionCommand);
   } else {
-    // console.log(
-    //   'creating',
-    //   connectionEntity.sessionId,
-    //   'on',
-    //   connectionEntity.id
-    // );
+    const userEntity = createEntity<UserEntity>({
+      schema: 'user',
+      profileId: undefined,
+      name: undefined,
+      serialNumber: getSerialNumber(),
+    });
+    world.add(userEntity);
+
     sessionEntity = createEntity<SessionEntity>({
       id: connectionEntity.sessionId,
       schema: 'session',
+      userId: userEntity.id,
       connectionIds: [connectionEntity.id],
     });
     world.add(sessionEntity);

@@ -16,7 +16,6 @@ const UserEntityPropsSchema = z.object({
   schema: UserSchemaTypeLiteral,
   profileId: SnowflakeIdSchema.optional(),
   name: PlayerNameSchema.optional(),
-  // discriminator: z.number().default(0),
   serialNumber: z.number(),
 });
 

@@ -22,7 +22,7 @@ import {
 } from 'react';
 import { ChatContext } from './chat.context';
 import { assert, assertEntitySchema } from '@explorers-club/utils';
-import { MessageContentBlock } from '@molecules/Blocks';
+import { MessageContent } from '@molecules/Blocks';
 
 type PlainMessageEvent = {
   type: 'PLAIN_MESSAGE';
@@ -359,7 +359,7 @@ const ChatMessage: FC<{
   return (
     <>
       {message.contents.map((block, index) => (
-        <MessageContentBlock key={index} block={block} />
+        <MessageContent key={index} block={block} event={message} />
       ))}
     </>
   );

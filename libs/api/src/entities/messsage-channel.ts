@@ -9,7 +9,7 @@
  * This is an example of an entity type with a dynmaic service type.
  * Services are pretty close to systems in ECS.
  */
-import { assert } from '@explorers-club/utils';
+import { assert, assertEntitySchema } from '@explorers-club/utils';
 import {
   Entity,
   ChannelEvent,
@@ -47,6 +47,14 @@ export const createMessageChannelMachine = ({
   const channel = channelsById.get(parentEntity.id);
   assert(channel, 'expected channel in parentEntity');
 
+  const connectionEntity = entitiesById.get(messageChannelEntity.connectionId);
+  assertEntitySchema(connectionEntity, 'connection');
+
+  const sessionEntity = entitiesById.get(connectionEntity.sessionId);
+  assertEntitySchema(sessionEntity, 'session');
+  // sessionEntity.userId
+  // sessionEntity.
+
   return createMachine({
     id: 'MessageChannelMachine',
     initial: 'Initialized',
@@ -65,6 +73,18 @@ export const createMessageChannelMachine = ({
             invoke: {
               src: async () => {
                 channel.subscribe((event) => {
+                  if (event.type === 'MESSAGE') {
+                    if (
+                      event.recipientId &&
+                      event.recipientId !== sessionEntity.userId
+                    )
+                      // Don't add messages if a recipient is specified
+                      // and it doesn't match this user
+                      return;
+                  }
+
+                  // todo filter debug logs ?
+
                   messageChannelEntity.messages = [
                     ...messageChannelEntity.messages,
                     event,

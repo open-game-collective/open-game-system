@@ -1,60 +1,71 @@
-import {
-  MessageContentBlockSchema,
-  PlainMessageBlockSchema,
-  PlayerConnectedBlockSchema,
-  PlayerDisconnectedBlockSchema,
-  StartGameBlockSchema,
-  UserJoinedBlockSchema,
-} from '@schema/lib/room';
-import React from 'react';
-import { z } from 'zod';
+import { assertType } from '@explorers-club/utils';
+import { MessageContentBlock, MessageEvent } from '@schema/types';
+import { StrikersStartGameBlock } from '@strikers/client/components/ui/message-blocks/start-game-block';
+import React, { useContext } from 'react';
+import { BlockContext } from './block.context';
 
-const PlainMessageBlock: React.FC<z.infer<typeof PlainMessageBlockSchema>> = ({
-  avatarId,
-  message,
-  timestamp,
-  textSize,
-  textColor,
-}) => (
-  // Replace with your component logic
-  <div>{message}</div>
-);
+const PlainMessageBlock = () => {
+  const { block } = useContext(BlockContext);
+  assertType(block, 'PlainMessage');
+  const { message } = block;
 
-const UserJoinedBlock: React.FC<z.infer<typeof UserJoinedBlockSchema>> = ({
-  avatarId,
-  username,
-  timestamp,
-  slug,
-}) => (
-  // Replace with your component logic
-  <div>
-    <strong>{username}</strong> joined {slug}
-  </div>
-);
+  return (
+    // Replace with your component logic
+    <div>{message}</div>
+  );
+};
 
-const PlayerConnectedBlock: React.FC<
-  z.infer<typeof PlayerConnectedBlockSchema>
-> = ({ playerId, username, timestamp }) => (
-  // Replace with your component logic
-  <div>
-    <strong>{username}</strong> connected
-  </div>
-);
+const UserJoinedBlock = () => {
+  const { block } = useContext(BlockContext);
+  assertType(block, 'UserJoined');
+  const { username, slug } = block;
 
-const PlayerDisconnectedBlock: React.FC<
-  z.infer<typeof PlayerDisconnectedBlockSchema>
-> = ({ playerId, username, timestamp }) => (
-  // Replace with your component logic
-  <div>{username} disconnected</div>
-);
+  return (
+    // Replace with your component logic
+    <div>
+      <strong>{username}</strong> joined {slug}
+    </div>
+  );
+};
 
-const StartGameBlock: React.FC<z.infer<typeof StartGameBlockSchema>> = ({
-  gameId,
-  timestamp,
-}) => (
-  // Replace with your component logic
-  <div>start game when two players are here.</div>
-);
+const PlayerConnectedBlock = () => {
+  const { block } = useContext(BlockContext);
+  assertType(block, 'PlayerConnected');
+  const { username } = block;
+
+  return (
+    // Replace with your component logic
+    <div>
+      <strong>{username}</strong> connected
+    </div>
+  );
+};
+
+const PlayerDisconnectedBlock = () => {
+  const { block } = useContext(BlockContext);
+  assertType(block, 'PlayerDisconnected');
+  const { username } = block;
+
+  return (
+    // Replace with your component logic
+    <div>{username} disconnected</div>
+  );
+};
+
+// Example of a polymorphic component that renders game specific components
+const StartGameBlock = () => {
+  const { block, message } = useContext(BlockContext);
+  assertType(block, 'StartGame');
+
+  switch (block.gameId) {
+    case 'strikers':
+      return <StrikersStartGameBlock />;
+    default:
+      throw new Error(
+        'StartGameBlock not implemented for gameId' + block.gameId
+      );
+  }
+};
 
 // The component map
 const componentMap = {
@@ -65,9 +76,10 @@ const componentMap = {
   StartGame: StartGameBlock,
 } as const;
 
-export const MessageContentBlock: React.FC<{
-  block: z.infer<typeof MessageContentBlockSchema>;
-}> = ({ block }) => {
+export const MessageContent: React.FC<{
+  block: MessageContentBlock;
+  message: MessageEvent;
+}> = ({ block, message }) => {
   const Component = componentMap[block.type];
 
   if (!Component) {
@@ -76,5 +88,14 @@ export const MessageContentBlock: React.FC<{
   }
 
   // Render the component, passing the block props as component props
-  return <Component {...(block as any)} />;
+  return (
+    <BlockContext.Provider
+      value={{
+        block,
+        message,
+      }}
+    >
+      <Component />
+    </BlockContext.Provider>
+  );
 };

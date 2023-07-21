@@ -124,7 +124,7 @@ export const PlayerDisconnectedBlockSchema = z.object({
 
 export const StartGameBlockSchema = z.object({
   type: z.literal('StartGame'),
-  gameId: z.string(),
+  gameId: GameIdLiteralSchema,
   timestamp: z.string(),
 });
 

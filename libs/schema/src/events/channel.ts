@@ -60,8 +60,10 @@ export const DebugEventSchema = EventBaseSchema(
   })
 );
 
+export const MessageEventSchema = RoomMessageEventSchema;
+
 export const ChannelEventSchema = z.union([
   LogEventSchema,
   DebugEventSchema,
-  RoomMessageEventSchema,
+  MessageEventSchema,
 ]);

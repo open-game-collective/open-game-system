@@ -15,6 +15,18 @@ export function assert<T>(
   }
 }
 
+// todo is this the same now as assertEventType?
+export function assertType<
+  TE extends { type: string },
+  TType extends TE['type']
+>(event: TE, eventType: TType): asserts event is TE & { type: TType } {
+  if (event.type !== eventType) {
+    throw new Error(
+      `Invalid event: expected "${eventType}", got "${event.type}"`
+    );
+  }
+}
+
 export function assertEntitySchema<
   TEntity extends Entity,
   TSchemaType extends TEntity['schema']
@@ -199,5 +211,5 @@ export function isMobileDevice(userAgent: string): boolean {
   ];
 
   // Check if the user agent contains any mobile device keywords
-  return mobileKeywords.some(keyword => userAgent.includes(keyword));
+  return mobileKeywords.some((keyword) => userAgent.includes(keyword));
 }
