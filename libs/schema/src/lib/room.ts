@@ -48,8 +48,8 @@ export const RoomCommandSchema = z.union([
 
 export const RoomEntityPropsSchema = z.object({
   schema: RoomSchemaTypeLiteral,
-  hostSessionId: SnowflakeIdSchema,
-  allSessionIds: z.array(SnowflakeIdSchema),
+  hostUserId: SnowflakeIdSchema,
+  allUserIds: z.array(SnowflakeIdSchema),
   slug: SlugSchema,
   gameId: GameIdLiteralSchema.optional(),
   currentGameInstanceId: SnowflakeIdSchema.optional(),

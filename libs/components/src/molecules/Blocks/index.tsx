@@ -1,9 +1,15 @@
 import { assertEntitySchema, assertType } from '@explorers-club/utils';
-import { MessageContentBlock, MessageEvent } from '@schema/types';
+import {
+  ChannelEntity,
+  MessageContentBlock,
+  MessageEvent,
+} from '@schema/types';
 import { StrikersStartGameBlock } from '@strikers/client/components/ui/message-blocks/start-game-block';
 import React, { useContext } from 'react';
 import { BlockContext } from './block.context';
 import { useEntityIdSelector } from '@hooks/useEntityIdSelector';
+import { WorldContext, WorldProvider } from '@context/WorldProvider';
+import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
 
 const PlainMessageBlock = () => {
   const { block } = useContext(BlockContext);
@@ -87,6 +93,9 @@ export const MessageContent: React.FC<{
   message: MessageEvent;
 }> = ({ block, message }) => {
   const Component = componentMap[block.type];
+  const { entitiesById } = useContext(WorldContext);
+  // warn: not safe
+  const channelEntity = entitiesById.get(message.channelId) as ChannelEntity;
 
   if (!Component) {
     console.warn(`No component found for block type "${block.type}"`);
@@ -99,6 +108,7 @@ export const MessageContent: React.FC<{
       value={{
         block,
         message,
+        channelEntity,
       }}
     >
       <Component />

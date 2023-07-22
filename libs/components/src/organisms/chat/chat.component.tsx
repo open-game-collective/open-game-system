@@ -23,7 +23,10 @@ import { ChatContext } from './chat.context';
 import { WorldContext } from '@context/WorldProvider';
 import { useCurrentMessageChannelEntityStore } from '@hooks/useCurrentMessageChannelEntityStore';
 import { Atom, ReadableAtom, WritableAtom } from 'nanostores';
-import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
+import {
+  useEntityStoreSelector,
+  useEntityStoreSelectorDeepEqual,
+} from '@hooks/useEntityStoreSelector';
 
 type PlainMessageEvent = {
   type: 'PLAIN_MESSAGE';
@@ -149,12 +152,10 @@ const ChatMessageList = () => {
 
 const MessageChannel = () => {
   const { messageChannelEntityStore } = useContext(MessageChannelContext);
-  const messageIds = useEntityStoreSelector(
+
+  const messageIds = useEntityStoreSelectorDeepEqual(
     messageChannelEntityStore,
-    (entity) => {
-      console.log('ESS', entity);
-      return entity.messages.map((message) => message.id);
-    }
+    (entity) => entity.messages.map((message) => message.id)
   );
   const scrollViewRef = useRef<HTMLDivElement | null>(null);
 

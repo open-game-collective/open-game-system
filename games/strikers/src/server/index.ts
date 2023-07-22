@@ -1,5 +1,5 @@
 import { entitiesById, generateSnowflakeId, world } from '@explorers-club/api';
-import { assert, assertChannelEntity } from '@explorers-club/utils';
+import { assert, assertChannelEntity, assertEntitySchema } from '@explorers-club/utils';
 import {
   LobbyGameConfig,
   SnowflakeId,
@@ -25,35 +25,21 @@ export const createStrikersGame = (
   // );
 
   const gameEntityId = generateSnowflakeId();
-  const p1SessionEntity = entitiesById.get(lobbyConfig.p1SessionId);
-  assert(
-    p1SessionEntity && p1SessionEntity.schema === 'session',
-    "expected p1 sessionEntity but didn't exist"
-  );
-  // assert(
-  //   p1SessionEntity.userId,
-  //   'expected userId on session when starting game for p1'
-  // );
+  const p1UserEntity = entitiesById.get(lobbyConfig.p1UserId);
+  assertEntitySchema(p1UserEntity, "user");
 
-  const p2SessionEntity = entitiesById.get(lobbyConfig.p2SessionId);
-  assert(
-    p2SessionEntity && p2SessionEntity.schema === 'session',
-    "expected p2 sessionEntity but didn't exist"
-  );
-  // assert(
-  //   p2SessionEntity.userId,
-  //   'expected userId on session when starting game for p2'
-  // );
+  const p2UserEntity = entitiesById.get(lobbyConfig.p2UserId);
+  assertEntitySchema(p2UserEntity, "user");
 
   const p1PlayerEntity = createEntity<StrikersPlayerEntity>({
     schema: 'strikers_player',
-    sessionIds: [p1SessionEntity.id],
+    userId: [p1UserEntity.id],
     gameEntityId,
   });
 
   const p2PlayerEntity = createEntity<StrikersPlayerEntity>({
     schema: 'strikers_player',
-    sessionIds: [p2SessionEntity.id],
+    userId: [p2UserEntity.id],
     gameEntityId,
   });
 

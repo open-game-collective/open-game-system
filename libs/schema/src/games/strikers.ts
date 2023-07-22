@@ -383,7 +383,7 @@ export const StrikersTurnContextSchema = z.object({
 const StrikersPlayerEntityPropSchema = z.object({
   schema: StrikersPlayerSchemaTypeLiteral,
   gameEntityId: SnowflakeIdSchema,
-  sessionIds: z.array(SnowflakeIdSchema),
+  userId: z.array(SnowflakeIdSchema),
   // channel: z.custom<Observable<MessageEvent>>(),
 });
 

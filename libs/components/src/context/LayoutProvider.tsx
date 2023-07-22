@@ -23,6 +23,7 @@ export const LayoutProvider: FC<{
   const [isMainSceneFocusedStore] = useState(() => {
     return atom<boolean>(defaults.focusArea === 'MainPanel');
   });
+  const [isChannelListOpenStore] = useState(() => atom<boolean>(false));
 
   return (
     <LayoutContext.Provider
@@ -30,6 +31,7 @@ export const LayoutProvider: FC<{
         isMenuOpenStore,
         isMainPanelFocusedStore,
         isMainSceneFocusedStore,
+        isChannelListOpenStore,
       }}
     >
       {children}
@@ -40,7 +42,7 @@ export const LayoutProvider: FC<{
 const defaultLayoutPropsByRoute: Record<RouteName, LayoutProps> = {
   Uninitialized: {},
   Home: {},
-  NewRoom: {
+  New: {
     focusArea: 'MainPanel',
   },
   Login: {
@@ -48,7 +50,4 @@ const defaultLayoutPropsByRoute: Record<RouteName, LayoutProps> = {
   },
   Room: {},
   NotFound: {},
-  Place: {
-    focusArea: 'MainPanel',
-  },
 };

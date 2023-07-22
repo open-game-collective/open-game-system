@@ -11,18 +11,24 @@ import { Button } from '@atoms/Button';
 import { RoomEntity, SnowflakeId } from '@schema/types';
 import { IconButton } from '@atoms/IconButton';
 import { ChevronDownIcon, FrameIcon, SizeIcon } from '@radix-ui/react-icons';
+import { LayoutContext } from '@context/LayoutContext';
 enablePatches();
 
 export const Channel = () => {
+  const { isChannelListOpenStore } = useContext(LayoutContext);
   const { roomEntity } = useContext(ChannelContext);
   const connectedCount = useEntitySelector(
     roomEntity,
-    (entity) => entity.allSessionIds.length
+    (entity) => entity.allUserIds.length
   );
   const currentGameInstanceId = useEntitySelector(
     roomEntity,
     (entity) => entity.currentGameInstanceId
   );
+
+  const handleOpenChannelList = useCallback(() => {
+    isChannelListOpenStore.set(true);
+  }, [isChannelListOpenStore]);
 
   const selectedGameId = useEntitySelector(roomEntity, (state) => state.gameId);
   return (
@@ -33,7 +39,12 @@ export const Channel = () => {
       align="center"
       justify="between"
     >
-      <IconButton css={{ backgroundColor: 'white' }} variant="stroke" size="3">
+      <IconButton
+        onClick={handleOpenChannelList}
+        css={{ backgroundColor: 'white' }}
+        variant="stroke"
+        size="3"
+      >
         <FrameIcon />
       </IconButton>
       <Flex
@@ -68,7 +79,7 @@ const GameConfigPanel = () => {
   const selectedGameId = useEntitySelector(roomEntity, (state) => state.gameId);
   const numPlayers = useEntitySelector(
     roomEntity,
-    (state) => state.allSessionIds.length
+    (state) => state.allUserIds.length
   );
 
   const handlePressStart = useCallback(() => {

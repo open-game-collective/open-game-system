@@ -171,8 +171,8 @@ export const StrikersCardSchema = StrikersPlayerCardSchema;
 export const CardIdSchema = z.string();
 
 export const StrikersLobbyConfigSchema = z.object({
-  p1SessionId: SnowflakeIdSchema,
-  p2SessionId: SnowflakeIdSchema,
+  p1UserId: SnowflakeIdSchema,
+  p2UserId: SnowflakeIdSchema,
 });
 
 export const StrikersGameConfigDataSchema = z.object({

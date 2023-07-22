@@ -52,14 +52,13 @@ export const createRoomMachine = ({
             const sessionEntity = entitiesById.get(sessionId);
             assertEntitySchema(sessionEntity, 'session');
 
+            const { userId } = sessionEntity;
+
             /**
              * If this is person first time here, send join
              */
-            if (!roomEntity.allSessionIds.includes(sessionId)) {
-              roomEntity.allSessionIds = [
-                ...roomEntity.allSessionIds,
-                sessionId,
-              ];
+            if (!roomEntity.allUserIds.includes(userId)) {
+              roomEntity.allUserIds = [...roomEntity.allUserIds, userId];
 
               const joinMessage = {
                 type: 'MESSAGE',
@@ -75,20 +74,20 @@ export const createRoomMachine = ({
               } satisfies CreateEventProps<RoomMessageEvent>;
               roomChannel.next(joinMessage);
 
-              if (roomEntity.allSessionIds.length === 1) {
+              if (roomEntity.allUserIds.length === 1) {
                 // Should the recipient by a session or a userId?
                 // Probably a userId
                 // but this is fine for now
 
-                const recipientSession = entitiesById.get(
-                  roomEntity.allSessionIds[0]
+                const recipientEntity = entitiesById.get(
+                  roomEntity.allUserIds[0]
                 );
-                assertEntitySchema(recipientSession, 'session');
+                assertEntitySchema(recipientEntity, 'user');
 
                 const startGameMessage = {
                   type: 'MESSAGE',
                   senderId: roomEntity.id,
-                  recipientId: recipientSession.userId,
+                  recipientId: recipientEntity.id,
                   contents: [
                     {
                       type: 'StartGame',
@@ -106,11 +105,12 @@ export const createRoomMachine = ({
           actions: async (_, event) => {
             const connectionEntity = entitiesById.get(event.senderId);
             assertEntitySchema(connectionEntity, 'connection');
+            const sessionEntity = entitiesById.get(connectionEntity.sessionId);
+            assertEntitySchema(sessionEntity, 'session');
+            const { userId } = sessionEntity;
 
-            roomEntity.allSessionIds = [
-              ...roomEntity.allSessionIds.filter(
-                (id) => id !== connectionEntity.sessionId
-              ),
+            roomEntity.allUserIds = [
+              ...roomEntity.allUserIds.filter((id) => id !== userId),
             ];
 
             const disconnectEvent = {
@@ -161,23 +161,9 @@ export const createRoomMachine = ({
             Starting: {
               invoke: {
                 src: async (context, event) => {
-                  // const currentGameConfiguration: StrikersGameConfigData = {
-                  //   cards: [],
-                  //   gameMode: 'quickplay',
-                  //   turnsPerHalf: 0,
-                  //   p1SessionId: roomEntity.allSessionIds[0],
-                  //   p2SessionId: roomEntity.allSessionIds[1],
-                  //   extraTime: {
-                  //     minRounds: 2,
-                  //     maxRounds: 6,
-                  //   },
-                  // };
-                  // roomEntity.currentGameConfiguration =
-                  //   currentGameConfiguration;
-
                   const lobbyGameConfig = {
-                    p1SessionId: roomEntity.allSessionIds[0],
-                    p2SessionId: roomEntity.allSessionIds[1],
+                    p1UserId: roomEntity.allUserIds[0],
+                    p2UserId: roomEntity.allUserIds[1],
                   } satisfies LobbyGameConfig;
 
                   let gameEntity: Entity;

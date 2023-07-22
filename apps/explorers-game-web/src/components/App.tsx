@@ -12,6 +12,7 @@ import { WorldContext } from '@context/WorldProvider';
 import { RoutePanel } from './RoutePanel';
 import { ScenePanel } from './ScenePanel';
 import { Menu } from './Menu';
+import { ChannelListDialog } from './ChannelListDialog';
 
 interface Props {
   initialRouteProps: RouteProps;
@@ -36,6 +37,7 @@ export const App: FC<Props> = ({ initialRouteProps }) => {
     <AppContainer>
       <ScenePanel />
       <Menu />
+      <ChannelListDialog />
       <MainPanel />
       {/* <Modal /> */}
     </AppContainer>

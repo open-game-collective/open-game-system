@@ -11,7 +11,11 @@ import {
 } from '@explorers-club/schema';
 import { assign as assignImmer } from '@xstate/immer';
 import type { RoomCommand, SessionCommand } from '@schema/types';
-import { assert, assertEventType } from '@explorers-club/utils';
+import {
+  assert,
+  assertEntitySchema,
+  assertEventType,
+} from '@explorers-club/utils';
 import {
   ConnectionInitializeCommandSchema,
   ConnectionNavigateCommandSchema,
@@ -183,18 +187,15 @@ export const createConnectionMachine = ({
                     event: DoneInvokeEvent<Required<NewRoomContext>>
                   ) => {
                     const { createEntity } = await import('../ecs');
-                    assert(
-                      sessionEntity,
-                      'expected sessionEntity but not found'
-                    );
+                    assertEntitySchema(sessionEntity, 'session');
 
                     const { gameId, roomSlug } = event.data;
 
                     const entity = createEntity<RoomEntity>({
                       schema: 'room',
                       slug: roomSlug,
-                      hostSessionId: connectionEntity.id,
-                      allSessionIds: [],
+                      hostUserId: sessionEntity.userId,
+                      allUserIds: [],
                       gameId,
                     });
                     world.add(entity);
@@ -286,14 +287,15 @@ export const createConnectionMachine = ({
           const url = new URL(connectionEntity.currentUrl);
           const slug = url.pathname.split('/')[1];
           assert(slug, 'error parsing slug from currentUrl');
+          assertEntitySchema(sessionEntity, 'session');
 
           let roomEntity: RoomEntity | undefined = roomsBySlug.get(slug);
           if (!roomEntity) {
             roomEntity = createEntity<RoomEntity>({
               schema: 'room',
               slug,
-              hostSessionId: connectionEntity.sessionId,
-              allSessionIds: [],
+              hostUserId: sessionEntity.userId,
+              allUserIds: [],
               gameId: 'strikers',
             }) as RoomEntity;
             world.add(roomEntity);

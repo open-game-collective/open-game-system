@@ -1,26 +1,26 @@
 import { Entity } from '@explorers-club/schema';
 import { Atom } from 'nanostores';
 import { useSyncExternalStore } from 'react';
+import { deepEqual } from '@explorers-club/utils';
 
-export const useEntityStoreSelector = <TEntity extends Entity, TResult>(
+type EqualityFn<T> = (a: T | undefined, b: T | undefined) => boolean;
+
+const useEntityStoreSelectorBase = <TEntity extends Entity, TResult>(
   store: Atom<TEntity | null>,
-  selector: (entity: TEntity) => TResult
+  selector: (entity: TEntity) => TResult,
+  equalityFn: EqualityFn<TResult>
 ) => {
   const initialEntity = store.get();
-  console.log('sel1', initialEntity);
   let value = initialEntity ? selector(initialEntity) : undefined;
-  console.log('sel2', value);
 
   const subscribe = (onStoreChange: () => void) => {
     let unsub: Function | undefined;
 
-    // todo dry this up w/ below ?
     if (initialEntity) {
       unsub = initialEntity.subscribe(() => {
         const nextValue = selector(initialEntity);
-        console.log({ value, nextValue });
 
-        if (value !== nextValue) {
+        if (!equalityFn(value, nextValue)) {
           value = nextValue;
           onStoreChange();
         }
@@ -41,16 +41,15 @@ export const useEntityStoreSelector = <TEntity extends Entity, TResult>(
 
       unsub = entity.subscribe(() => {
         const nextValue = selector(entity);
-        console.log({ value, nextValue });
 
-        if (value !== nextValue) {
+        if (!equalityFn(value, nextValue)) {
           value = nextValue;
           onStoreChange();
         }
       });
 
       const nextValue = selector(entity);
-      if (value !== nextValue) {
+      if (!equalityFn(value, nextValue)) {
         value = nextValue;
         onStoreChange();
       }
@@ -62,4 +61,27 @@ export const useEntityStoreSelector = <TEntity extends Entity, TResult>(
   };
 
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+};
+
+export const useEntityStoreSelector = <TEntity extends Entity, TResult>(
+  store: Atom<TEntity | null>,
+  selector: (entity: TEntity) => TResult
+) => {
+  return useEntityStoreSelectorBase(store, selector, (a, b) => {
+    if (a === undefined || b === undefined) return a === b;
+    return a === b;
+  });
+};
+
+export const useEntityStoreSelectorDeepEqual = <
+  TEntity extends Entity,
+  TResult
+>(
+  store: Atom<TEntity | null>,
+  selector: (entity: TEntity) => TResult
+) => {
+  return useEntityStoreSelectorBase(store, selector, (a, b) => {
+    if (a === undefined || b === undefined) return a === b;
+    return deepEqual(a, b);
+  });
 };

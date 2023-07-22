@@ -99,10 +99,8 @@ export const WorldProvider: FC<{
       };
 
       const next = (event: TEvent) => {
-        console.log('subscriptions');
         for (const callback of subscriptions) {
           const fn = callback as AnyFunction; // hack fix for ts complaining about typ ecomplex
-          console.log('calling', event, fn);
           fn(event);
         }
       };
@@ -163,7 +161,6 @@ export const WorldProvider: FC<{
                 const component = pathParts[1] as keyof typeof entity;
                 world.removeComponent(entity, component);
               } else {
-                console.log('applying patch to', entity);
                 applyPatch(entity, change.patches);
               }
             }
