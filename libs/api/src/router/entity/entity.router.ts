@@ -13,6 +13,7 @@ import { AnyFunction } from 'xstate';
 import { protectedProcedure, publicProcedure, router } from '../../trpc';
 import { world, entitiesById } from '../../server/state';
 import { z } from 'zod';
+import { assertEntitySchema } from '@explorers-club/utils';
 
 const SendMutationSchema = z.object({
   entityId: SnowflakeIdSchema,
@@ -311,9 +312,22 @@ const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
     return false;
   }
 
-  if ('connectionId' in entity && entity.connectionId !== connectionEntity.id) {
-    return false;
+  if (entity.schema === 'session') {
+    return entity.connectionIds.includes(connectionEntity.id);
   }
+
+  const sessionEntity = entitiesById.get(connectionEntity.sessionId);
+  assertEntitySchema(sessionEntity, 'session');
+  const userEntity = entitiesById.get(sessionEntity.userId);
+  assertEntitySchema(userEntity, 'user');
+
+  if (entity.schema === 'message_channel') {
+    return entity.userId === userEntity.id;
+  }
+
+  // if ('connectionId' in entity && entity.connectionId !== connectionEntity.id) {
+  //   return false;
+  // }
 
   // todo implement access checks here
   // ie (if room === "public") return true

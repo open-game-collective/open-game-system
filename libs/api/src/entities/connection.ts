@@ -76,18 +76,19 @@ export const createConnectionMachine = ({
   const connectionEntity = entity;
 
   let sessionEntity = entitiesById.get(connectionEntity.sessionId);
+  let userEntity: UserEntity | undefined;
   if (sessionEntity) {
-    assert(
-      sessionEntity.schema === 'session',
-      'expected sessionEntity to be of schema session but was ' +
-        sessionEntity.schema
-    );
+    assertEntitySchema(sessionEntity, 'session');
+    userEntity = entitiesById.get(sessionEntity.userId) as
+      | UserEntity
+      | undefined;
+    assertEntitySchema(userEntity, 'user');
     sessionEntity.send({
       type: 'NEW_CONNECTION',
       connectionId: connectionEntity.id,
     } as SessionCommand);
   } else {
-    const userEntity = createEntity<UserEntity>({
+    userEntity = createEntity<UserEntity>({
       schema: 'user',
       profileId: undefined,
       name: undefined,
@@ -126,22 +127,8 @@ export const createConnectionMachine = ({
       },
       context: {
         reconnectCount: -1,
-        chatServiceRef: undefined,
       },
       states: {
-        Chat: {
-          initial: 'Running',
-          entry: assign({
-            chatServiceRef: () =>
-              spawn(
-                createChatMachine({ connectionEntity }),
-                'chatService'
-              ) as ConnectionContext['chatServiceRef'],
-          }),
-          states: {
-            Running: {},
-          },
-        },
         Route: {
           initial: connectionEntity.initialRouteProps.name,
           on: {
@@ -195,7 +182,8 @@ export const createConnectionMachine = ({
                       schema: 'room',
                       slug: roomSlug,
                       hostUserId: sessionEntity.userId,
-                      allUserIds: [],
+                      memberUserIds: [],
+                      connectedUserIds: [],
                       gameId,
                     });
                     world.add(entity);
@@ -283,7 +271,7 @@ export const createConnectionMachine = ({
     },
     {
       services: {
-        connectToRoom: async ({ chatServiceRef }) => {
+        connectToRoom: async () => {
           const url = new URL(connectionEntity.currentUrl);
           const slug = url.pathname.split('/')[1];
           assert(slug, 'error parsing slug from currentUrl');
@@ -295,7 +283,8 @@ export const createConnectionMachine = ({
               schema: 'room',
               slug,
               hostUserId: sessionEntity.userId,
-              allUserIds: [],
+              memberUserIds: [],
+              connectedUserIds: [],
               gameId: 'strikers',
             }) as RoomEntity;
             world.add(roomEntity);
@@ -306,35 +295,9 @@ export const createConnectionMachine = ({
             senderId: connectionEntity.id,
           } satisfies RoomCommand);
 
-          assert(
-            chatServiceRef,
-            "expected chatService to be defined but wasn't"
-          );
-
-          // Join the chat room
-          const roomEntityId = roomEntity.id;
           const gameEntityId = roomEntity.currentGameInstanceId;
-          chatServiceRef.send({
-            type: 'JOIN_CHANNEL',
-            channelId: roomEntityId,
-          });
-
-          let allChannelIds = [...connectionEntity.allChannelIds, roomEntityId];
-
-          // // Join the game room if there is one
-          if (gameEntityId) {
-            chatServiceRef.send({
-              type: 'JOIN_CHANNEL',
-              channelId: gameEntityId,
-            });
-
-            allChannelIds = [...allChannelIds, gameEntityId];
-          }
-
-          const currentChannelId = gameEntityId ? gameEntityId : roomEntityId;
-
+          const currentChannelId = gameEntityId ? gameEntityId : roomEntity.id;
           connectionEntity.currentChannelId = currentChannelId;
-          connectionEntity.allChannelIds = allChannelIds;
         },
       },
       actions: {

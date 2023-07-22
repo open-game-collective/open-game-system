@@ -90,6 +90,7 @@ import {
 } from './games/vigilantes';
 import {
   ConnectionCommandSchema,
+  ConnectionContextSchema,
   ConnectionEntitySchema,
   ConnectionStateValueSchema,
 } from './lib/connection';
@@ -110,9 +111,9 @@ import {
   RoomEventSchema,
   RoomStateValueSchema,
   MessageContentBlockSchema,
-  PlayerDisconnectedBlockSchema,
+  UserDisconnectedBlockSchema,
   UserJoinedBlockSchema,
-  PlayerConnectedBlockSchema,
+  UserConnectedBlockSchema,
   PlainMessageBlockSchema,
   StartGameBlockSchema,
 } from './lib/room';
@@ -170,23 +171,7 @@ export type ChatMachine = StateMachine<
 >;
 export type ChatInterpreter = InterpreterFrom<ChatMachine>;
 
-export type ConnectionContext = {
-  reconnectCount: number;
-  chatServiceRef?: ChatInterpreter;
-};
-// export type InitializedConnectionContext = MakeRequired<
-//   ConnectionContext,
-//   'chatServiceRef'
-// >;
-// export type ConnectionTypeState =
-//   | {
-//       value: 'Initialized';
-//       context: InitializedConnectionContext;
-//     }
-//   | {
-//       value: 'Unitialized';
-//       context: ConnectionContext;
-//     };
+export type ConnectionContext = z.infer<typeof ConnectionContextSchema>;
 export type ConnectionCommand = z.infer<typeof ConnectionCommandSchema>;
 export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
 export type InitializedConnectionEntity = MakeRequired<
@@ -290,8 +275,10 @@ export type TriggerMachine = StateMachine<
 // export type DisconnectEvent = z.infer<typeof DisconnectEventSchema>;
 // export type MessageEvent = z.infer<typeof MessageEventSchema>;
 export type MessageContentBlock = z.infer<typeof MessageContentBlockSchema>;
-export type PlayerDisconnectedBlock = z.infer<typeof PlayerDisconnectedBlockSchema>;
-export type PlayerConnectedBlock = z.infer<typeof PlayerConnectedBlockSchema>;
+export type PlayerDisconnectedBlock = z.infer<
+  typeof UserDisconnectedBlockSchema
+>;
+export type PlayerConnectedBlock = z.infer<typeof UserConnectedBlockSchema>;
 export type UserJoinedBlock = z.infer<typeof UserJoinedBlockSchema>;
 export type PlainMessageBlock = z.infer<typeof PlainMessageBlockSchema>;
 export type StartGameBlock = z.infer<typeof StartGameBlockSchema>;

@@ -2,9 +2,11 @@ import { z } from 'zod';
 import { PlayerNameSchema, SlugSchema, SnowflakeIdSchema } from '../common';
 import { EntityBaseSchema } from '../entity/base';
 import { UserSchemaTypeLiteral } from '../literals';
+import { ChatContextSchema, ChatStateValueSchema } from '../services/chat';
+import { ChatInterpreter } from '..';
 
 export const UserContextSchema = z.object({
-  foo: z.string(),
+  chatServiceRef: z.custom<ChatInterpreter>().optional(),
 });
 
 export const UserInitializePropsSchema = z.object({
@@ -17,6 +19,12 @@ const UserEntityPropsSchema = z.object({
   profileId: SnowflakeIdSchema.optional(),
   name: PlayerNameSchema.optional(),
   serialNumber: z.number(),
+  chatService: z
+    .object({
+      context: ChatContextSchema,
+      value: ChatStateValueSchema,
+    })
+    .optional(),
 });
 
 const UpdateNameCommandSchema = z.object({
@@ -29,9 +37,15 @@ const CreateProfileCommandSchema = z.object({
   profileId: SnowflakeIdSchema,
 });
 
+export const EnterChannelCommandSchema = z.object({
+  type: z.literal('ENTER_CHANNEL'),
+  channelId: SnowflakeIdSchema,
+});
+
 export const UserCommandSchema = z.union([
   UpdateNameCommandSchema,
   CreateProfileCommandSchema,
+  EnterChannelCommandSchema
 ]);
 
 export const UserStateValueSchema = z.object({

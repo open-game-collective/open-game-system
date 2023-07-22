@@ -42,16 +42,14 @@ export const createMessageChannelMachine = ({
   entity: Entity;
 }) => {
   const messageChannelEntity = entity as MessageChannelEntity;
-  const parentEntity = entitiesById.get(messageChannelEntity.parentId);
-  assert(parentEntity, "expected parentEntity but wasn't found");
-  const channel = channelsById.get(parentEntity.id);
-  assert(channel, 'expected channel in parentEntity');
+  const channelEntity = entitiesById.get(messageChannelEntity.channelId);
+  assert(channelEntity, "expected channelEntity but wasn't found");
+  const channel = channelsById.get(channelEntity.id);
+  assert(channel, 'expected channel but was undefined');
 
-  const connectionEntity = entitiesById.get(messageChannelEntity.connectionId);
-  assertEntitySchema(connectionEntity, 'connection');
+  const userEntity = entitiesById.get(messageChannelEntity.userId);
+  assertEntitySchema(userEntity, 'user');
 
-  const sessionEntity = entitiesById.get(connectionEntity.sessionId);
-  assertEntitySchema(sessionEntity, 'session');
   // sessionEntity.userId
   // sessionEntity.
 
@@ -76,7 +74,7 @@ export const createMessageChannelMachine = ({
                   if (event.type === 'MESSAGE') {
                     if (
                       event.recipientId &&
-                      event.recipientId !== sessionEntity.userId
+                      event.recipientId !== userEntity.id
                     )
                       // Don't add messages if a recipient is specified
                       // and it doesn't match this user
@@ -91,7 +89,7 @@ export const createMessageChannelMachine = ({
                   ];
                 });
 
-                const parentChannel = channelsById.get(parentEntity.id);
+                const parentChannel = channelsById.get(channelEntity.id);
                 assert(
                   parentChannel,
                   'expect parentChannel when subscribing to chanel'

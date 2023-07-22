@@ -24,8 +24,8 @@ export const MessageTemplateSchema = PlainMessageTemplateSchema;
 const MessageChannelEntityPropsSchema = z.object({
   schema: MessageChannelSchemaTypeLiteral,
   messages: z.array(ChannelEventSchema),
-  connectionId: SnowflakeIdSchema,
-  parentId: SnowflakeIdSchema,
+  userId: SnowflakeIdSchema,
+  channelId: SnowflakeIdSchema,
   tsOffset: z.number().optional(),
 });
 

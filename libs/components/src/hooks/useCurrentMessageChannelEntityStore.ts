@@ -10,7 +10,7 @@ export const useCurrentMessageChannelEntityStore = () => {
     (entity) => {
       return (currentChannelId &&
         entity.schema === 'message_channel' &&
-        entity.parentId === currentChannelId) as boolean;
+        entity.channelId === currentChannelId) as boolean;
     },
     [currentChannelId]
   ) as ReadableAtom<MessageChannelEntity | null>;

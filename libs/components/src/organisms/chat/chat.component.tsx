@@ -111,10 +111,10 @@ const MessageChannelContext = createContext(
 );
 
 const ChatMessageList = () => {
-  const { roomEntity, connectionEntity } = useContext(ChatContext);
+  const { userEntity } = useContext(ChatContext);
 
   const channelEntityIds = useEntitySelector(
-    connectionEntity,
+    userEntity,
     (entity) => entity.chatService?.context.channelEntityIds
   );
 

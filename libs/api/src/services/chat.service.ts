@@ -3,8 +3,8 @@ import {
   ChatCommand,
   ChatContext,
   ChatMachine,
-  ConnectionEntity,
   MessageChannelEntity,
+  UserEntity,
 } from '@explorers-club/schema';
 import { assert } from '@explorers-club/utils';
 import { assign as immerAssign } from '@xstate/immer';
@@ -13,9 +13,9 @@ import { createEntity } from '../ecs';
 import { entitiesById, world } from '../server/state';
 
 export const createChatMachine = <TMessage extends ChannelEvent>({
-  connectionEntity,
+  userEntity,
 }: {
-  connectionEntity: ConnectionEntity;
+  userEntity: UserEntity;
 }) => {
   const chatMachine = createMachine({
     id: 'ChatMachine',
@@ -30,7 +30,7 @@ export const createChatMachine = <TMessage extends ChannelEvent>({
     states: {
       Running: {
         on: {
-          JOIN_CHANNEL: {
+          ENTER_CHANNEL: {
             actions: assign({
               channelEntityIds: (context, event) => {
                 // Create a message channel eentity if we don't already have one
@@ -38,8 +38,8 @@ export const createChatMachine = <TMessage extends ChannelEvent>({
                   const entity = createEntity<MessageChannelEntity>({
                     schema: 'message_channel',
                     messages: [], // todo prefill previous messages if they exist,
-                    parentId: event.channelId,
-                    connectionId: connectionEntity.id,
+                    channelId: event.channelId,
+                    userId: userEntity.id,
                   });
 
                   world.add(entity);

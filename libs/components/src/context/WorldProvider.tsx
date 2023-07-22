@@ -5,8 +5,10 @@ import {
   EntityChangeEvent,
   EntityCommand,
   InitializedConnectionEntity,
+  SessionEntity,
   SnowflakeId,
   SyncedEntityProps,
+  UserEntity,
 } from '@explorers-club/schema';
 import { AnyFunction, assert } from '@explorers-club/utils';
 import { applyPatch } from 'fast-json-patch';
@@ -26,7 +28,7 @@ import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-s
 
 type EntityRegistry = {
   myConnectionEntity: ConnectionEntity;
-  myInitializedConnectionEntity: InitializedConnectionEntity;
+  mySessionEntity: SessionEntity;
 };
 
 type EntityStoreRegistry = {
@@ -275,12 +277,9 @@ export const WorldProvider: FC<{
     myConnectionEntity: createEntityStore<ConnectionEntity>(
       (entity) => entity.schema === 'connection'
     ),
-    myInitializedConnectionEntity:
-      createEntityStore<InitializedConnectionEntity>((entity) => {
-        return (
-          entity.schema === 'connection' && entity.states.Initialized === 'True'
-        );
-      }),
+    mySessionEntity: createEntityStore<SessionEntity>(
+      (entity) => entity.schema === 'session'
+    ),
   } satisfies EntityStoreRegistry);
 
   return (

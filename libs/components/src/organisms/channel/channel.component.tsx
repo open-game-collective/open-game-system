@@ -19,7 +19,11 @@ export const Channel = () => {
   const { roomEntity } = useContext(ChannelContext);
   const connectedCount = useEntitySelector(
     roomEntity,
-    (entity) => entity.allUserIds.length
+    (entity) => entity.connectedUserIds.length
+  );
+  const memberCount = useEntitySelector(
+    roomEntity,
+    (entity) => entity.memberUserIds.length
   );
   const currentGameInstanceId = useEntitySelector(
     roomEntity,
@@ -53,7 +57,9 @@ export const Channel = () => {
         direction="column"
       >
         <Heading size="1">#{roomEntity.slug}</Heading>
-        <Text>{connectedCount} connected</Text>
+        <Text>
+          {memberCount} members, {connectedCount} connected
+        </Text>
         {/* {selectedGameId ? <GameConfigPanel /> : <SelectGamePanel />} */}
       </Flex>
       <Flex>
@@ -76,10 +82,10 @@ const GameInstancePanel: FC<{ gameInstanceId: SnowflakeId }> = ({
 
 const GameConfigPanel = () => {
   const { roomEntity } = useContext(ChannelContext);
-  const selectedGameId = useEntitySelector(roomEntity, (state) => state.gameId);
+  // const selectedGameId = useEntitySelector(roomEntity, (state) => state.gameId);
   const numPlayers = useEntitySelector(
     roomEntity,
-    (state) => state.allUserIds.length
+    (state) => state.connectedUserIds.length
   );
 
   const handlePressStart = useCallback(() => {

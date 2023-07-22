@@ -53,13 +53,40 @@ export const createRoomMachine = ({
             assertEntitySchema(sessionEntity, 'session');
 
             const { userId } = sessionEntity;
+            const userEntity = entitiesById.get(userId);
+            assertEntitySchema(userEntity, 'user');
 
-            /**
-             * If this is person first time here, send join
-             */
-            if (!roomEntity.allUserIds.includes(userId)) {
-              roomEntity.allUserIds = [...roomEntity.allUserIds, userId];
+            userEntity.send({
+              type: 'ENTER_CHANNEL',
+              channelId: roomEntity.id,
+            });
 
+            // todo clean up sub on disconnect
+            const sub = roomEntity.subscribe((event) => {
+              if (
+                roomEntity.currentGameInstanceId &&
+                !userEntity.chatService?.context.channelEntityIds[
+                  roomEntity.currentGameInstanceId
+                ]
+              ) {
+                // should happen only once but has potential to be called a bunch
+                // if userEntity doesnt update channelId immedaitely
+                userEntity.send({
+                  type: 'ENTER_CHANNEL',
+                  channelId: roomEntity.currentGameInstanceId,
+                });
+              }
+              // todo add LEAVE_CHANNEL here too ?
+            });
+
+            const alreadyMember = roomEntity.memberUserIds.includes(userId);
+
+            // Add new member to the room
+            // Default allow all new ppl to join for now
+            if (!alreadyMember) {
+              roomEntity.memberUserIds = [...roomEntity.memberUserIds, userId];
+
+              // Send a join message to the channel
               const joinMessage = {
                 type: 'MESSAGE',
                 senderId: roomEntity.id,
@@ -74,20 +101,13 @@ export const createRoomMachine = ({
               } satisfies CreateEventProps<RoomMessageEvent>;
               roomChannel.next(joinMessage);
 
-              if (roomEntity.allUserIds.length === 1) {
-                // Should the recipient by a session or a userId?
-                // Probably a userId
-                // but this is fine for now
-
-                const recipientEntity = entitiesById.get(
-                  roomEntity.allUserIds[0]
-                );
-                assertEntitySchema(recipientEntity, 'user');
-
+              // Send a pinned "start game" message to the first person who
+              // joins to give them control to start a game
+              if (roomEntity.memberUserIds.length === 1) {
                 const startGameMessage = {
                   type: 'MESSAGE',
                   senderId: roomEntity.id,
-                  recipientId: recipientEntity.id,
+                  recipientId: userId,
                   contents: [
                     {
                       type: 'StartGame',
@@ -97,6 +117,31 @@ export const createRoomMachine = ({
                   ],
                 } satisfies CreateEventProps<RoomMessageEvent>;
                 roomChannel.next(startGameMessage);
+              }
+            }
+
+            // Connect user to the room
+            if (!roomEntity.connectedUserIds.includes(userId)) {
+              roomEntity.connectedUserIds = [
+                ...roomEntity.connectedUserIds,
+                userId,
+              ];
+
+              // Send a connected message to the channel
+              // Only send it if we didnt just send the join message
+              if (alreadyMember) {
+                const connectMessage = {
+                  type: 'MESSAGE',
+                  senderId: roomEntity.id,
+                  contents: [
+                    {
+                      type: 'UserConnected',
+                      userId: sessionEntity.userId,
+                      timestamp: new Date().toString(),
+                    },
+                  ],
+                } satisfies CreateEventProps<RoomMessageEvent>;
+                roomChannel.next(connectMessage);
               }
             }
           },
@@ -109,8 +154,8 @@ export const createRoomMachine = ({
             assertEntitySchema(sessionEntity, 'session');
             const { userId } = sessionEntity;
 
-            roomEntity.allUserIds = [
-              ...roomEntity.allUserIds.filter((id) => id !== userId),
+            roomEntity.connectedUserIds = [
+              ...roomEntity.connectedUserIds.filter((id) => id !== userId),
             ];
 
             const disconnectEvent = {
@@ -118,24 +163,13 @@ export const createRoomMachine = ({
               senderId: roomEntity.id,
               contents: [
                 {
-                  type: 'PlayerDisconnected',
-                  playerId: 'foobar',
-                  username: 'foobar2',
+                  type: 'UserDisconnected',
+                  userId: 'foobar',
                   timestamp: new Date().toString(),
-                  // props: {
-                  //   playerId: 'foo',
-                  //   username: 'foobar',
-                  //   timestamp: 'hello',
-                  // },
                 },
               ],
             } satisfies CreateEventProps<RoomMessageEvent>;
             roomChannel.next(disconnectEvent);
-
-            // roomChannel.next({
-            //   type: 'M',
-            //   subjectId: event.senderId,
-            // } as CreateEventProps<DisconnectEvent>);
           },
         },
       },
@@ -162,8 +196,8 @@ export const createRoomMachine = ({
               invoke: {
                 src: async (context, event) => {
                   const lobbyGameConfig = {
-                    p1UserId: roomEntity.allUserIds[0],
-                    p2UserId: roomEntity.allUserIds[1],
+                    p1UserId: roomEntity.memberUserIds[0],
+                    p2UserId: roomEntity.memberUserIds[1],
                   } satisfies LobbyGameConfig;
 
                   let gameEntity: Entity;

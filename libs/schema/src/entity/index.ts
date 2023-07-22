@@ -74,6 +74,7 @@ export const EntitySchema = z.discriminatedUnion('schema', [
 
 export const ChannelEntitySchema = z.discriminatedUnion('schema', [
   RoomEntitySchema,
+  StrikersGameEntitySchema,
 ]);
 
 export const GameEntitySchema = z.discriminatedUnion('schema', [

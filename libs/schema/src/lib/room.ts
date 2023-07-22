@@ -49,7 +49,8 @@ export const RoomCommandSchema = z.union([
 export const RoomEntityPropsSchema = z.object({
   schema: RoomSchemaTypeLiteral,
   hostUserId: SnowflakeIdSchema,
-  allUserIds: z.array(SnowflakeIdSchema),
+  memberUserIds: z.array(SnowflakeIdSchema),
+  connectedUserIds: z.array(SnowflakeIdSchema),
   slug: SlugSchema,
   gameId: GameIdLiteralSchema.optional(),
   currentGameInstanceId: SnowflakeIdSchema.optional(),
@@ -107,17 +108,15 @@ export const UserJoinedBlockSchema = z.object({
   timestamp: z.string(),
 });
 
-export const PlayerConnectedBlockSchema = z.object({
-  type: z.literal('PlayerConnected'),
-  playerId: z.string(),
-  username: z.string(),
+export const UserConnectedBlockSchema = z.object({
+  type: z.literal('UserConnected'),
+  userId: z.string(),
   timestamp: z.string(),
 });
 
-export const PlayerDisconnectedBlockSchema = z.object({
-  type: z.literal('PlayerDisconnected'),
-  playerId: z.string(),
-  username: z.string(),
+export const UserDisconnectedBlockSchema = z.object({
+  type: z.literal('UserDisconnected'),
+  userId: z.string(),
   timestamp: z.string(),
 });
 
@@ -131,8 +130,8 @@ export const StartGameBlockSchema = z.object({
 export const MessageContentBlockSchema = z.discriminatedUnion('type', [
   PlainMessageBlockSchema,
   UserJoinedBlockSchema,
-  PlayerConnectedBlockSchema,
-  PlayerDisconnectedBlockSchema,
+  UserConnectedBlockSchema,
+  UserDisconnectedBlockSchema,
   StartGameBlockSchema,
 ]);
 

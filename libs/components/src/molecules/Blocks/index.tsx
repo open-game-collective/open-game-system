@@ -9,7 +9,6 @@ import React, { useContext } from 'react';
 import { BlockContext } from './block.context';
 import { useEntityIdSelector } from '@hooks/useEntityIdSelector';
 import { WorldContext, WorldProvider } from '@context/WorldProvider';
-import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
 
 const PlainMessageBlock = () => {
   const { block } = useContext(BlockContext);
@@ -40,27 +39,27 @@ const UserJoinedBlock = () => {
   );
 };
 
-const PlayerConnectedBlock = () => {
+const UserConnectedBlock = () => {
   const { block } = useContext(BlockContext);
-  assertType(block, 'PlayerConnected');
-  const { username } = block;
+  assertType(block, 'UserConnected');
+  const { userId } = block;
 
   return (
     // Replace with your component logic
     <div>
-      <strong>{username}</strong> connected
+      <strong>{userId}</strong> connected
     </div>
   );
 };
 
-const PlayerDisconnectedBlock = () => {
+const UserDisconnectedBlock = () => {
   const { block } = useContext(BlockContext);
-  assertType(block, 'PlayerDisconnected');
-  const { username } = block;
+  assertType(block, 'UserDisconnected');
+  const { userId } = block;
 
   return (
     // Replace with your component logic
-    <div>{username} disconnected</div>
+    <div>{userId} disconnected</div>
   );
 };
 
@@ -83,8 +82,8 @@ const StartGameBlock = () => {
 const componentMap = {
   PlainMessage: PlainMessageBlock,
   UserJoined: UserJoinedBlock,
-  PlayerConnected: PlayerConnectedBlock,
-  PlayerDisconnected: PlayerDisconnectedBlock,
+  UserConnected: UserConnectedBlock,
+  UserDisconnected: UserDisconnectedBlock,
   StartGame: StartGameBlock,
 } as const;
 

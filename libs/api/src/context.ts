@@ -88,7 +88,7 @@ export const createContextHTTP = async (
     schema: 'connection',
     instanceId,
     currentGeolocation: undefined,
-    allChannelIds: [],
+    // allChannelIds: [],
     currentUrl: url,
     sessionId,
     deviceId,

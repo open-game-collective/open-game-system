@@ -33,7 +33,7 @@ const HomePanel = () => {
 
   const handleCreateRoom: MouseEventHandler<HTMLAnchorElement> = useCallback(
     (event) => {
-      const entity = entityStoreRegistry.myInitializedConnectionEntity.get();
+      const entity = entityStoreRegistry.myConnectionEntity.get();
       if (entity) {
         event.preventDefault();
         entity.send({
@@ -61,7 +61,7 @@ const LoginPanel = () => {
 
 const NewRoomPanel = () => {
   const { entityStoreRegistry } = useContext(WorldContext);
-  const entity = useStore(entityStoreRegistry.myInitializedConnectionEntity);
+  const entity = useStore(entityStoreRegistry.myConnectionEntity);
   return entity ? (
     <InitializedConnectionEntityContext.Provider value={entity}>
       <NewRoomFlow />

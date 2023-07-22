@@ -1,12 +1,15 @@
+import { createChatMachine } from '@api/services/chat.service';
 import { Database } from '@explorers-club/database';
 import {
   Entity,
   UserCommand,
   UserContext,
+  WithSenderId,
 } from '@explorers-club/schema';
+import { assertEntitySchema } from '@explorers-club/utils';
 import { createClient } from '@supabase/supabase-js';
 import { World } from 'miniplex';
-import { createMachine } from 'xstate';
+import { assign, createMachine, spawn } from 'xstate';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -25,21 +28,43 @@ if (
 
 export const createUserMachine = ({
   world,
+  entity,
 }: {
   world: World;
   entity: Entity;
 }) => {
-  const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: false,
-    },
-  });
+  assertEntitySchema(entity, 'user');
+  // const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  //   auth: {
+  //     persistSession: false,
+  //   },
+  // });
 
   const userMachine = createMachine<UserContext, UserCommand>({
     id: 'UserMachine',
-    initial: 'Unitialized',
     type: 'parallel',
+    schema: {
+      context: {} as UserContext,
+      events: {} as WithSenderId<UserCommand>, // warning sendinerId not present for initialize
+    },
+    context: {
+      chatServiceRef: undefined,
+    },
     states: {
+      Chat: {
+        initial: 'Running',
+        entry: assign({
+          chatServiceRef: () => {
+            return spawn(createChatMachine({ userEntity: entity }), {
+              name: 'chatService',
+              autoForward: true,
+            }) as UserContext['chatServiceRef'];
+          },
+        }),
+        states: {
+          Running: {},
+        },
+      },
       Initialized: {
         initial: 'No',
         states: {

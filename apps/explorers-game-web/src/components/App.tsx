@@ -2,6 +2,7 @@ import { Flex } from '@atoms/Flex';
 import type { RouteProps } from '@explorers-club/schema';
 import { styled } from '@explorers-club/styles';
 import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
+import { useMyUserEntityStore } from '@hooks/useMyUserEntityStore';
 import { useStore } from '@nanostores/react';
 import { Chat, ChatContext } from '@organisms/Chat';
 import { FC, useContext } from 'react';
@@ -88,9 +89,15 @@ const ChatPanel = () => {
   const connectionEntity = useStore(entityStoreRegistry.myConnectionEntity);
   const roomEntityStore = useCurrentChannelEntityStore();
   const roomEntity = useStore(roomEntityStore);
+  const userEntityStore = useMyUserEntityStore();
+  const userEntity = useStore(userEntityStore);
 
   if (mainPanelFocused) {
     return null;
+  }
+
+  if (!userEntity) {
+    return <div>Authenticating</div>;
   }
 
   if (!connectionEntity) {
@@ -102,7 +109,7 @@ const ChatPanel = () => {
   }
 
   return (
-    <ChatContext.Provider value={{ connectionEntity, roomEntity }}>
+    <ChatContext.Provider value={{ roomEntity, connectionEntity, userEntity }}>
       <Chat />
     </ChatContext.Provider>
   );

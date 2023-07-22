@@ -1,4 +1,4 @@
-import { assert, assertType } from '@explorers-club/utils';
+import { assert, assertEntitySchema, assertType } from '@explorers-club/utils';
 import { useEntitySelector } from '@hooks/useEntitySelector';
 import { BlockContext } from '@molecules/Blocks/block.context';
 import { useCallback, useContext } from 'react';
@@ -10,11 +10,11 @@ export const StrikersStartGameBlock = () => {
     block.gameId === 'strikers',
     'expected block gameId to be strikers but wasnt'
   );
+  assertEntitySchema(channelEntity, 'room');
 
-  const disabled = useEntitySelector(
-    channelEntity,
-    (entity) => entity.allUserIds.length !== 2
-  );
+  const disabled = useEntitySelector(channelEntity, (entity) => {
+    return entity.connectedUserIds.length !== 2;
+  });
 
   const gameStarted = useEntitySelector(
     channelEntity,

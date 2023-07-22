@@ -8,7 +8,6 @@ import {
 import { EntityBaseSchema } from '../entity/base';
 import { ConnectionSchemaTypeLiteral, GameIdLiteralSchema } from '../literals';
 import { RouteNameSchema, RoutePropsSchema } from '../common';
-import { ChatContextSchema, ChatStateValueSchema } from '../services/chat';
 import {
   NewRoomCommandSchema,
   NewRoomContextSchema,
@@ -142,19 +141,11 @@ const JoinChannelCommandSchema = z.object({
 const ConnectionEntityPropsSchema = z.object({
   schema: ConnectionSchemaTypeLiteral,
   sessionId: SnowflakeIdSchema,
-  // accessToken: z.string(),
   deviceId: SnowflakeIdSchema,
   currentUrl: z.string().url(),
   initialRouteProps: RoutePropsSchema,
   currentChannelId: SnowflakeIdSchema.optional(),
-  allChannelIds: z.array(SnowflakeIdSchema),
   currentGeolocation: z.custom<GeolocationPosition>().optional(),
-  chatService: z
-    .object({
-      context: ChatContextSchema,
-      value: ChatStateValueSchema,
-    })
-    .optional(),
   newRoomService: z
     .object({
       context: NewRoomContextSchema,
@@ -177,10 +168,9 @@ export const ConnectionEntitySchema = EntityBaseSchema(
 //   'supabaseClient'
 // >;
 
-// export type ConnectionContext = {
-//   supabaseClient?: SupabaseClient<Database>;
-//   chatServiceRef?: ChatInterpreter;
-// };
+export const ConnectionContextSchema = z.object({
+  reconnectCount: z.number(),
+});
 
 // const ConnectionCommandSchema = z.union([
 //   BaseConnectionCommandSchema,
