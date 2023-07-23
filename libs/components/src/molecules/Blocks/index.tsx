@@ -78,6 +78,16 @@ const StartGameBlock = () => {
   }
 };
 
+const TurnStartedBlock = () => {
+  const { block } = useContext(BlockContext);
+  assertType(block, 'TurnStarted');
+
+  return (
+    // Replace with your component logic
+    <div>{block.turnId} started turn</div>
+  );
+};
+
 // The component map
 const componentMap = {
   PlainMessage: PlainMessageBlock,
@@ -85,6 +95,7 @@ const componentMap = {
   UserConnected: UserConnectedBlock,
   UserDisconnected: UserDisconnectedBlock,
   StartGame: StartGameBlock,
+  TurnStarted: TurnStartedBlock,
 } as const;
 
 export const MessageContent: React.FC<{
