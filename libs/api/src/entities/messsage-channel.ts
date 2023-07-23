@@ -9,19 +9,17 @@
  * This is an example of an entity type with a dynmaic service type.
  * Services are pretty close to systems in ECS.
  */
-import { assert, assertEntitySchema } from '@explorers-club/utils';
 import {
   Entity,
-  ChannelEvent,
   MessageChannelCommand,
   MessageChannelContext,
   MessageChannelEntity,
   MessageChannelMachine,
 } from '@explorers-club/schema';
+import { assert, assertEntitySchema } from '@explorers-club/utils';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
 import { channelsById, entitiesById } from '../server/state';
-import { Observable, lastValueFrom, map } from 'rxjs';
 
 // return createMachine({
 //   id: 'MessageChannelMachine',

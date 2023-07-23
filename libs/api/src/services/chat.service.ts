@@ -11,6 +11,7 @@ import { assign as immerAssign } from '@xstate/immer';
 import { assign, createMachine } from 'xstate';
 import { createEntity } from '../ecs';
 import { entitiesById, world } from '../server/state';
+import { channelsById } from '../server/state';
 
 export const createChatMachine = <TMessage extends ChannelEvent>({
   userEntity,
@@ -33,11 +34,12 @@ export const createChatMachine = <TMessage extends ChannelEvent>({
           ENTER_CHANNEL: {
             actions: assign({
               channelEntityIds: (context, event) => {
+                console.log('ENTER CHANNEL', event);
                 // Create a message channel eentity if we don't already have one
                 if (!context.channelEntityIds[event.channelId]) {
                   const entity = createEntity<MessageChannelEntity>({
                     schema: 'message_channel',
-                    messages: [], // todo prefill previous messages if they exist,
+                    messages: [],
                     channelId: event.channelId,
                     userId: userEntity.id,
                   });

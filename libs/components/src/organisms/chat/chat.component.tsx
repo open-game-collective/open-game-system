@@ -1,8 +1,14 @@
 import { Badge } from '@atoms/Badge';
 import { Caption } from '@atoms/Caption';
+import { useMemo } from 'react';
 import { Flex } from '@atoms/Flex';
 import { TextField } from '@atoms/TextField';
-import { MessageChannelEntity, SnowflakeId } from '@explorers-club/schema';
+import {
+  MessageChannelEntity,
+  MessageContentBlock,
+  SnowflakeId,
+  UserEntity,
+} from '@explorers-club/schema';
 import { styled } from '@explorers-club/styles';
 import { assert, assertEntitySchema } from '@explorers-club/utils';
 import { useEntityIdSelector } from '@hooks/useEntityIdSelector';
@@ -20,13 +26,16 @@ import {
   useState,
 } from 'react';
 import { ChatContext } from './chat.context';
-import { WorldContext } from '@context/WorldProvider';
+import { WorldContext, WorldProvider } from '@context/WorldProvider';
 import { useCurrentMessageChannelEntityStore } from '@hooks/useCurrentMessageChannelEntityStore';
-import { Atom, ReadableAtom, WritableAtom } from 'nanostores';
+import { Atom, ReadableAtom, WritableAtom, computed, map } from 'nanostores';
 import {
   useEntityStoreSelector,
   useEntityStoreSelectorDeepEqual,
 } from '@hooks/useEntityStoreSelector';
+import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
+import { useStore } from '@nanostores/react';
+import { useEntitiesStoreSelector } from '@hooks/useEntitiesStoreSelector';
 
 type PlainMessageEvent = {
   type: 'PLAIN_MESSAGE';
@@ -104,9 +113,9 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
   );
 };
 
-const MessageChannelContext = createContext(
+const CombinedMessageChannelContext = createContext(
   {} as {
-    messageChannelEntityStore: ReadableAtom<MessageChannelEntity | null>;
+    userEntity: UserEntity;
   }
 );
 
@@ -122,56 +131,94 @@ const ChatMessageList = () => {
     return <div>loading messages</div>;
   }
 
-  const messageChannelEntityStore = useCurrentMessageChannelEntityStore();
-  // const messageChannelId = channelEntityIds[roomEntity.id];
-  // const messageChannelEntity = useEntitySelector((entity) => {
-  //   return true;
-  // })
-  // const messageIds = useEntitySelector(messageChannelEntity, (entity) => {});
-  // const messageIds = useEntityIdSelector(messageChannelId, (entity) => {
-  //   if (!entity) {
-  //     return undefined;
-  //   }
-  //   assertEntitySchema(entity, 'message_channel');
-
-  //   // todo this might be causing extra re-renders?
-  //   const messageIds = entity.messages.map((message) => message.id);
-  //   console.log({ messageIds });
-  //   return messageIds;
-  // });
-
-  // const messageChannelEntity = entitiesById.get(messageChannelId);
-  // assertEntitySchema(messageChannelEntity, 'message_channel');
-
   return (
-    <MessageChannelContext.Provider value={{ messageChannelEntityStore }}>
-      <MessageChannel />
-    </MessageChannelContext.Provider>
+    <CombinedMessageChannelContext.Provider value={{ userEntity }}>
+      <CombinedMessageChannel />
+    </CombinedMessageChannelContext.Provider>
   );
 };
 
-const MessageChannel = () => {
-  const { messageChannelEntityStore } = useContext(MessageChannelContext);
+const CombinedMessageChannel = () => {
+  const { userEntity } = useContext(CombinedMessageChannelContext);
+  const { createEntityStore } = useContext(WorldContext);
+  const [messageChannelStoreMap] = useState<
+    Map<string, Atom<MessageChannelEntity>>
+  >(() => {
+    const result: Map<string, Atom<MessageChannelEntity>> = new Map();
+    const channelEntityIds = userEntity.chatService?.context.channelEntityIds;
+    if (channelEntityIds) {
+      for (const channelId in channelEntityIds) {
+        const messageChannelId = channelEntityIds[channelId];
+        const store = createEntityStore<MessageChannelEntity>(
+          (entity) => entity.id === messageChannelId
+        ) as Atom<MessageChannelEntity>; // todo why i have to cast this?
+        result.set(messageChannelId, store);
+      }
+    }
 
-  const messageIds = useEntityStoreSelectorDeepEqual(
-    messageChannelEntityStore,
-    (entity) => entity.messages.map((message) => message.id)
-  );
-  const scrollViewRef = useRef<HTMLDivElement | null>(null);
+    return result;
+  });
 
-  // const messageIds = useEntitySelector(messageChannelEntity, (entity) => {});
-  // const messageIds = useEntityIdSelector(messageChannelId, (entity) => {
-  //   if (!entity) {
-  //     return undefined;
-  //   }
-  //   assertEntitySchema(entity, 'message_channel');
+  const [messageChannelStores, setMessageChannelStores] = useState(() => {
+    return Array.from(messageChannelStoreMap.values());
+  });
 
-  //   // todo this might be causing extra re-renders?
-  //   const messageIds = entity.messages.map((message) => message.id);
-  //   console.log({ messageIds });
-  //   return messageIds;
+  // Listens for changes to the list of message channels a user has access to.
+  // When a new one is added, updates the map holding the message channel stores.
+  useEffect(() => {
+    return userEntity.subscribe(() => {
+      const channelEntityIds = userEntity.chatService?.context.channelEntityIds;
+      if (!channelEntityIds) {
+        return;
+      }
+
+      let changes = false;
+      for (const channelId in channelEntityIds) {
+        const messageChannelId = channelEntityIds[channelId];
+
+        if (!messageChannelStoreMap.get(messageChannelId)) {
+          const store = createEntityStore<MessageChannelEntity>(
+            (entity) => entity.id === messageChannelId
+          ) as Atom<MessageChannelEntity>; // todo why i have to cast this?
+          messageChannelStoreMap.set(messageChannelId, store);
+          changes = true;
+          console.log('adding', messageChannelId);
+        }
+        console.log(messageChannelId);
+      }
+
+      // Update the array of message channel stores
+      if (changes) {
+        setMessageChannelStores(Array.from(messageChannelStoreMap.values()));
+      }
+    });
+  }, [userEntity, createEntityStore, messageChannelStoreMap]);
+
+  const messageTuples = useEntitiesStoreSelector<
+    MessageChannelEntity,
+    (readonly [SnowflakeId, SnowflakeId])[]
+  >(messageChannelStores, (entities) => {
+    return entities.flatMap((entity) =>
+      entity.messages.map((message) => [entity.id, message.id] as const)
+    );
+  });
+
+  // const messageChannelEntities = useStore(computed(messageChannelStores, (...entities) => {
+  //   return Array.from(entities);
+  // })
+
+  // const messageTuplesStore = useMemo(() => {
+
+  // return computed(messageChannelStores, (...entities) => {
+  //   return entities.flatMap((entity) =>
+  //     entity.messages.map((message) => [entity.id, message.id] as const)
+  //   );
   // });
-  // console.log('rendering', { messageIds });
+
+  // }, [messageChannelStores]);
+  // const messageTuples = useStore(messageTuplesStore);
+
+  const scrollViewRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let isScrolled = false;
@@ -227,7 +274,7 @@ const MessageChannel = () => {
     // };
   }, [scrollViewRef]);
 
-  if (!messageIds || !messageIds.length) {
+  if (!messageTuples || !messageTuples.length) {
     return <div>no messages</div>;
   }
 
@@ -262,11 +309,12 @@ const MessageChannel = () => {
         <ChatRoot>
           <ChatViewport ref={scrollViewRef}>
             <Flex direction="column" gap="2">
-              {messageIds.map((messageId, index) => {
+              {messageTuples.map(([messageChannelId, messageId], index) => {
                 return (
                   <ChatMessage
                     key={messageId}
                     index={index}
+                    messageChannelId={messageChannelId}
                     messageId={messageId}
                   />
                 );
@@ -360,19 +408,14 @@ const TypingIndicator = () => {
 
 const ChatMessage: FC<{
   messageId: string;
+  messageChannelId: string;
   index: number;
-}> = ({ messageId, index }) => {
-  const { messageChannelEntityStore } = useContext(MessageChannelContext);
-  const messageChannelId = useEntityStoreSelector(
-    messageChannelEntityStore,
-    (entity) => entity.id
-  );
-
-  const message = useEntityStoreSelector(
-    messageChannelEntityStore,
-    (entity) => entity.messages[index]
-  );
-
+}> = ({ messageId, messageChannelId, index }) => {
+  const message = useEntityIdSelector(messageChannelId, (entity) => {
+    assertEntitySchema(entity, 'message_channel');
+    // todo make not o(n)
+    return entity.messages.find((message) => message.id == messageId);
+  });
   if (!message) {
     return <div>placeholder</div>;
   }
@@ -385,7 +428,11 @@ const ChatMessage: FC<{
   return (
     <>
       {message.contents.map((block, index) => (
-        <MessageContent key={index} block={block} message={message} />
+        <MessageContent
+          key={index}
+          block={block as unknown as MessageContentBlock}
+          message={message as any} // idk
+        />
       ))}
     </>
   );

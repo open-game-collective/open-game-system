@@ -61,7 +61,8 @@ export const createRoomMachine = ({
               channelId: roomEntity.id,
             });
 
-            // todo clean up sub on disconnect
+            // listen for when there is a game on the room, if one comes, add it as a channel for them
+            // todo save sub on context, clean up on disconnect
             const sub = roomEntity.subscribe((event) => {
               if (
                 roomEntity.currentGameInstanceId &&

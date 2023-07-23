@@ -54,6 +54,7 @@ import {
   StrikersGameCommandSchema,
   StrikersGameContextSchema,
   StrikersGameEntitySchema,
+  StrikersGameEventSchema,
   StrikersGameStateSchema,
   StrikersGameStateValueSchema,
   // StrikersLineupContextSchema,
@@ -656,6 +657,7 @@ export type StrikersGameMachine = StateMachine<
 export type StrikersGameConfigData = z.infer<
   typeof StrikersGameConfigDataSchema
 >;
+export type StrikersGameEvent = z.infer<typeof StrikersGameEventSchema>;
 export type StrikersCardSettings = z.infer<typeof StrikersCardSettingsSchema>;
 export type StrikersGameplaySettings = z.infer<
   typeof StrikersGameplaySettingsSchema

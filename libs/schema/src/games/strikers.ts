@@ -5,12 +5,14 @@ import { z } from 'zod';
 import { SnowflakeIdSchema } from '../common';
 import { EntityBaseSchema } from '../entity/base';
 import {
+  MessageEventTypeLiteral,
   StrikersEffectSchemaTypeLiteral,
   StrikersGameIdLiteral,
   StrikersGameSchemaTypeLiteral,
   StrikersPlayerSchemaTypeLiteral,
   StrikersTurnSchemaTypeLiteral,
 } from '../literals';
+import { EventBaseSchema } from '@schema/events/base';
 
 const CardIdSchema = z.string();
 
@@ -405,3 +407,29 @@ export const StrikersPlayerEntitySchema = EntityBaseSchema(
 export const StrikersPlayerContextSchema = z.object({
   foo: z.string(),
 });
+
+// const TurnStartMessageEventSchema = z.object({
+//   type: z.literal('TURN_START'),
+// });
+export const TurnStartedBlockSchema = z.object({
+  type: z.literal('TurnStarted'),
+  turnId: SnowflakeIdSchema,
+  timestamp: z.date(),
+});
+
+const MessageContentBlockSchema = z.discriminatedUnion('type', [
+  TurnStartedBlockSchema,
+]);
+
+export const StrikersGameEventSchema = EventBaseSchema(
+  MessageEventTypeLiteral,
+  z.object({
+    senderId: SnowflakeIdSchema,
+    recipientId: SnowflakeIdSchema.optional(),
+    contents: z.array(MessageContentBlockSchema),
+  })
+);
+
+// export const StrikersGameEventSchema = z.discriminatedUnion('type', [
+//   StrikersGameMessageEventSchema,
+// ]);

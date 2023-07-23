@@ -6,7 +6,8 @@ import {
   MessageEventTypeLiteral,
 } from '../literals';
 import { EventBaseSchema } from './base';
-import { RoomMessageEventSchema } from '@schema/lib/room';
+import { RoomEventSchema, RoomMessageEventSchema } from '@schema/lib/room';
+import { StrikersGameEventSchema } from '@schema/games/strikers';
 
 const ConnectMessageComponentLiteral = z.literal('CONNECT_MESSAGE');
 const DisconnectMessageComponentLiteral = z.literal('DISCONNECT_MESSAGE');
@@ -63,7 +64,6 @@ export const DebugEventSchema = EventBaseSchema(
 export const MessageEventSchema = RoomMessageEventSchema;
 
 export const ChannelEventSchema = z.union([
-  LogEventSchema,
-  DebugEventSchema,
-  MessageEventSchema,
+  RoomEventSchema,
+  StrikersGameEventSchema,
 ]);

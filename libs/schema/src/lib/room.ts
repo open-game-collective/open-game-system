@@ -11,6 +11,7 @@ import {
   MessageEventTypeLiteral,
   RoomSchemaTypeLiteral,
 } from '../literals';
+import { TurnStartedBlockSchema } from '@schema/games/strikers';
 
 export const RoomContextSchema = z.object({
   workflows: z.map(z.string(), z.custom<AnyInterpreter>()),
@@ -133,6 +134,7 @@ export const MessageContentBlockSchema = z.discriminatedUnion('type', [
   UserConnectedBlockSchema,
   UserDisconnectedBlockSchema,
   StartGameBlockSchema,
+  TurnStartedBlockSchema,
 ]);
 
 // const MessageContentSchema = z.discriminatedUnion('type', [

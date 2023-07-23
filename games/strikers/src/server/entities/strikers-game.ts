@@ -1,4 +1,5 @@
 // import { createSchemaIndex, world } from '@explorers-club/api';
+import { generateSnowflakeId } from '@api/ids';
 import { waitForCondition } from '@api/world';
 import {
   Entity,
@@ -8,26 +9,35 @@ import {
 } from '@explorers-club/schema';
 import { assert } from '@explorers-club/utils';
 import type {
+  CreateEventProps,
   StrikersBoard,
   StrikersBoardCard,
   StrikersCard,
+  StrikersGameEvent,
   StrikersGameStateValue,
   StrikersPlayerPosition,
   StrikersTeam,
   StrikersTurnEntity,
 } from '@schema/types';
 import { World } from 'miniplex';
+import { ReplaySubject } from 'rxjs';
 import { createMachine } from 'xstate';
 
 export const createStrikersGameMachine = ({
   world,
   entity,
+  channel,
 }: {
   world: World;
   entity: Entity;
+  channel: ReplaySubject<any>;
 }) => {
   assert(entity.schema === 'strikers_game', 'expected strikers_game entity');
   const initialBoard = initializeBoard(entity.config.cards);
+
+  const gameChannel = channel as ReplaySubject<
+    CreateEventProps<StrikersGameEvent>
+  >;
 
   return createMachine(
     {
@@ -178,6 +188,27 @@ export const createStrikersGameMachine = ({
           });
           world.add(turnEntity);
           entity.turnsIds.push(turnEntity.id);
+
+          const id = generateSnowflakeId();
+
+          gameChannel.next({
+            id,
+            type: 'MESSAGE',
+            // recipientId: turnEntity.playerId,
+            contents: [
+              {
+                type: 'TurnStarted',
+                turnId: turnEntity.id,
+                timestamp: new Date(),
+              },
+            ],
+            senderId: entity.id,
+          });
+
+          // todo here is where we want do so something with the message id
+          // that was just created
+          // we need to take it and listen for events
+          // example, MOVE
 
           await waitForCondition(
             turnEntity,
