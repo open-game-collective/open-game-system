@@ -14,6 +14,7 @@ import { FC, createContext, useEffect, useRef, useState } from 'react';
 import { SplashScene } from './scenes/splash-scene';
 import { FieldCell } from './components/field-cell';
 import { Field } from './components/field';
+import { MainCamera } from './components/main-camera';
 
 const StrikersContext = createContext({
   gameEntity: {} as StrikersGameEntity,
@@ -39,6 +40,7 @@ export const StrikersSceneManager: FC<{
 
   return (
     <StrikersContext.Provider value={{ gameEntity, playerEntity: undefined }}>
+      <MainCamera />
       {/* <SplashScene /> */}
       <GameScene />
     </StrikersContext.Provider>
@@ -56,7 +58,13 @@ const GameScene = () => {
   return (
     <>
       {/* <MapControls screenSpacePanning={true} /> */}
+      <axesHelper />
       <OrbitControls />
+      <Field grid={grid}>
+        {cells.map((cell) => (
+          <FieldCell key={cell.toString()} tilePosition={[cell.q, cell.r]} />
+        ))}
+      </Field>
       {/* <Field grid={undefined}>
         {cells.map((cell) => {
           return (
@@ -69,7 +77,7 @@ const GameScene = () => {
             </FieldCell>
           );
         })} */}
-        {/* {cells.map((cell) => {
+      {/* {cells.map((cell) => {
           return <FieldCell>
             <></>
             <FieldCell />

@@ -1,5 +1,6 @@
 // import { createSchemaIndex, world } from '@explorers-club/api';
 import { generateSnowflakeId } from '@api/ids';
+import { entitiesById } from '@api/index';
 import { waitForCondition } from '@api/world';
 import {
   Entity,
@@ -7,7 +8,7 @@ import {
   StrikersGameContext,
   WithSenderId,
 } from '@explorers-club/schema';
-import { assert } from '@explorers-club/utils';
+import { assert, assertEntitySchema } from '@explorers-club/utils';
 import type {
   CreateEventProps,
   StrikersBoard,
@@ -188,6 +189,17 @@ export const createStrikersGameMachine = ({
           });
           world.add(turnEntity);
           entity.turnsIds.push(turnEntity.id);
+
+          const playerEntity = entitiesById.get(playerId);
+          assertEntitySchema(playerEntity, 'strikers_player');
+          const userEntity = entitiesById.get(playerEntity.userId);
+          assertEntitySchema(userEntity, 'user');
+          console.log({ userEntity });
+
+          userEntity.send({
+            type: 'ENTER_CHANNEL',
+            channelId: turnEntity.id,
+          });
 
           const id = generateSnowflakeId();
 

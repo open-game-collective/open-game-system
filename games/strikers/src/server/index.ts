@@ -1,5 +1,9 @@
 import { entitiesById, generateSnowflakeId, world } from '@explorers-club/api';
-import { assert, assertChannelEntity, assertEntitySchema } from '@explorers-club/utils';
+import {
+  assert,
+  assertChannelEntity,
+  assertEntitySchema,
+} from '@explorers-club/utils';
 import {
   LobbyGameConfig,
   SnowflakeId,
@@ -26,20 +30,20 @@ export const createStrikersGame = (
 
   const gameEntityId = generateSnowflakeId();
   const p1UserEntity = entitiesById.get(lobbyConfig.p1UserId);
-  assertEntitySchema(p1UserEntity, "user");
+  assertEntitySchema(p1UserEntity, 'user');
 
   const p2UserEntity = entitiesById.get(lobbyConfig.p2UserId);
-  assertEntitySchema(p2UserEntity, "user");
+  assertEntitySchema(p2UserEntity, 'user');
 
   const p1PlayerEntity = createEntity<StrikersPlayerEntity>({
     schema: 'strikers_player',
-    userId: [p1UserEntity.id],
+    userId: p1UserEntity.id,
     gameEntityId,
   });
 
   const p2PlayerEntity = createEntity<StrikersPlayerEntity>({
     schema: 'strikers_player',
-    userId: [p2UserEntity.id],
+    userId: p2UserEntity.id,
     gameEntityId,
   });
 

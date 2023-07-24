@@ -53,10 +53,7 @@ export const ScenePanel = () => {
       <TopNav />
       <BottomNav />
       <div id="map" style={{ height: '100%' }} />
-      <Canvas
-        style={{ position: 'absolute', left: 0, top: 0 }}
-        camera={{ far: 2000000000 }}
-      >
+      <Canvas style={{ position: 'absolute', left: 0, top: 0 }}>
         <ContextBridge>
           <SceneManager />
         </ContextBridge>

@@ -34,7 +34,6 @@ export const createChatMachine = <TMessage extends ChannelEvent>({
           ENTER_CHANNEL: {
             actions: assign({
               channelEntityIds: (context, event) => {
-                console.log('ENTER CHANNEL', event);
                 // Create a message channel eentity if we don't already have one
                 if (!context.channelEntityIds[event.channelId]) {
                   const entity = createEntity<MessageChannelEntity>({
