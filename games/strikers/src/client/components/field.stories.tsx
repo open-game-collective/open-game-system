@@ -1,9 +1,11 @@
 import { OrbitControls, OrthographicCamera } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Field } from './field';
 import { FieldCell } from './field-cell';
+import { useControls } from 'leva';
+import { cameraStore } from './field-camera';
 
 export default {
   component: Field,
@@ -19,19 +21,20 @@ export const Default = {
 
     return (
       <Canvas
-        camera={{ position: [0, 0, 50] }}
         style={{ background: '#eee', aspectRatio: '1' }}
       >
         {/* <MapControls /> */}
+        <gridHelper />
         <OrbitControls />
         <ambientLight />
         <pointLight />
+        <CenterControl />
         <Field grid={grid}>
-          {Array.from(grid).map((hex) => {
+          {/* {Array.from(grid).map((hex) => {
             return (
               <FieldCell key={hex.toString()} tilePosition={[hex.q, hex.r]} />
             );
-          })}
+          })} */}
         </Field>
         {/* <OrthographicCamera
           makeDefault
@@ -50,4 +53,20 @@ export const Default = {
       </Canvas>
     );
   },
+};
+
+const CenterControl = () => {
+  // useControls hook to create center controls
+  const { centerX, centerY } = useControls({
+    centerX: { value: 0, min: -50, max: 50, label: 'Center X' },
+    centerY: { value: 0, min: -50, max: 50, label: 'Center Y' },
+  });
+
+  useEffect(() => {
+    // Update CameraStore center coordinates whenever center control changes
+    cameraStore.setKey('center', [centerX, centerY]);
+  }, [centerX, centerY]);
+
+  // Render nothing as this component only updates the store
+  return null;
 };

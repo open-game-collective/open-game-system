@@ -99,6 +99,7 @@
     "react-dropdown-menu": "^0.0.2",
     "react-glider": "^4.0.2",
     "react-is": "18.2.0",
+    "react-merge-refs": "^2.0.2",
     "react-player": "^2.11.0",
     "react-query": "^3.39.2",
     "react-router-dom": "6.4.3",

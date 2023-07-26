@@ -14,12 +14,14 @@ import { FC, createContext, useEffect, useRef, useState } from 'react';
 import { SplashScene } from './scenes/splash-scene';
 import { FieldCell } from './components/field-cell';
 import { Field } from './components/field';
-import { MainCamera } from './components/main-camera';
+import { FieldCamera } from './components/field-camera';
 
 const StrikersContext = createContext({
   gameEntity: {} as StrikersGameEntity,
   playerEntity: {} as StrikersPlayerEntity | undefined,
 });
+
+const HexTile = defineHex();
 
 export const StrikersSceneManager: FC<{
   gameInstanceId: SnowflakeId;
@@ -37,10 +39,13 @@ export const StrikersSceneManager: FC<{
   }
 
   assertEntitySchema(gameEntity, 'strikers_game');
+  const [grid] = useState(
+    new Grid(HexTile, rectangle({ width: 26, height: 20 }))
+  );
 
   return (
     <StrikersContext.Provider value={{ gameEntity, playerEntity: undefined }}>
-      <MainCamera />
+      <FieldCamera grid={grid} />
       {/* <SplashScene /> */}
       <GameScene />
     </StrikersContext.Provider>
