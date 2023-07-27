@@ -1,113 +1,80 @@
-import { shaderMaterial } from '@react-three/drei';
-import { ReactThreeFiber, extend } from '@react-three/fiber';
-import type { Hex } from 'honeycomb-grid';
-import { Grid } from 'honeycomb-grid';
-import { FC, ReactNode, useCallback, useMemo } from 'react';
-import { Color, DoubleSide, ShaderMaterial } from 'three';
-import { FieldContext } from './field.context';
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { CanvasTexture } from 'three';
+import { Grid, Hex } from 'honeycomb-grid';
 
-type ColorShiftUniforms = {
-  time: number;
-  color: Color;
-};
+export function Field({ grid }: { grid: Grid<Hex> }) {
+  const canvasRef = useRef(document.createElement('canvas'));
+  canvasRef.current.width = grid.pixelWidth;
+  canvasRef.current.height = grid.pixelHeight;
+  const textureRef = useRef<CanvasTexture | null>(null);
+  const contextRef = useRef(canvasRef.current.getContext('2d'));
+  // document.body.appendChild(canvasRef.current);
 
-const ColorShiftMaterial = shaderMaterial(
-  { time: 0, color: new Color(0.2, 0.0, 0.1) } satisfies ColorShiftUniforms,
-  // vertex shader
-  /*glsl*/ `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }`,
-  // fragment shader
-  /*glsl*/ `
-  uniform float time;
-  uniform vec3 color;
-  varying vec2 vUv;
-  void main() {
-    gl_FragColor.rgba = vec4(0.5 + 0.3 * sin(vUv.yxx + time) + color, 1.0);
-  }
-`
-);
-ColorShiftMaterial;
+  useFrame(({ clock }) => {
+    canvasRef.current.width = grid.pixelWidth;
+    canvasRef.current.height = grid.pixelHeight;
 
-extend({ ColorShiftMaterial });
+    let ctx = contextRef.current;
 
-type ColorShiftMaterialImpl = ColorShiftUniforms & ShaderMaterial;
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      colorShiftMaterial: ReactThreeFiber.Object3DNode<
-        ColorShiftMaterialImpl,
-        typeof ColorShiftMaterial
-      >;
+    if (ctx) {
+      ctx.clearRect(0, 0, grid.pixelWidth, grid.pixelHeight);
+
+      // Replace drawHexagons with your own function for drawing hexagons
+      drawHexagons(ctx, clock.getElapsedTime(), grid);
     }
-  }
-}
 
-export const Field: FC<{ children?: ReactNode; grid: Grid<Hex> }> = ({
-  children,
-  grid,
-}) => {
-  const cells = useMemo(() => {
-    return grid.toArray();
-  }, [grid]);
-
-  const handlePointerLeave = useCallback(() => {
-    console.log('leave');
-  }, []);
-
-  const handlePointerOver = useCallback(() => {
-    // todo figure out how to set value on shader
-    console.log('over');
-  }, []);
+    if (textureRef.current) {
+      textureRef.current.needsUpdate = true;
+    }
+  });
 
   return (
-    <FieldContext.Provider value={{ grid }}>
-      <group position={[0, 0, 0]}>
-        <axesHelper args={[20]} />
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <planeBufferGeometry
-            attach="geometry"
-            args={[grid.pixelWidth * 2, grid.pixelHeight * 2]}
-          />
-          <meshStandardMaterial
-            side={DoubleSide}
-            attach="material"
-            color={0x000000}
-          />
-        </mesh>
-        {children}
-        <group
-          position={[grid.pixelWidth / 2, 0, -grid.pixelHeight / 2]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          {cells.map((hex) => {
-            return (
-              <group
-                position={[hex.center.x, hex.center.y, 0]}
-                onPointerOver={handlePointerOver}
-                onPointerLeave={handlePointerLeave}
-              >
-                <axesHelper />
-                {children}
-                <mesh position={[-hex.width / 2, -hex.height / 2, 0]}>
-                  <cylinderBufferGeometry
-                    attach="geometry"
-                    args={[1, 1, 5, 6, 1]}
-                  />
-                  <colorShiftMaterial
-                    color={0x0fff00}
-                    attach="material"
-                    time={1}
-                  />
-                </mesh>
-              </group>
-            );
-          })}
-        </group>
-      </group>
-    </FieldContext.Provider>
+    <mesh position={[0, 0, 0]} rotation-x={-Math.PI / 2}>
+      <planeBufferGeometry args={[grid.pixelWidth, grid.pixelHeight]} />
+      <meshBasicMaterial color={0xff0000} attach="material">
+        <canvasTexture
+          ref={textureRef}
+          attach="map"
+          image={canvasRef.current}
+        />
+      </meshBasicMaterial>
+    </mesh>
   );
-};
+}
+
+function drawHexagons(
+  context: CanvasRenderingContext2D,
+  time: number,
+  grid: Grid<Hex>
+) {
+  // Clear the canvas
+  context.clearRect(0, 0, grid.pixelWidth, grid.pixelHeight);
+
+  // Iterate over all hexes in the grid
+  for (const hex of grid) {
+    // Get the corners of the hex
+    const corners = hex.corners.map(({ x, y }) => [
+      x + hex.center.x,
+      y + hex.center.y,
+    ]);
+
+    // Draw the hex
+    context.beginPath();
+    context.moveTo(corners[0][0], corners[0][1]);
+    for (let i = 1; i < corners.length; i++) {
+      context.lineTo(corners[i][0], corners[i][1]);
+    }
+    context.closePath();
+
+    // Choose the fill style based on time and the hex's position
+    const color =
+      Math.floor((time + hex.center.x + hex.center.y) * 10) % 2 === 0
+        ? 'red'
+        : 'yellow';
+    context.fillStyle = color;
+
+    // Fill the hex
+    context.fill();
+  }
+}

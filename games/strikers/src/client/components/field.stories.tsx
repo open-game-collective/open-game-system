@@ -6,6 +6,9 @@ import { Field } from './field';
 import { FieldCell } from './field-cell';
 import { useControls } from 'leva';
 import { cameraStore } from './field-camera';
+import { CameraRigProvider } from './camera-rig.context';
+import { SunsetSky } from '@3d/sky';
+import { Vector3 } from 'three';
 
 export default {
   component: Field,
@@ -22,20 +25,15 @@ export const Default = {
     return (
       <Canvas
         style={{ background: '#eee', aspectRatio: '1' }}
+        camera={{ position: new Vector3(0, 100, 50) }}
       >
-        {/* <MapControls /> */}
-        <gridHelper />
-        <OrbitControls />
-        <ambientLight />
-        <pointLight />
-        <CenterControl />
-        <Field grid={grid}>
-          {/* {Array.from(grid).map((hex) => {
-            return (
-              <FieldCell key={hex.toString()} tilePosition={[hex.q, hex.r]} />
-            );
-          })} */}
-        </Field>
+        <CameraRigProvider grid={grid}>
+          <gridHelper />
+          <ambientLight />
+          <pointLight />
+          <Field grid={grid} />
+          <SunsetSky />
+        </CameraRigProvider>
         {/* <OrthographicCamera
           makeDefault
           zoom={1}
