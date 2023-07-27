@@ -16,6 +16,7 @@ import { StoryObj } from '@storybook/react';
 import { createContext } from 'vm';
 import { atom } from 'nanostores';
 import { assert } from '@explorers-club/utils';
+import { Vector3 } from 'three';
 
 export default {
   component: CameraRigProvider,
@@ -38,7 +39,7 @@ export const Default: Story = {
         <Canvas
           shadows
           style={{ background: '#eee', aspectRatio: '1' }}
-          camera={{ position: [0, 100, 0] }}
+          camera={{ position: new Vector3(0, 1000, 1000) }}
         >
           <CameraRigProvider grid={gridStore.get()}>
             <StoryComponent />
@@ -51,7 +52,7 @@ export const Default: Story = {
     const { cameraControls } = useContext(CameraRigContext);
 
     useEffect(() => {
-      cameraControls.setLookAt(0, 10, 0, 0, 0, -20, true);
+      cameraControls.setLookAt(0, 10, 120, 0, 0, -20, true);
     }, [cameraControls]);
     console.log({ cameraControls });
 

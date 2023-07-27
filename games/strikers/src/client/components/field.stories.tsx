@@ -1,14 +1,12 @@
-import { OrbitControls, OrthographicCamera } from '@react-three/drei';
+import { SunsetSky } from '@3d/sky';
 import { Canvas } from '@react-three/fiber';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
-import { useEffect, useState } from 'react';
-import { Field } from './field';
-import { FieldCell } from './field-cell';
 import { useControls } from 'leva';
-import { cameraStore } from './field-camera';
-import { CameraRigProvider } from './camera-rig.context';
-import { SunsetSky } from '@3d/sky';
+import { useEffect, useState } from 'react';
 import { Vector3 } from 'three';
+import { CameraRigProvider } from './camera-rig.context';
+import { Field } from './field';
+import { cameraStore } from './field-camera';
 
 export default {
   component: Field,

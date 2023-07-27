@@ -1,10 +1,17 @@
-import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { CanvasTexture } from 'three';
 import { Grid, Hex } from 'honeycomb-grid';
-import { drawHexagons } from './field-canvas';
+import { ReactNode, useRef } from 'react';
+import { CanvasTexture, DoubleSide } from 'three';
+import drawHexagons from '../drawing/drawHexagons';
+import { FieldContext } from './field.context';
 
-export function Field({ grid }: { grid: Grid<Hex> }) {
+export function Field({
+  grid,
+  children,
+}: {
+  grid: Grid<Hex>;
+  children?: ReactNode;
+}) {
   const canvasRef = useRef(document.createElement('canvas'));
   canvasRef.current.width = grid.pixelWidth;
   canvasRef.current.height = grid.pixelHeight;
@@ -31,15 +38,24 @@ export function Field({ grid }: { grid: Grid<Hex> }) {
   });
 
   return (
-    <mesh position={[0, 0, 0]} rotation-x={-Math.PI / 2}>
-      <planeBufferGeometry args={[grid.pixelWidth, grid.pixelHeight]} />
-      <meshBasicMaterial color={0xff0000} attach="material">
-        <canvasTexture
-          ref={textureRef}
-          attach="map"
-          image={canvasRef.current}
-        />
-      </meshBasicMaterial>
-    </mesh>
+    <FieldContext.Provider value={{ grid }}>
+      <group>
+        <mesh position={[0, 0, 0]} rotation-x={-Math.PI / 2}>
+          <planeBufferGeometry args={[grid.pixelWidth, grid.pixelHeight]} />
+          <meshBasicMaterial
+            side={DoubleSide}
+            color={0x00ff00}
+            attach="material"
+          >
+            <canvasTexture
+              ref={textureRef}
+              attach="map"
+              image={canvasRef.current}
+            />
+          </meshBasicMaterial>
+        </mesh>
+        {children}
+      </group>
+    </FieldContext.Provider>
   );
 }
