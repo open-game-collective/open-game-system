@@ -40,12 +40,10 @@
     "serve-storybook": {
       "executor": "@nx/web:file-server",
       "options": {
+        "host": "0.0.0.0",
         "buildTarget": "strikers:build-storybook",
         "parallel": false,
-        "staticFilePath": "dist/storybook/strikers",
-        "port": 80,
-        "brotli": true,
-        "host": "0.0.0.0"
+        "staticFilePath": "dist/storybook/strikers"
       }
     }
   }
