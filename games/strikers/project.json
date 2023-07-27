@@ -36,6 +36,14 @@
           "quiet": true
         }
       }
+    },
+    "serve-storybook": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "strikers:build-storybook",
+        "parallel": false,
+        "staticFilePath": "dist/storybook/strikers"
+      }
     }
   }
 }
