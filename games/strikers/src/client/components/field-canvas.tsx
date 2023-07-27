@@ -26,7 +26,10 @@ export const FieldCanvas = ({ grid, width, height }: FieldCanvasProps) => {
   );
 };
 
-function drawHexagons(context: CanvasRenderingContext2D, grid: Grid<Hex>) {
+export function drawHexagons(
+  context: CanvasRenderingContext2D,
+  grid: Grid<Hex>
+) {
   // Clear the canvas
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
@@ -34,8 +37,8 @@ function drawHexagons(context: CanvasRenderingContext2D, grid: Grid<Hex>) {
   for (const hex of grid) {
     // Calculate the hex's pixel center
     const pixelCenter = {
-      x: hex.width * Math.sqrt(3) * (hex.col + hex.row / 2),
-      y: ((hex.height * 3) / 2) * hex.row,
+      x: hex.width * Math.sqrt(3) * (hex.q + hex.r / 2),
+      y: ((hex.height * 3) / 2) * hex.r,
     };
 
     // Get the corners of the hex
@@ -53,7 +56,7 @@ function drawHexagons(context: CanvasRenderingContext2D, grid: Grid<Hex>) {
     context.closePath();
 
     // Choose the fill style based on the hex's position
-    const color = (hex.col + hex.row) % 2 === 0 ? 'red' : 'yellow';
+    const color = 'red';
     context.fillStyle = color;
 
     // Fill the hex
