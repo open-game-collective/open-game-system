@@ -3,6 +3,7 @@ import type {
   StrikersGameEntity,
   StrikersPlayerEntity,
 } from '@explorers-club/schema';
+import { SunsetSky } from '@3d/sky';
 import { useFrame } from '@react-three/fiber';
 import { assertEntitySchema } from '@explorers-club/utils';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
@@ -10,11 +11,23 @@ import { useStore } from '@nanostores/react';
 import { MapControls, OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
-import { FC, createContext, useEffect, useRef, useState } from 'react';
+import {
+  FC,
+  createContext,
+  useEffect,
+  useContext,
+  useState,
+  useLayoutEffect,
+} from 'react';
 import { SplashScene } from './scenes/splash-scene';
 import { FieldCell } from './components/field-cell';
 import { Field } from './components/field';
 import { FieldCamera } from './components/field-camera';
+import {
+  CameraRigContext,
+  CameraRigProvider,
+} from './components/camera-rig.context';
+import { useEntitySelector } from '@hooks/useEntitySelector';
 
 const StrikersContext = createContext({
   gameEntity: {} as StrikersGameEntity,
@@ -45,8 +58,6 @@ export const StrikersSceneManager: FC<{
 
   return (
     <StrikersContext.Provider value={{ gameEntity, playerEntity: undefined }}>
-      <FieldCamera grid={grid} />
-      {/* <SplashScene /> */}
       <GameScene />
     </StrikersContext.Provider>
   );
@@ -59,47 +70,42 @@ const GameScene = () => {
   const cells = Array.from(grid).map((cell) => {
     return cell;
   });
+  const { gameEntity } = useContext(StrikersContext);
+  console.log({ gameEntity });
+  const players = useEntitySelector(
+    gameEntity,
+    (entity) => entity.gameState.players
+  );
 
   return (
-    <>
+    <CameraRigProvider grid={grid}>
+      <OpeningSequence />
       {/* <MapControls screenSpacePanning={true} /> */}
       <axesHelper />
-      <OrbitControls />
+      <SunsetSky />
       <Field grid={grid}>
-        {cells.map((cell) => (
-          <FieldCell key={cell.toString()} tilePosition={[cell.q, cell.r]} />
+        {players.map((player) => (
+          <FieldCell tilePosition={player.tilePosition}>
+            <mesh>
+              <boxBufferGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color={0xcccccc} />
+            </mesh>
+          </FieldCell>
         ))}
+        {/* {cells.map((cell) => (
+          <FieldCell key={cell.toString()} tilePosition={[cell.q, cell.r]} />
+        ))} */}
       </Field>
-      {/* <Field grid={undefined}>
-        {cells.map((cell) => {
-          return (
-            <FieldCell tilePosition={{
-              q: undefined,
-              r: 0,
-              s: 0
-            }}>
-              <></>
-            </FieldCell>
-          );
-        })} */}
-      {/* {cells.map((cell) => {
-          return <FieldCell>
-            <></>
-            <FieldCell />
-        })} */}
-      {/* </Field> */}
-      <SplashScene />
-      {/* {cells.map((cell) => {
-        return (
-          <mesh
-            key={cell.toString()}
-            position={[cell.center.x, 0, cell.center.y]}
-          >
-            <boxBufferGeometry attach="geometry" args={[2, 2, 2]} />
-            <meshStandardMaterial attach="material" color={0xcc0000} />
-          </mesh>
-        );
-      })} */}
-    </>
+    </CameraRigProvider>
   );
+};
+
+const OpeningSequence = () => {
+  const { cameraControls } = useContext(CameraRigContext);
+  useLayoutEffect(() => {
+    cameraControls.setPosition(0, 100, 0, false);
+    cameraControls.setLookAt(0, 10, 120, 0, 0, -20, true);
+  }, [cameraControls]);
+
+  return null;
 };

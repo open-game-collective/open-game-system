@@ -1,22 +1,15 @@
 import { SunsetSky } from '@3d/sky';
-import {
-  AccumulativeShadows,
-  CameraControls,
-  RandomizedLight,
-} from '@react-three/drei';
+import { AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 
+import { StoryObj } from '@storybook/react';
 import { useControls } from 'leva';
-import { ReactNode, memo, useContext, useEffect, useState } from 'react';
-import { CameraRig } from './camera-rig';
+import { atom } from 'nanostores';
+import { memo, useContext, useEffect } from 'react';
+import { Vector3 } from 'three';
 import { CameraRigContext, CameraRigProvider } from './camera-rig.context';
 import { Field } from './field';
-import { StoryObj } from '@storybook/react';
-import { createContext } from 'vm';
-import { atom } from 'nanostores';
-import { assert } from '@explorers-club/utils';
-import { Vector3 } from 'three';
 
 export default {
   component: CameraRigProvider,
@@ -29,11 +22,6 @@ const gridStore = atom(
 
 export const Default: Story = {
   decorators: [
-    (StoryComponent, context) => {
-      const { cameraControls } = useContext(CameraRigContext);
-      context.parameters['cameraControls'] = cameraControls;
-      return <StoryComponent />;
-    },
     (StoryComponent) => {
       return (
         <Canvas
@@ -54,7 +42,6 @@ export const Default: Story = {
     useEffect(() => {
       cameraControls.setLookAt(0, 10, 120, 0, 0, -20, true);
     }, [cameraControls]);
-    console.log({ cameraControls });
 
     return (
       <>

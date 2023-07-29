@@ -50,7 +50,7 @@ const drawHexagons = (
     context.beginPath();
 
     // Draw the border of the hexagon.
-    for (let side = 0; side < 7; side++) {
+    for (let side = 0; side < 6; side++) {
       // Compute the angle of each vertex of the hexagon (in radians).
       const angleDeg = 60 * side;
       const angleRad = (Math.PI / 180) * angleDeg;

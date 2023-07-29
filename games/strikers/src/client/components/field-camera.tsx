@@ -34,7 +34,6 @@ export function FieldCamera({ grid }: { grid: Grid<Hex> }) {
         const tilt = 90 - (zoom / 19) * 45; // At zoom 0, tilt is 90. At zoom 19, tilt is 45.
 
         const tiltRadians = (tilt * Math.PI) / 180;
-        console.log({ tilt, tiltRadians });
 
         // Convert polar coordinates (altitude and tilt) to Cartesian coordinates (x, y, z)
         const posX = altitude * Math.sin(tiltRadians);

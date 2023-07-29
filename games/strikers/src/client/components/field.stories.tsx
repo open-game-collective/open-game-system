@@ -1,12 +1,22 @@
 import { SunsetSky } from '@3d/sky';
 import { Canvas } from '@react-three/fiber';
+import { Meta, StoryObj } from '@storybook/react';
+import { Goal } from "./goal";
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { useControls } from 'leva';
-import { useEffect, useState } from 'react';
+import { atom } from 'nanostores';
+import { useContext, useEffect, useState } from 'react';
 import { Vector3 } from 'three';
-import { CameraRigProvider } from './camera-rig.context';
+import { CameraRigContext, CameraRigProvider } from './camera-rig.context';
 import { Field } from './field';
 import { cameraStore } from './field-camera';
+import { FieldCell } from './field-cell';
+
+const gridStore = atom(
+  new Grid(defineHex(), rectangle({ width: 26, height: 20 }))
+);
+
+type Story = StoryObj<typeof Field>;
 
 export default {
   component: Field,
@@ -14,55 +24,58 @@ export default {
 
 const HexTile = defineHex();
 
-export const Default = {
+export const Default: Story = {
+  decorators: [
+    (StoryComponent) => {
+      return (
+        <Canvas
+          shadows
+          style={{ background: '#eee', aspectRatio: '1' }}
+          camera={{ position: new Vector3(0, 1000, 1000) }}
+        >
+          <CameraRigProvider grid={gridStore.get()}>
+            <StoryComponent />
+          </CameraRigProvider>
+        </Canvas>
+      );
+    },
+  ],
   render: () => {
-    const [grid] = useState(
-      new Grid(HexTile, rectangle({ width: 25, height: 15 }))
-    );
+    const { cameraControls } = useContext(CameraRigContext);
+
+    useEffect(() => {
+      cameraControls.setLookAt(0, 10, 50, 0, 0, -20, true);
+    }, [cameraControls]);
 
     return (
-      <Canvas
-        style={{ background: '#eee', aspectRatio: '1' }}
-        camera={{ position: new Vector3(0, 100, 50) }}
-      >
-        <CameraRigProvider grid={grid}>
-          <gridHelper />
-          <ambientLight />
-          <pointLight />
-          <Field grid={grid} />
-          <SunsetSky />
-        </CameraRigProvider>
-        {/* <OrthographicCamera
-          makeDefault
-          zoom={1}
-          // todo update top, bot, left, right to put field in frame
-          top={50}
-          bottom={-50}
-          left={50}
-          right={-50}
-          near={1}
-          far={400}
-          position={[0, 0, 100]}
-          matrixWorldAutoUpdate={undefined}
-          getObjectsByProperty={undefined}
-        /> */}
-      </Canvas>
+      <>
+        <gridHelper />
+        <ambientLight />
+        <pointLight />
+        <Field grid={gridStore.get()}>
+          <FieldCell tilePosition={[15, 15]}>
+            <mesh>
+              <boxBufferGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color={0xff0000} />
+            </mesh>
+          </FieldCell>
+          <FieldCell tilePosition={[0, 0]}>
+            <mesh>
+              <boxBufferGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color={0xf0ff00} />
+            </mesh>
+          </FieldCell>
+          <FieldCell tilePosition={[5, 5]}>
+            <mesh>
+              <boxBufferGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color={0xf0ff00} />
+            </mesh>
+          </FieldCell>
+          <Goal side="home" />
+          <Goal side="away" />
+        </Field>
+        <SunsetSky />
+      </>
     );
   },
-};
-
-const CenterControl = () => {
-  // useControls hook to create center controls
-  const { centerX, centerY } = useControls({
-    centerX: { value: 0, min: -50, max: 50, label: 'Center X' },
-    centerY: { value: 0, min: -50, max: 50, label: 'Center Y' },
-  });
-
-  useEffect(() => {
-    // Update CameraStore center coordinates whenever center control changes
-    cameraStore.setKey('center', [centerX, centerY]);
-  }, [centerX, centerY]);
-
-  // Render nothing as this component only updates the store
-  return null;
 };

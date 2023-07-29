@@ -124,13 +124,13 @@ export const createStrikersGame = (
         {
           team: 'home',
           cardId: '1234',
-          tilePosition: [-1, 0],
+          tilePosition: [14, 10],
           stamina: 7,
         },
         {
           team: 'away',
           cardId: '5678',
-          tilePosition: [1, 0],
+          tilePosition: [11, 10],
           stamina: 6,
         },
       ],
