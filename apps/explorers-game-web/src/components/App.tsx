@@ -4,7 +4,7 @@ import { styled } from '@explorers-club/styles';
 import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
 import { useMyUserEntityStore } from '@hooks/useMyUserEntityStore';
 import { useStore } from '@nanostores/react';
-import { Chat, ChatContext } from '@organisms/Chat';
+import { Chat, ChatContext } from '@organisms/chat';
 import { FC, useContext } from 'react';
 import { TopNav } from './TopNav';
 import { ApplicationContext } from '@context/ApplicationContext';

@@ -22,7 +22,7 @@ Make sure you have Supabase CLI installed.
 
 Then run
 
-`npc nx run database:start`
+`npx nx run database:start`
 
 Once DB is running grab the values and put them in `.env.local` in a format similar to:
 
