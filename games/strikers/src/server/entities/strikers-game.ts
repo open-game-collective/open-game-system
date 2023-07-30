@@ -11,6 +11,7 @@ import {
 import { assert, assertEntitySchema } from '@explorers-club/utils';
 import type {
   CreateEventProps,
+  SnowflakeId,
   StrikersBoard,
   StrikersBoardCard,
   StrikersCard,

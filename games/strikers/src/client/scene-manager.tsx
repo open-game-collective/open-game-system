@@ -83,17 +83,18 @@ const GameScene = () => {
     return cell;
   });
   const { gameEntity, strikersPlayerEntity } = useContext(StrikersContext);
-  console.log({ gameEntity });
+  console.log({ gameEntity, strikersPlayerEntity });
   const players = useEntitySelector(
     gameEntity,
     (entity) => entity.gameState.players
   );
+  const playerCameraPosition = useEntitySelector(
+    strikersPlayerEntity,
+    (entity) => entity.cameraPosition
+  );
 
   return (
-    <CameraRigProvider
-      grid={grid}
-      playerCameraPosition={strikersPlayerEntity.cameraPosition}
-    >
+    <CameraRigProvider grid={grid} playerCameraPosition={playerCameraPosition}>
       {/* <MapControls screenSpacePanning={true} /> */}
       <axesHelper />
       <SunsetSky />

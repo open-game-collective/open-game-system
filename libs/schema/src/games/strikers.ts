@@ -85,6 +85,12 @@ const LeaveCommandSchema = z.object({
   type: z.literal('LEAVE'),
 });
 
+const ChangeCameraPositionCommandSchema = z.object({
+  type: z.literal('CHANGE_CAMERA_POSITION'),
+  cameraPosition: z.enum(['BirdsEye']),
+  senderId: SnowflakeIdSchema,
+});
+
 export const StrikersGameCommandSchema = z.union([
   StartCommandSchema,
   LeaveCommandSchema,
@@ -406,6 +412,7 @@ export const StrikersPlayerStateValueSchema = z.object({
 export const StrikersPlayerCommandSchema = z.union([
   StartCommandSchema,
   LeaveCommandSchema,
+  ChangeCameraPositionCommandSchema,
 ]);
 
 export const StrikersPlayerEntitySchema = EntityBaseSchema(

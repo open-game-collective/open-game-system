@@ -1,6 +1,8 @@
 import type {
   LobbyGameConfig,
   RoomMessageEvent,
+  SnowflakeId,
+  StrikersGameEntity,
   WithSenderId,
 } from '@explorers-club/schema';
 import {
@@ -30,6 +32,7 @@ export const createRoomMachine = ({
   assertEntitySchema(entity, 'room');
   const roomEntity = entity;
   const roomChannel = channel as ReplaySubject<CreateEventProps<RoomEvent>>;
+  let gameEntity: StrikersGameEntity | undefined;
 
   return createMachine(
     {
@@ -173,6 +176,26 @@ export const createRoomMachine = ({
             roomChannel.next(disconnectEvent);
           },
         },
+        MESSAGE: {
+          actions: async (_, event) => {
+            // TODO: Do more stuff with messages
+            // Temporary hack to control camera via a plain message
+            if (event.message.text === 'BIRDS_EYE' && gameEntity) {
+              const userId = getUserIdForConnection(event.senderId);
+              const entities = world
+                .with('cameraPosition', 'userId')
+                .where(({ userId: entityUserId }) => entityUserId === userId);
+              for (const entity of entities) {
+                console.log('changing entity position', entity);
+                entity.send({
+                  type: 'CHANGE_CAMERA_POSITION',
+                  cameraPosition: 'BirdsEye',
+                  senderId: event.senderId,
+                });
+              }
+            }
+          },
+        },
       },
       states: {
         Scene: {
@@ -201,7 +224,6 @@ export const createRoomMachine = ({
                     p2UserId: roomEntity.memberUserIds[1],
                   } satisfies LobbyGameConfig;
 
-                  let gameEntity: Entity;
                   switch (roomEntity.gameId) {
                     case 'strikers':
                       gameEntity = createStrikersGame(
@@ -248,3 +270,11 @@ export const createRoomMachine = ({
     }
   );
 };
+
+function getUserIdForConnection(connectionId: SnowflakeId) {
+  const connectionEntity = entitiesById.get(connectionId);
+  assertEntitySchema(connectionEntity, 'connection');
+  const sessionEntity = entitiesById.get(connectionEntity.sessionId);
+  assertEntitySchema(sessionEntity, 'session');
+  return sessionEntity.userId;
+}

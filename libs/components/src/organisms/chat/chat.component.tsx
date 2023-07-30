@@ -69,13 +69,13 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
 
       if (text !== '') {
         // todo send
-        // roomEntity.send({
-        //   type: 'MESSAGE',
-        //   message: {
-        //     type: 'PLAIN_MESSAGE',
-        //     text,
-        //   },
-        // });
+        roomEntity.send({
+          type: 'MESSAGE',
+          message: {
+            type: 'PLAIN_MESSAGE',
+            text,
+          },
+        });
 
         // send({ type: 'MESSAGE', message: { text } });
 

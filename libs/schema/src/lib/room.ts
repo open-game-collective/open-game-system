@@ -39,12 +39,21 @@ const LeaveCommandSchema = z.object({
   type: z.literal('LEAVE'),
 });
 
+const MessageCommandSchema = z.object({
+  type: z.literal('MESSAGE'),
+  message: z.object({
+    type: z.literal('PLAIN_MESSAGE'), // Todo: other types
+    text: z.string(),
+  }),
+});
+
 export const RoomCommandSchema = z.union([
   ConnectCommandSchema,
   DisconnectCommandSchema,
   JoinCommandSchema,
   StartCommandSchema,
   LeaveCommandSchema,
+  MessageCommandSchema,
 ]);
 
 export const RoomEntityPropsSchema = z.object({
