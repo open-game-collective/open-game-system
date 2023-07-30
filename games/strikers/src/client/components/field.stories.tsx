@@ -1,7 +1,7 @@
 import { SunsetSky } from '@3d/sky';
 import { Canvas } from '@react-three/fiber';
 import { Meta, StoryObj } from '@storybook/react';
-import { Goal } from "./goal";
+import { Goal } from './goal';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { useControls } from 'leva';
 import { atom } from 'nanostores';
@@ -11,6 +11,7 @@ import { CameraRigContext, CameraRigProvider } from './camera-rig.context';
 import { Field } from './field';
 import { cameraStore } from './field-camera';
 import { FieldCell } from './field-cell';
+import { useStore } from '@nanostores/react';
 
 const gridStore = atom(
   new Grid(defineHex(), rectangle({ width: 26, height: 20 }))
@@ -46,13 +47,18 @@ export const Default: Story = {
     useEffect(() => {
       cameraControls.setLookAt(0, 10, 50, 0, 0, -20, true);
     }, [cameraControls]);
+    const grid = useStore(gridStore);
+
+    for (const hex of grid) {
+      console.log([hex.row, hex.col]);
+    }
 
     return (
       <>
         <gridHelper />
         <ambientLight />
         <pointLight />
-        <Field grid={gridStore.get()}>
+        <Field grid={grid}>
           <FieldCell tilePosition={[15, 15]}>
             <mesh>
               <boxBufferGeometry args={[1, 1, 1]} />

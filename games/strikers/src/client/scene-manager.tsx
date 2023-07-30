@@ -28,6 +28,7 @@ import {
   CameraRigProvider,
 } from './components/camera-rig.context';
 import { useEntitySelector } from '@hooks/useEntitySelector';
+import { Goal } from './components/goal';
 
 const StrikersContext = createContext({
   gameEntity: {} as StrikersGameEntity,
@@ -92,6 +93,8 @@ const GameScene = () => {
             </mesh>
           </FieldCell>
         ))}
+        <Goal side="away" />
+        <Goal side="home" />
         {/* {cells.map((cell) => (
           <FieldCell key={cell.toString()} tilePosition={[cell.q, cell.r]} />
         ))} */}

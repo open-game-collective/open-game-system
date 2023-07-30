@@ -14,6 +14,61 @@ import {
 } from '../literals';
 import { EventBaseSchema } from '@schema/events/base';
 
+// Define literals for each formation name
+const Formation433Literal = z.literal('4-3-3');
+const Formation541Literal = z.literal('5-4-1');
+const Formation344Literal = z.literal('3-4-4');
+
+// Combine them into a union
+const FormationLiteral = z.union([
+  Formation433Literal,
+  Formation541Literal,
+  Formation344Literal,
+]);
+
+const PositionSchema = z.object({
+  x: z.number().int().nonnegative(),
+  y: z.number().int().nonnegative(),
+  position: z.string(),
+});
+
+// Define FormationData schema
+const FormationDataSchema = z.object({
+  name: FormationLiteral,
+  positions: z.array(PositionSchema),
+});
+
+// Define schema for all formations
+const AllFormationsSchema = z.array(FormationDataSchema);
+
+export const LineupContextSchema = z.object({
+  roomSlug: z.string().optional(),
+});
+
+export type LineupContext = z.infer<typeof LineupContextSchema>;
+
+const SelectFormationCommandSchema = z.object({
+  type: z.literal('SELECT_FORMATION'),
+  formation: FormationLiteral,
+});
+
+const ConfirmCommandSchema = z.object({
+  type: z.literal('CONFIRM'),
+});
+
+export const LineupCommandSchema = z.union([
+  SelectFormationCommandSchema,
+  ConfirmCommandSchema,
+]);
+export type LineupCommand = z.infer<typeof LineupCommandSchema>;
+
+export const LineupStateValueSchema = z.enum([
+  'SelectGame',
+  'EnterName',
+  'Configure',
+  'Complete',
+]);
+
 const CardIdSchema = z.string();
 
 // const PlayerIdSchema = z.string();
@@ -44,6 +99,12 @@ const StrikersGameEntityPropSchema = z.object({
   config: StrikersGameConfigDataSchema,
   gameState: StrikersGameStateSchema,
   turnsIds: z.array(SnowflakeIdSchema),
+  lineupService: z
+    .object({
+      context: LineupContextSchema,
+      value: LineupStateValueSchema,
+    })
+    .optional(),
 });
 
 const PlayPeriodStateEnum = z.enum(['NormalTime', 'StoppageTime', 'Complete']);
@@ -302,6 +363,7 @@ export const StrikersEffectDataSchema = z.discriminatedUnion('type', [
 
 const StrikersTurnEntityPropsSchema = z.object({
   schema: StrikersTurnSchemaTypeLiteral,
+  stagedGameState: StrikersGameStateSchema,
   startedAt: z.date(),
   side: StrikersTeamSchema,
   playerId: SnowflakeIdSchema,

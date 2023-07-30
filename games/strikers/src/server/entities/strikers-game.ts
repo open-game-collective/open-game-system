@@ -22,7 +22,9 @@ import type {
 } from '@schema/types';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
-import { createMachine } from 'xstate';
+import { DoneInvokeEvent, createMachine } from 'xstate';
+import { lineupMachine } from '../services/lineup';
+import { deepClone } from 'fast-json-patch';
 
 export const createStrikersGameMachine = ({
   world,
@@ -62,8 +64,21 @@ export const createStrikersGameMachine = ({
           },
         },
         PlayStatus: {
-          initial: 'Regulation',
+          initial: 'Lineup',
           states: {
+            Lineup: {
+              invoke: {
+                id: 'lineupService',
+                src: lineupMachine,
+                autoForward: true,
+                onDone: {
+                  target: 'Regulation',
+                  // todo set board using data from lineup
+                  // do same after turn is over
+                  // rather than turn manipulate data directly
+                },
+              },
+            },
             Regulation: {
               initial: 'FirstHalf',
               states: {
@@ -184,6 +199,7 @@ export const createStrikersGameMachine = ({
             side: 'home',
             playerId,
             totalActionCount: entity.config.gameplaySettings.actionsPerTurn,
+            stagedGameState: deepClone(entity.gameState), // todo might need to deep cline?
             modifiers: [],
             effects: [],
           });
