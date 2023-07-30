@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ogcLogo from '../assets/images/ogc_4000.png';
+import { Image } from 'astro:assets';
+---
+
+<Layout title="Open Game Collective">
+  <main>
+    <h1>Welcome to <span>Open Game Collective</span></h1>
+    <Image src={ogcLogo} height={100} width={100} alt={'OGC'} />
+  </main>
+</Layout>
