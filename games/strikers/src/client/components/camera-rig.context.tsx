@@ -10,27 +10,41 @@ import {
   useState,
 } from 'react';
 import CameraControlsImpl from 'camera-controls';
+import { StrikersCameraPosition } from '@schema/types';
 
 // CameraControlsImpl.install({ THREE: THREE });
 
 export const CameraRigContext = createContext(
-  {} as { cameraControls: CameraControls }
+  {} as {
+    cameraControls: CameraControls;
+  }
 );
 
 export const CameraRigProvider: FC<{
   children: ReactNode;
   grid: Grid<Hex>;
-}> = ({ children, grid }) => {
+  playerCameraPosition: StrikersCameraPosition;
+}> = ({ children, playerCameraPosition }) => {
   const cameraControlsRef = useRef<CameraControls | null>(null);
   const [cameraControls, setCameraControls] = useState<CameraControls | null>(
     null
   );
 
   // todo fix this extra re-render, better way to do this
-  // had troupble instantiating CameraControlsImpl directly
+  // had trouble instantiating CameraControlsImpl directly
   useEffect(() => {
     setCameraControls(cameraControlsRef.current);
   }, [cameraControlsRef.current]);
+
+  // When server-controlled camera position changes, update client-side camera
+  useEffect(() => {
+    if (!cameraControls) {
+      return;
+    }
+    const { x, y, z, targetX, targetY, targetZ } = playerCameraPosition;
+    console.log('setting camera pos to ', playerCameraPosition);
+    cameraControls.setLookAt(x, y, z, targetX, targetY, targetZ, true);
+  }, [cameraControls, playerCameraPosition]);
 
   return (
     <>

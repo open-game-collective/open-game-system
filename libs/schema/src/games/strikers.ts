@@ -382,11 +382,21 @@ export const StrikersTurnContextSchema = z.object({
   foo: z.string(),
 });
 
+export const StrikersCameraPositionSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+  targetX: z.number(),
+  targetY: z.number(),
+  targetZ: z.number(),
+});
+
 const StrikersPlayerEntityPropSchema = z.object({
   schema: StrikersPlayerSchemaTypeLiteral,
   gameEntityId: SnowflakeIdSchema,
   userId: SnowflakeIdSchema,
   // channel: z.custom<Observable<MessageEvent>>(),
+  cameraPosition: StrikersCameraPositionSchema,
 });
 
 export const StrikersPlayerStateValueSchema = z.object({

@@ -45,6 +45,7 @@ import {
   CodebreakersPlayerStateValueSchema,
 } from './games/codebreakers';
 import {
+  StrikersCameraPositionSchema,
   StrikersBoardCardSchema,
   StrikersEffectCommandSchema,
   StrikersEffectContextSchema,
@@ -691,6 +692,9 @@ export type StrikersPlayerMachine = StateMachine<
   StrikersPlayerContext,
   StrikersPlayerStateSchema,
   WithSenderId<StrikersPlayerCommand>
+>;
+export type StrikersCameraPosition = z.infer<
+  typeof StrikersCameraPositionSchema
 >;
 
 export type StrikersEffectEntity = z.infer<typeof StrikersEffectEntitySchema>;

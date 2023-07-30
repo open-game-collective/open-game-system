@@ -31,23 +31,35 @@ import { useEntitySelector } from '@hooks/useEntitySelector';
 
 const StrikersContext = createContext({
   gameEntity: {} as StrikersGameEntity,
-  playerEntity: {} as StrikersPlayerEntity | undefined,
+  strikersPlayerEntity: {} as StrikersPlayerEntity,
 });
 
 const HexTile = defineHex();
 
 export const StrikersSceneManager: FC<{
   gameInstanceId: SnowflakeId;
-}> = ({ gameInstanceId }) => {
+  currentUserInstanceId: SnowflakeId;
+}> = ({ gameInstanceId, currentUserInstanceId }) => {
   const gameEntityStore = useCreateEntityStore<StrikersGameEntity>(
     (entity) => {
       return entity.id === gameInstanceId;
     },
     [gameInstanceId]
   );
-
   const gameEntity = useStore(gameEntityStore);
-  if (!gameEntity) {
+
+  const strikersPlayerEntityStore = useCreateEntityStore<StrikersPlayerEntity>(
+    (entity) => {
+      return (
+        entity.schema === 'strikers_player' &&
+        entity.userId === currentUserInstanceId
+      );
+    },
+    [currentUserInstanceId]
+  );
+  const strikersPlayerEntity = useStore(strikersPlayerEntityStore);
+
+  if (!gameEntity || !strikersPlayerEntity) {
     return <></>;
   }
 
@@ -57,7 +69,7 @@ export const StrikersSceneManager: FC<{
   );
 
   return (
-    <StrikersContext.Provider value={{ gameEntity, playerEntity: undefined }}>
+    <StrikersContext.Provider value={{ gameEntity, strikersPlayerEntity }}>
       <GameScene />
     </StrikersContext.Provider>
   );
@@ -70,7 +82,7 @@ const GameScene = () => {
   const cells = Array.from(grid).map((cell) => {
     return cell;
   });
-  const { gameEntity } = useContext(StrikersContext);
+  const { gameEntity, strikersPlayerEntity } = useContext(StrikersContext);
   console.log({ gameEntity });
   const players = useEntitySelector(
     gameEntity,
@@ -78,8 +90,10 @@ const GameScene = () => {
   );
 
   return (
-    <CameraRigProvider grid={grid}>
-      <OpeningSequence />
+    <CameraRigProvider
+      grid={grid}
+      playerCameraPosition={strikersPlayerEntity.cameraPosition}
+    >
       {/* <MapControls screenSpacePanning={true} /> */}
       <axesHelper />
       <SunsetSky />
@@ -98,14 +112,4 @@ const GameScene = () => {
       </Field>
     </CameraRigProvider>
   );
-};
-
-const OpeningSequence = () => {
-  const { cameraControls } = useContext(CameraRigContext);
-  useLayoutEffect(() => {
-    cameraControls.setPosition(0, 100, 0, false);
-    cameraControls.setLookAt(0, 10, 120, 0, 0, -20, true);
-  }, [cameraControls]);
-
-  return null;
 };

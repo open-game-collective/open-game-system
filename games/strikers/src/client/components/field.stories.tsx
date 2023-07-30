@@ -1,7 +1,7 @@
 import { SunsetSky } from '@3d/sky';
 import { Canvas } from '@react-three/fiber';
 import { Meta, StoryObj } from '@storybook/react';
-import { Goal } from "./goal";
+import { Goal } from './goal';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { useControls } from 'leva';
 import { atom } from 'nanostores';
@@ -44,7 +44,7 @@ export const Default: Story = {
     const { cameraControls } = useContext(CameraRigContext);
 
     useEffect(() => {
-      cameraControls.setLookAt(0, 10, 50, 0, 0, -20, true);
+      // cameraControls.setLookAt(0, 10, 50, 0, 0, -20, true);
     }, [cameraControls]);
 
     return (

@@ -35,16 +35,27 @@ export const createStrikersGame = (
   const p2UserEntity = entitiesById.get(lobbyConfig.p2UserId);
   assertEntitySchema(p2UserEntity, 'user');
 
+  const defaultCameraPosition = {
+    x: 0,
+    y: 10,
+    z: 120,
+    targetX: 0,
+    targetY: 0,
+    targetZ: -20,
+  };
+
   const p1PlayerEntity = createEntity<StrikersPlayerEntity>({
     schema: 'strikers_player',
     userId: p1UserEntity.id,
     gameEntityId,
+    cameraPosition: defaultCameraPosition,
   });
 
   const p2PlayerEntity = createEntity<StrikersPlayerEntity>({
     schema: 'strikers_player',
     userId: p2UserEntity.id,
     gameEntityId,
+    cameraPosition: defaultCameraPosition,
   });
 
   const cards = [

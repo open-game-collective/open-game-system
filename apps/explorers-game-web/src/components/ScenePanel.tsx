@@ -78,14 +78,22 @@ const SceneManager = () => {
 
 const ChannelScene = () => {
   // render a box if there is a game...
-  const { roomEntity } = useContext(ChannelContext);
+  const { roomEntity, connectionEntity, sessionEntity } =
+    useContext(ChannelContext);
   const currentGameInstanceId = useEntitySelector(
     roomEntity,
     (entity) => entity.currentGameInstanceId
   );
+  const currentUserInstanceId = useEntitySelector(
+    sessionEntity,
+    (entity) => entity.userId
+  );
 
   return currentGameInstanceId ? (
-    <StrikersSceneManager gameInstanceId={currentGameInstanceId} />
+    <StrikersSceneManager
+      gameInstanceId={currentGameInstanceId}
+      currentUserInstanceId={currentUserInstanceId}
+    />
   ) : (
     <>
       <OrbitControls />
