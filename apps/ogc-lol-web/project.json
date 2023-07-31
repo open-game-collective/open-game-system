@@ -28,6 +28,15 @@
     },
     "sync": {
       "executor": "@nxtensions/astro:sync"
+    },
+    "start": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "host": "0.0.0.0",
+        "buildTarget": "ogc-lol-web:build",
+        "parallel": false,
+        "staticFilePath": "dist/apps/ogc-lol-web"
+      }
     }
   },
   "tags": []
