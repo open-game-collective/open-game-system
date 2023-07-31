@@ -128,7 +128,7 @@ export const StartGameBlockSchema = z.object({
 });
 
 // Union of all block schemas
-export const MessageContentBlockSchema = z.discriminatedUnion('type', [
+export const MessageContentBlockSchema = z.union([
   PlainMessageBlockSchema,
   UserJoinedBlockSchema,
   UserConnectedBlockSchema,

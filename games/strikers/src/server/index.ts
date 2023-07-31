@@ -111,6 +111,8 @@ export const createStrikersGame = (
       maxRounds: 5,
     },
   } satisfies StrikersGameConfigData;
+  world.add(p1PlayerEntity);
+  world.add(p2PlayerEntity);
 
   const gameEntity = createEntity<StrikersGameEntity>({
     id: gameEntityId,
@@ -138,8 +140,6 @@ export const createStrikersGame = (
     turnsIds: [],
   });
 
-  world.add(p1PlayerEntity);
-  world.add(p2PlayerEntity);
   world.add(gameEntity);
   return gameEntity;
 };

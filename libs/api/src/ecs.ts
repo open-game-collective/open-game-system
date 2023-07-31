@@ -136,8 +136,10 @@ export const createEntity = <TEntity extends Entity>(
   );
   const channelObservable = channelSubject.pipe(
     map((event) => {
+      const senderId = 'senderId' in event ? event.senderId : id;
       return {
         id: event.id || generateSnowflakeId(),
+        senderId,
         ...event,
         channelId: id,
       } as ChannelEvent;

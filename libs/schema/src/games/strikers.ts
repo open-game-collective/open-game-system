@@ -13,6 +13,7 @@ import {
   StrikersTurnSchemaTypeLiteral,
 } from '../literals';
 import { EventBaseSchema } from '@schema/events/base';
+import { StartGameBlockSchema } from '@schema/lib/room';
 
 // Define literals for each formation name
 const Formation433Literal = z.literal('4-3-3');
@@ -42,7 +43,7 @@ const FormationDataSchema = z.object({
 const AllFormationsSchema = z.array(FormationDataSchema);
 
 export const LineupContextSchema = z.object({
-  roomSlug: z.string().optional(),
+  messageIds: z.array(z.string()),
 });
 
 export type LineupContext = z.infer<typeof LineupContextSchema>;
@@ -479,8 +480,14 @@ export const TurnStartedBlockSchema = z.object({
   timestamp: z.date(),
 });
 
+export const SetLineupBlockSchema = z.object({
+  type: z.literal('SetLineup'),
+});
+
 const MessageContentBlockSchema = z.discriminatedUnion('type', [
   TurnStartedBlockSchema,
+  StartGameBlockSchema,
+  SetLineupBlockSchema,
 ]);
 
 export const StrikersGameEventSchema = EventBaseSchema(

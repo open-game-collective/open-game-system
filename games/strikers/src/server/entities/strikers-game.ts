@@ -23,7 +23,7 @@ import type {
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
 import { DoneInvokeEvent, createMachine } from 'xstate';
-import { lineupMachine } from '../services/lineup';
+import { createLineupMachine } from '../services/lineup';
 import { deepClone } from 'fast-json-patch';
 
 export const createStrikersGameMachine = ({
@@ -69,7 +69,10 @@ export const createStrikersGameMachine = ({
             Lineup: {
               invoke: {
                 id: 'lineupService',
-                src: lineupMachine,
+                src: createLineupMachine({
+                  gameChannel,
+                  gameEntity: entity,
+                }),
                 autoForward: true,
                 onDone: {
                   target: 'Regulation',

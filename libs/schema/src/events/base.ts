@@ -12,6 +12,7 @@ export const EventBaseSchema = <
     z.object({
       id: SnowflakeIdSchema,
       type: typeLiteral,
+      senderId: SnowflakeIdSchema,
       channelId: SnowflakeIdSchema,
     })
   );

@@ -470,10 +470,8 @@ export type InitialEntityProps<TEntity extends Entity> = Omit<
   | 'channel'
 >;
 
-type SE = InitialEntityProps<StrikersGameEntity>;
-
 export type CreateEventProps<TEvent extends ChannelEvent> = Omit<
-  MakeOptional<TEvent, 'id'>,
+  MakeOptional<TEvent, 'id' | 'senderId'>,
   'channelId'
 >;
 
