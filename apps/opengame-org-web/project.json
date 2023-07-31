@@ -1,8 +1,8 @@
 {
-  "name": "ogc-lol-web",
+  "name": "opengame-org-web",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "apps/ogc-lol-web/src",
+  "sourceRoot": "apps/opengames-org-web/src",
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
@@ -33,9 +33,9 @@
       "executor": "@nx/web:file-server",
       "options": {
         "host": "0.0.0.0",
-        "buildTarget": "ogc-lol-web:build",
+        "buildTarget": "opengame-org-web:build",
         "parallel": false,
-        "staticFilePath": "dist/apps/ogc-lol-web"
+        "staticFilePath": "dist/apps/opengames-org-web"
       }
     }
   },
