@@ -9,48 +9,26 @@ import {
   UserEntity,
   WithSenderId,
 } from '@explorers-club/schema';
-import { assign as assignImmer } from '@xstate/immer';
-import type { RoomCommand, SessionCommand } from '@schema/types';
-import {
-  assert,
-  assertEntitySchema,
-  assertEventType,
-} from '@explorers-club/utils';
-import {
-  ConnectionInitializeCommandSchema,
-  ConnectionNavigateCommandSchema,
-} from '@schema/lib/connection';
+import { assert, assertEntitySchema } from '@explorers-club/utils';
 import {
   HomeRoutePropsSchema,
   LoginRoutePropsSchema,
   NewRoutePropsSchema,
   RoomRoutePropsSchema,
 } from '@schema/common';
-import * as jwt from 'jsonwebtoken';
+import {
+  ConnectionInitializeCommandSchema,
+  ConnectionNavigateCommandSchema,
+} from '@schema/lib/connection';
+import type { RoomCommand, SessionCommand } from '@schema/types';
 import { World } from 'miniplex';
-import { DoneInvokeEvent, assign, createMachine, spawn } from 'xstate';
+import { DoneInvokeEvent, assign, createMachine } from 'xstate';
 // import { createEntity } from '../ecs';
 import { z } from 'zod';
 import { createEntity } from '../ecs';
 import { roomsBySlug } from '../server/indexes';
-import { newRoomMachine } from '../services';
-import { createChatMachine } from '../services/chat.service';
 import { entitiesById } from '../server/state';
-
-// const supabaseUrl = process.env['SUPABASE_URL'];
-// const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
-// const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
-// const supabaseServiceKey = process.env['SUPABASE_SERVICE_KEY'];
-
-// todo: switch to using zod for parsing
-// if (
-//   !supabaseUrl ||
-//   !supabaseJwtSecret ||
-//   !supabaseAnonKey ||
-//   !supabaseServiceKey
-// ) {
-//   throw new Error('missing supabase configuration');
-// }
+import { newRoomMachine } from '../services';
 
 const getSerialNumber = (() => {
   let count = 0;

@@ -1,5 +1,4 @@
 import { createChatMachine } from '@api/services/chat.service';
-import { Database } from '@explorers-club/database';
 import {
   Entity,
   UserCommand,
@@ -7,24 +6,8 @@ import {
   WithSenderId,
 } from '@explorers-club/schema';
 import { assertEntitySchema } from '@explorers-club/utils';
-import { createClient } from '@supabase/supabase-js';
 import { World } from 'miniplex';
 import { assign, createMachine, spawn } from 'xstate';
-
-const supabaseUrl = process.env['SUPABASE_URL'];
-const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
-const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
-const supabaseServiceKey = process.env['SUPABASE_SERVICE_KEY'];
-
-// todo: switch to using zod for parsing
-if (
-  !supabaseUrl ||
-  !supabaseJwtSecret ||
-  !supabaseAnonKey ||
-  !supabaseServiceKey
-) {
-  throw new Error('missing supabase configuration');
-}
 
 export const createUserMachine = ({
   world,

@@ -14,34 +14,34 @@ import { createEntity } from './ecs';
 import { entitiesById, world } from './server/state';
 import { waitForEntity } from './world';
 
-const supabaseUrl = process.env['SUPABASE_URL'];
-const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
-const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
-const supabaseServiceKey = process.env['SUPABASE_SERVICE_KEY'];
+// const supabaseUrl = process.env['SUPABASE_URL'];
+// const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
+// const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
+// const supabaseServiceKey = process.env['SUPABASE_SERVICE_KEY'];
 
 const instanceId = uuidv4();
 
 // todo: switch to using zod for parsing
-if (
-  !supabaseUrl ||
-  !supabaseJwtSecret ||
-  !supabaseAnonKey ||
-  !supabaseServiceKey
-) {
-  throw new Error('missing supabase configuration');
-}
+// if (
+//   !supabaseUrl ||
+//   !supabaseJwtSecret ||
+//   !supabaseAnonKey ||
+//   !supabaseServiceKey
+// ) {
+//   throw new Error('missing supabase configuration');
+// }
 
-const supabaseAdminClient = createClient<Database>(
-  supabaseUrl,
-  supabaseServiceKey
-);
+// const supabaseAdminClient = createClient<Database>(
+//   supabaseUrl,
+//   supabaseServiceKey
+// );
 
-supabaseAdminClient
-  .from('server_instances')
-  .insert({ id: instanceId })
-  .then(() => {
-    console.log('Service Instance Registered', instanceId);
-  });
+// supabaseAdminClient
+//   .from('server_instances')
+//   .insert({ id: instanceId })
+//   .then(() => {
+//     console.log('Service Instance Registered', instanceId);
+//   });
 
 type CreateContextOptions = {
   request:

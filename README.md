@@ -1,34 +1,14 @@
-# Explorers Game
+# Open Game Collective Main Monorepo
 
-## Development
+For more about us see our website at [opengame.org](opengame.org).
 
-After cloning and running `npm install`, use these commands to get the code running.
+## Strikers TCG
 
-### Game Website
+Strikers is the first title we are developing and will be available at https://strikers.game.
 
-`npx nx run explorers-game-web:dev`
+### Dev Commands
 
-### Server
-
-`npx nx run api-server:serve`
-
-### Storybook
-
-`npx nx run explorers-game-web:storybook`
-
-### Running Database
-
-Make sure you have Supabase CLI installed.
-
-Then run
-
-`npx nx run database:start`
-
-Once DB is running grab the values and put them in `.env.local` in a format similar to:
-
-```
-SUPABASE_URL=http://localhost:54321
-SUPABASE_JWT_SECRET=Super-secret-jwt-token-with-at-least-32-characters-long
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
-SUPABASE_SERVICE_KEY=EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
-```
+`npx nx run api-server:serve` (game/api server)
+`npx nx run strikers:storybook` (strikers storybook)
+`npx nx run strikers-game-web:dev` (strikers.game website)
+`npx nx run opengame-org-web:dev` (opengame.org website)
