@@ -52,8 +52,7 @@
       "executor": "@nx/js:node",
       "options": {
         "buildTarget": "api-server:build",
-        "host": "0.0.0.0",
-        "watch": false
+        "host": "0.0.0.0"
       }
     }
   },
