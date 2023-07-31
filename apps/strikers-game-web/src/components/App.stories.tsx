@@ -3,6 +3,7 @@ import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Grid } from '@atoms/Grid';
 import { Heading } from '@atoms/Heading';
+import type { Story } from '@storybook/react';
 import type { RouteProps } from '@explorers-club/schema';
 import { generateRandomString } from '@explorers-club/utils';
 import type { StoryObj } from '@storybook/react';
@@ -11,6 +12,10 @@ import * as jose from 'jose';
 import { FC, useEffect, useState } from 'react';
 import { ApplicationProvider } from '@context/ApplicationProvider';
 import { App } from './App';
+import { envSchema } from '../env.schema';
+
+const { PUBLIC_API_HTTP_SERVER_URL, PUBLIC_API_WS_SERVER_URL } =
+  envSchema.parse(process.env);
 
 const RoomWrapper: FC<{ slug: string }> = (props) => {
   const { slug } = props;
@@ -27,7 +32,7 @@ const RoomWrapper: FC<{ slug: string }> = (props) => {
       try {
         const creds = await initAccessToken(
           { name: 'Room', roomSlug: slug } satisfies RouteProps,
-          `http://localhost:3000/${slug}`
+          `${PUBLIC_API_HTTP_SERVER_URL}/${slug}`
         );
         setCreds(creds);
       } catch (ex) {
@@ -42,7 +47,7 @@ const RoomWrapper: FC<{ slug: string }> = (props) => {
 
   return (
     <ApplicationProvider
-      trpcUrl={`ws://localhost:3001/?accessToken=${creds.accessToken}`}
+      trpcUrl={`${PUBLIC_API_WS_SERVER_URL}/?accessToken=${creds.accessToken}`}
       initialRouteProps={routeProps}
       connectionId={creds.connectionId}
     >
@@ -60,7 +65,7 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
+// type Story = StoryObj<typeof meta>;
 
 const fullPlayerInfo = [
   {

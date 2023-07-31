@@ -1,5 +1,8 @@
 import { mergeConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import { envSchema } from '../src/env.schema';
+
+const env = envSchema.parse(process.env);
 
 const config = {
   stories: ['../src/**/*.stories.@(js|jsx|ts|tsx|mdx)'],
@@ -11,6 +14,11 @@ const config = {
   },
   async viteFinal(config) {
     return mergeConfig(config, {
+      define: {
+        'process.env': {
+          ...env,
+        },
+      },
       plugins: [
         tsconfigPaths({
           projects: ['../../tsconfig.base.json'],
