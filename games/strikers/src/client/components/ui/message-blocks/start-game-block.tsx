@@ -3,7 +3,7 @@ import { useEntitySelector } from '@hooks/useEntitySelector';
 import { BlockContext } from '@molecules/Blocks/block.context';
 import { useCallback, useContext } from 'react';
 
-export const StrikersStartGameBlock = () => {
+export const StartGameBlock = () => {
   const { block, message, channelEntity } = useContext(BlockContext);
   assertType(block, 'StartGame');
   assert(

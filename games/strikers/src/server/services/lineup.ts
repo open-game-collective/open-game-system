@@ -3,13 +3,25 @@ import { createMachine } from 'xstate';
 
 export const lineupMachine = createMachine({
   id: 'LineupMachine',
-  initial: 'WaitingForInput',
+  initial: 'SendMessages',
   schema: {
     events: {} as LineupCommand,
     context: {} as LineupContext,
   },
   states: {
+    SendMessages: {
+      entry: () => {
+        console.log('sending message');
+      },
+    },
     WaitingForInput: {
+      on: {
+        SELECT_FORMATION: {
+          actions: () => {
+            console.log(event);
+          },
+        },
+      },
       onDone: 'Complete',
     },
     Complete: {

@@ -4,11 +4,12 @@ import {
   MessageContentBlock,
   MessageEvent,
 } from '@schema/types';
-import { StrikersStartGameBlock } from '@strikers/client/components/ui/message-blocks/start-game-block';
 import React, { useContext } from 'react';
 import { BlockContext } from './block.context';
 import { useEntityIdSelector } from '@hooks/useEntityIdSelector';
 import { WorldContext, WorldProvider } from '@context/WorldProvider';
+import { strikersMessageBlockMap } from '@strikers/client/components/ui/message-blocks';
+import { GameId } from '@schema/literals';
 
 const PlainMessageBlock = () => {
   const { block } = useContext(BlockContext);
@@ -63,46 +64,33 @@ const UserDisconnectedBlock = () => {
   );
 };
 
-// Example of a polymorphic component that renders game specific components
-const StartGameBlock = () => {
-  const { block, message } = useContext(BlockContext);
-  assertType(block, 'StartGame');
-
-  switch (block.gameId) {
-    case 'strikers':
-      return <StrikersStartGameBlock />;
-    default:
-      throw new Error(
-        'StartGameBlock not implemented for gameId' + block.gameId
-      );
-  }
-};
-
-const TurnStartedBlock = () => {
-  const { block } = useContext(BlockContext);
-  assertType(block, 'TurnStarted');
-
-  return (
-    // Replace with your component logic
-    <div>{block.turnId} started turn</div>
-  );
-};
-
-// The component map
-const componentMap = {
+const commonMessageBlockMap = {
   PlainMessage: PlainMessageBlock,
   UserJoined: UserJoinedBlock,
   UserConnected: UserConnectedBlock,
   UserDisconnected: UserDisconnectedBlock,
-  StartGame: StartGameBlock,
-  TurnStarted: TurnStartedBlock,
+} as const;
+
+const gameMessageBlockMap = {
+  strikers: strikersMessageBlockMap,
+  little_vigilante: {},
+  codebreakers: {},
+  banana_traders: {},
 } as const;
 
 export const MessageContent: React.FC<{
   block: MessageContentBlock;
   message: MessageEvent;
 }> = ({ block, message }) => {
-  const Component = componentMap[block.type];
+  const gameMessageBlocks =
+    'gameId' in block ? gameMessageBlockMap[block.gameId] : {};
+  const allBlocks = {
+    ...gameMessageBlocks,
+    ...commonMessageBlockMap,
+  } as const;
+
+  // ts hack to get around not having game-specfici type info in allBlocks
+  const Component = allBlocks[block.type as unknown as keyof typeof allBlocks]; 
   const { entitiesById } = useContext(WorldContext);
   // warn: not safe
   const channelEntity = entitiesById.get(message.channelId) as ChannelEntity;
