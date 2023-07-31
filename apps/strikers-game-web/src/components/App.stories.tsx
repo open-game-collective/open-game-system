@@ -5,23 +5,12 @@ import { Grid } from '@atoms/Grid';
 import { Heading } from '@atoms/Heading';
 import type { RouteProps } from '@explorers-club/schema';
 import { generateRandomString } from '@explorers-club/utils';
-import type { Story } from '@storybook/react';
+import type { StoryObj } from '@storybook/react';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import * as jose from 'jose';
 import { FC, useEffect, useState } from 'react';
-import { ApplicationProvider } from './ApplicationProvider';
-// import { App } from "../components/App";
-
-const meta = {
-  title: 'App',
-  parameters: {
-    layout: 'fullscreen',
-  },
-};
-
-export default meta;
-
-// type Story = StoryObj<typeof meta>;
+import { ApplicationProvider } from '@context/ApplicationProvider';
+import { App } from './App';
 
 const RoomWrapper: FC<{ slug: string }> = (props) => {
   const { slug } = props;
@@ -56,9 +45,57 @@ const RoomWrapper: FC<{ slug: string }> = (props) => {
       trpcUrl={`ws://localhost:3001/?accessToken=${creds.accessToken}`}
       initialRouteProps={routeProps}
       connectionId={creds.connectionId}
-    />
+    >
+      <App initialRouteProps={routeProps} />
+    </ApplicationProvider>
   );
 };
+
+const meta = {
+  title: 'App',
+  parameters: {
+    layout: 'fullscreen',
+  },
+};
+
+export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+const fullPlayerInfo = [
+  {
+    name: 'Alice',
+    userId: 'alice123',
+  },
+  {
+    name: 'Bob',
+    userId: 'bob123',
+  },
+  {
+    name: 'Charlie',
+    userId: 'charlie123',
+  },
+  {
+    name: 'Dave',
+    userId: 'dave123',
+  },
+  {
+    name: 'Eve',
+    userId: 'eve123',
+  },
+  {
+    name: 'Frank',
+    userId: 'frank123',
+  },
+  {
+    name: 'Grace',
+    userId: 'grace123',
+  },
+  {
+    name: 'Heidi',
+    userId: 'heidi123',
+  },
+];
 
 const Template: Story<{
   numPlayers: number;
@@ -103,41 +140,6 @@ const Template: Story<{
     </Card>
   );
 };
-
-const fullPlayerInfo = [
-  {
-    name: 'Alice',
-    userId: 'alice123',
-  },
-  {
-    name: 'Bob',
-    userId: 'bob123',
-  },
-  {
-    name: 'Charlie',
-    userId: 'charlie123',
-  },
-  {
-    name: 'Dave',
-    userId: 'dave123',
-  },
-  {
-    name: 'Eve',
-    userId: 'eve123',
-  },
-  {
-    name: 'Frank',
-    userId: 'frank123',
-  },
-  {
-    name: 'Grace',
-    userId: 'grace123',
-  },
-  {
-    name: 'Heidi',
-    userId: 'heidi123',
-  },
-];
 
 export const TwoPlayer = Template.bind({});
 TwoPlayer.args = {
