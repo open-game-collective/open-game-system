@@ -13,6 +13,15 @@
       "executor": "@nxtensions/astro:dev",
       "options": {}
     },
+    "start": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "host": "0.0.0.0",
+        "buildTarget": "strikers-game-web:build",
+        "parallel": false,
+        "staticFilePath": "dist/apps/strikers-game-web"
+      }
+    },
     "preview": {
       "dependsOn": [
         {
