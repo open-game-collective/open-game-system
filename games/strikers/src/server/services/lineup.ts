@@ -5,18 +5,21 @@ import {
   CreateEventProps,
   StrikersGameEntity,
   StrikersGameEvent,
+  StrikersGameEventInput,
+  UpdateEventProps,
 } from '@explorers-club/schema';
 import { assertEntitySchema } from '@explorers-club/utils';
 import { LineupCommand, LineupContext } from '@schema/games/strikers';
 import { assign } from '@xstate/immer';
 import { Subject } from 'rxjs';
 import { createMachine } from 'xstate';
+import { z } from 'zod';
 
 export const createLineupMachine = <TMessage extends ChannelEvent>({
   gameChannel,
   gameEntity,
 }: {
-  gameChannel: Subject<CreateEventProps<StrikersGameEvent>>;
+  gameChannel: Subject<StrikersGameEventInput>;
   gameEntity: StrikersGameEntity;
 }) => {
   const lineupMachine = createMachine(
@@ -54,7 +57,8 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
         WaitingForInput: {
           on: {
             SELECT_FORMATION: {
-              actions: () => {
+              actions: (context, event) => {
+                context.messageIds;
                 console.log(event);
               },
             },

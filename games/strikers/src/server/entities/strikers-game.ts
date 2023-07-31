@@ -15,10 +15,12 @@ import type {
   StrikersBoardCard,
   StrikersCard,
   StrikersGameEvent,
+  StrikersGameEventInput,
   StrikersGameStateValue,
   StrikersPlayerPosition,
   StrikersTeam,
   StrikersTurnEntity,
+  UpdateEventProps,
 } from '@schema/types';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
@@ -38,9 +40,7 @@ export const createStrikersGameMachine = ({
   assert(entity.schema === 'strikers_game', 'expected strikers_game entity');
   const initialBoard = initializeBoard(entity.config.cards);
 
-  const gameChannel = channel as ReplaySubject<
-    CreateEventProps<StrikersGameEvent>
-  >;
+  const gameChannel = channel as ReplaySubject<StrikersGameEventInput>;
 
   return createMachine(
     {

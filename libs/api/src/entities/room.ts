@@ -1,5 +1,6 @@
 import type {
   LobbyGameConfig,
+  RoomEventInput,
   RoomMessageEvent,
   WithSenderId,
 } from '@explorers-club/schema';
@@ -169,7 +170,7 @@ export const createRoomMachine = ({
                   timestamp: new Date().toString(),
                 },
               ],
-            } satisfies CreateEventProps<RoomMessageEvent>;
+            } satisfies RoomEventInput;
             roomChannel.next(disconnectEvent);
           },
         },

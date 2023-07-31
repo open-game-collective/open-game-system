@@ -1,6 +1,6 @@
 import {
   ChannelEvent,
-  CreateEventProps,
+  ChannelEventInput,
   Entity,
   EntityMachineMap,
   // EntityMessageMap,
@@ -16,7 +16,7 @@ import {
 import { assert, fromWorld } from '@explorers-club/utils';
 import { compare } from 'fast-json-patch';
 import { enablePatches, produce, setAutoFreeze } from 'immer';
-import { Observable, ReplaySubject, map, mergeMap } from 'rxjs';
+import { ReplaySubject, map, mergeMap } from 'rxjs';
 import {
   AnyActorRef,
   AnyFunction,
@@ -31,7 +31,6 @@ import { channelsById, entitiesById, world } from './server/state';
 // import { eventTriggerDispatchMachine } from './services/event-trigger-dispatch.service';
 import { World } from 'miniplex';
 // import { greetOnJoinTrigger } from './configs/triggers';
-import { ChangeEvent } from 'react';
 
 enablePatches();
 setAutoFreeze(false);
@@ -131,7 +130,7 @@ export const createEntity = <TEntity extends Entity>(
     subscribe,
   };
 
-  const channelSubject = new ReplaySubject<CreateEventProps<ChannelEvent>>(
+  const channelSubject = new ReplaySubject<ChannelEventInput>(
     5 /* msg buffer size */
   );
   const channelObservable = channelSubject.pipe(

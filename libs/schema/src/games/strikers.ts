@@ -11,6 +11,7 @@ import {
   StrikersGameSchemaTypeLiteral,
   StrikersPlayerSchemaTypeLiteral,
   StrikersTurnSchemaTypeLiteral,
+  UpdateMessageEventTypeLiteral,
 } from '../literals';
 import { EventBaseSchema } from '@schema/events/base';
 import { StartGameBlockSchema } from '@schema/lib/room';
@@ -50,11 +51,13 @@ export type LineupContext = z.infer<typeof LineupContextSchema>;
 
 const SelectFormationCommandSchema = z.object({
   type: z.literal('SELECT_FORMATION'),
+  messageId: SnowflakeIdSchema,
   formation: FormationLiteral,
 });
 
 const ConfirmCommandSchema = z.object({
   type: z.literal('CONFIRM'),
+  messageId: SnowflakeIdSchema,
 });
 
 export const LineupCommandSchema = z.union([
@@ -493,7 +496,6 @@ const MessageContentBlockSchema = z.discriminatedUnion('type', [
 export const StrikersGameEventSchema = EventBaseSchema(
   MessageEventTypeLiteral,
   z.object({
-    senderId: SnowflakeIdSchema,
     recipientId: SnowflakeIdSchema.optional(),
     contents: z.array(MessageContentBlockSchema),
   })

@@ -1,5 +1,6 @@
 import {
   ChannelEvent,
+  ChannelEventInput,
   CreateEventProps,
   Entity,
   EntityMachine,
@@ -31,7 +32,7 @@ type EntityMachineCreators = {
   >(props: {
     world: World<Entity>;
     entity: TEntity;
-    channel: ReplaySubject<CreateEventProps<ChannelEvent>>;
+    channel: ReplaySubject<ChannelEventInput>;
   }) => Extract<EntityMachine, { type: TSchemaType }>['machine'];
 };
 

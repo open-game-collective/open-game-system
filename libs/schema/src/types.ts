@@ -227,6 +227,9 @@ export type RoomMachine = StateMachine<
   WithSenderId<RoomCommand>
 >;
 export type RoomMessageEvent = z.infer<typeof RoomMessageEventSchema>;
+export type RoomEventInput =
+  | CreateEventProps<RoomMessageEvent>
+  | UpdateEventProps<RoomMessageEvent>;
 
 export type MessageChannelStateSchema =
   StateSchemaFromStateValue<MessageChannelStateValue>;
@@ -475,6 +478,15 @@ export type CreateEventProps<TEvent extends ChannelEvent> = Omit<
   'channelId'
 >;
 
+export type ChannelEventInput =
+  | CreateEventProps<ChannelEvent>
+  | UpdateEventProps<ChannelEvent>;
+
+export type UpdateEventProps<TEvent extends ChannelEvent> = Omit<
+  TEvent,
+  'channelId' | 'senderId' | 'recipientId' | 'type'
+>;
+
 export type NewRoomContext = z.infer<typeof NewRoomContextSchema>;
 export type NewRoomCommand = z.infer<typeof NewRoomCommandSchema>;
 export type NewRoomStateValue = z.infer<typeof NewRoomStateValueSchema>;
@@ -656,6 +668,9 @@ export type StrikersGameConfigData = z.infer<
   typeof StrikersGameConfigDataSchema
 >;
 export type StrikersGameEvent = z.infer<typeof StrikersGameEventSchema>;
+export type StrikersGameEventInput =
+  | CreateEventProps<StrikersGameEvent>
+  | UpdateEventProps<StrikersGameEvent>;
 export type StrikersCardSettings = z.infer<typeof StrikersCardSettingsSchema>;
 export type StrikersGameplaySettings = z.infer<
   typeof StrikersGameplaySettingsSchema
