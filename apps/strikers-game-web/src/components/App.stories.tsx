@@ -15,8 +15,9 @@ import { App } from './App';
 import { envSchema } from '../env.schema';
 
 const {
-  RAILWAY_SERVICE_APP_STRIKERS_GAME_WEB_URL,
-  RAILWAY_SERVICE_APP_API_SERVER_URL,
+  PUBLIC_API_HTTP_SERVER_URL,
+  PUBLIC_API_WS_SERVER_URL,
+  PUBLIC_STRIKERS_GAME_WEB_URL,
 } = envSchema.parse(process.env);
 
 const RoomWrapper: FC<{ slug: string }> = (props) => {
@@ -34,7 +35,7 @@ const RoomWrapper: FC<{ slug: string }> = (props) => {
       try {
         const creds = await initAccessToken(
           { name: 'Room', roomSlug: slug } satisfies RouteProps,
-          `https://${RAILWAY_SERVICE_APP_STRIKERS_GAME_WEB_URL}/${slug}`
+          `${PUBLIC_STRIKERS_GAME_WEB_URL}/${slug}`
         );
         setCreds(creds);
       } catch (ex) {
@@ -49,7 +50,7 @@ const RoomWrapper: FC<{ slug: string }> = (props) => {
 
   return (
     <ApplicationProvider
-      trpcUrl={`ws://${RAILWAY_SERVICE_APP_API_SERVER_URL}/?accessToken=${creds.accessToken}`}
+      trpcUrl={`${PUBLIC_API_WS_SERVER_URL}/?accessToken=${creds.accessToken}`}
       initialRouteProps={routeProps}
       connectionId={creds.connectionId}
     >
@@ -207,16 +208,12 @@ const initAccessToken = async (routeProps: RouteProps, url: string) => {
   const accessToken = await jwt.sign(secret);
 
   // If port specified, assume no http
-  const isHttps = !RAILWAY_SERVICE_APP_API_SERVER_URL.includes(':');
-  const apiUrl =
-    (isHttps ? 'https' : 'http') +
-    `://${RAILWAY_SERVICE_APP_API_SERVER_URL}/trpc`;
 
   const client = createTRPCProxyClient<ApiRouter>({
     transformer,
     links: [
       httpBatchLink({
-        url: apiUrl,
+        url: PUBLIC_API_HTTP_SERVER_URL,
         // You can pass any HTTP headers you wish here
         async headers() {
           return {
