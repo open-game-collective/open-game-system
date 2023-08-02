@@ -16,7 +16,7 @@ import {
 import { assert, fromWorld } from '@explorers-club/utils';
 import { compare } from 'fast-json-patch';
 import { enablePatches, produce, setAutoFreeze } from 'immer';
-import { ReplaySubject, map, mergeMap } from 'rxjs';
+import { ReplaySubject, map, mergeMap, tap } from 'rxjs';
 import {
   AnyActorRef,
   AnyFunction,
@@ -136,6 +136,21 @@ export const createEntity = <TEntity extends Entity>(
   const channelObservable = channelSubject.pipe(
     map((event) => {
       const senderId = 'senderId' in event ? event.senderId : id;
+
+      // Send data from existing event if the id already exists
+      // Update the contents of the message
+      const existingEvent = messagesById.get(event.id);
+      if (
+        existingEvent &&
+        existingEvent.type === 'MESSAGE' &&
+        'contents' in event
+      ) {
+        return {
+          ...existingEvent,
+          contents: event.contents,
+        } as ChannelEvent;
+      }
+
       return {
         id: event.id || generateSnowflakeId(),
         senderId,
@@ -144,6 +159,12 @@ export const createEntity = <TEntity extends Entity>(
       } as ChannelEvent;
     })
   );
+
+  const messagesById = new Map();
+  channelObservable.subscribe((event) => {
+    messagesById.set(event.id, event);
+  });
+
   channelsById.set(id, channelObservable);
 
   const entity: TEntity = {

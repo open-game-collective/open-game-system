@@ -36,6 +36,7 @@ import {
 import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
 import { useStore } from '@nanostores/react';
 import { useEntitiesStoreSelector } from '@hooks/useEntitiesStoreSelector';
+import { entitiesById } from '@api/index';
 
 type PlainMessageEvent = {
   type: 'PLAIN_MESSAGE';
@@ -198,25 +199,12 @@ const CombinedMessageChannel = () => {
     MessageChannelEntity,
     (readonly [SnowflakeId, SnowflakeId])[]
   >(messageChannelStores, (entities) => {
-    return entities.flatMap((entity) =>
-      entity.messages.map((message) => [entity.id, message.id] as const)
-    );
+    return entities.flatMap((entity) => {
+      console.log(entity, entity.messages);
+      return entity.messages.map((message) => [entity.id, message.id] as const);
+    });
   });
-
-  // const messageChannelEntities = useStore(computed(messageChannelStores, (...entities) => {
-  //   return Array.from(entities);
-  // })
-
-  // const messageTuplesStore = useMemo(() => {
-
-  // return computed(messageChannelStores, (...entities) => {
-  //   return entities.flatMap((entity) =>
-  //     entity.messages.map((message) => [entity.id, message.id] as const)
-  //   );
-  // });
-
-  // }, [messageChannelStores]);
-  // const messageTuples = useStore(messageTuplesStore);
+  console.log({ messageTuples });
 
   const scrollViewRef = useRef<HTMLDivElement | null>(null);
 
@@ -416,6 +404,7 @@ const ChatMessage: FC<{
     // todo make not o(n)
     return entity.messages.find((message) => message.id == messageId);
   });
+
   if (!message) {
     return <div>placeholder</div>;
   }

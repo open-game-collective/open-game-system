@@ -43,11 +43,32 @@ export const ApplicationProvider: FC<{
     trpc.createClient({
       transformer,
       links: [
-        /**
-         * The function passed to enabled is an example in case you want to the link to
-         * log to your console in development and only log errors in production
-         */
         loggerLink({
+          logger(opts) {
+            if (opts.direction === 'up') {
+              console.log('SEND', opts.type, opts.path, opts.input);
+            } else if (opts.direction === 'down') {
+              if ('result' in opts.result) {
+                if ('data' in opts.result.result) {
+                  console.log(
+                    'RECV',
+                    opts.type,
+                    opts.path,
+                    opts.result.result.data
+                  );
+                } else {
+                  console.log('RECV', opts.type, opts.path, opts.result.result);
+                }
+              } else {
+                console.log('RECV', opts.type, opts.path);
+              }
+            }
+            return opts;
+          },
+          /**
+           * The function passed to enabled is an example in case you want to the link to
+           * log to your console in development and only log errors in production
+           */
           enabled: (opts) => true,
           // enabled: (opts) =>
           //   (process.env.NODE_ENV === 'development' &&

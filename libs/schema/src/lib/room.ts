@@ -11,7 +11,11 @@ import {
   MessageEventTypeLiteral,
   RoomSchemaTypeLiteral,
 } from '../literals';
-import { TurnStartedBlockSchema } from '@schema/games/strikers';
+import { StrikersMessageContentBlockSchema } from '@schema/games/strikers';
+import {
+  MultipleChoiceConfirmCommandSchema,
+  MultipleChoiceSelectCommandSchema,
+} from '@schema/commands';
 
 export const RoomContextSchema = z.object({
   workflows: z.map(z.string(), z.custom<AnyInterpreter>()),
@@ -45,6 +49,8 @@ export const RoomCommandSchema = z.union([
   JoinCommandSchema,
   StartCommandSchema,
   LeaveCommandSchema,
+  MultipleChoiceConfirmCommandSchema,
+  MultipleChoiceSelectCommandSchema,
 ]);
 
 export const RoomEntityPropsSchema = z.object({
@@ -127,14 +133,26 @@ export const StartGameBlockSchema = z.object({
   timestamp: z.string(),
 });
 
+export const MultipleChoiceBlockSchema = z.object({
+  type: z.literal('MultipleChoice'),
+  text: z.string(),
+  options: z.array(
+    z.object({
+      name: z.string(),
+      value: z.string(),
+    })
+  ),
+});
+
 // Union of all block schemas
 export const MessageContentBlockSchema = z.union([
   PlainMessageBlockSchema,
   UserJoinedBlockSchema,
   UserConnectedBlockSchema,
   UserDisconnectedBlockSchema,
+  MultipleChoiceBlockSchema,
   StartGameBlockSchema,
-  TurnStartedBlockSchema,
+  StrikersMessageContentBlockSchema,
 ]);
 
 // const MessageContentSchema = z.discriminatedUnion('type', [
