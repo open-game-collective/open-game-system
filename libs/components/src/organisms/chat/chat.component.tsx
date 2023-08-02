@@ -182,9 +182,7 @@ const CombinedMessageChannel = () => {
           ) as Atom<MessageChannelEntity>; // todo why i have to cast this?
           messageChannelStoreMap.set(messageChannelId, store);
           changes = true;
-          console.log('adding', messageChannelId);
         }
-        console.log(messageChannelId);
       }
 
       // Update the array of message channel stores
@@ -198,6 +196,7 @@ const CombinedMessageChannel = () => {
     MessageChannelEntity,
     (readonly [SnowflakeId, SnowflakeId])[]
   >(messageChannelStores, (entities) => {
+<<<<<<< Updated upstream
     return entities.flatMap((entity) =>
       entity.messages.map((message) => [entity.id, message.id] as const)
     );
@@ -217,6 +216,12 @@ const CombinedMessageChannel = () => {
 
   // }, [messageChannelStores]);
   // const messageTuples = useStore(messageTuplesStore);
+=======
+    return entities.flatMap((entity) => {
+      return entity.messages.map((message) => [entity.id, message.id] as const);
+    });
+  });
+>>>>>>> Stashed changes
 
   const scrollViewRef = useRef<HTMLDivElement | null>(null);
 
