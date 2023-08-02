@@ -14,8 +14,11 @@ import { ApplicationProvider } from '@context/ApplicationProvider';
 import { App } from './App';
 import { envSchema } from '../env.schema';
 
-const { PUBLIC_API_HTTP_SERVER_URL, PUBLIC_API_WS_SERVER_URL } =
-  envSchema.parse(process.env);
+const {
+  PUBLIC_API_HTTP_SERVER_URL,
+  PUBLIC_API_WS_SERVER_URL,
+  PUBLIC_STRIKERS_GAME_WEB_URL,
+} = envSchema.parse(process.env);
 
 const RoomWrapper: FC<{ slug: string }> = (props) => {
   const { slug } = props;
@@ -32,7 +35,7 @@ const RoomWrapper: FC<{ slug: string }> = (props) => {
       try {
         const creds = await initAccessToken(
           { name: 'Room', roomSlug: slug } satisfies RouteProps,
-          `${PUBLIC_API_HTTP_SERVER_URL}/${slug}`
+          `${PUBLIC_STRIKERS_GAME_WEB_URL}/${slug}`
         );
         setCreds(creds);
       } catch (ex) {
@@ -204,11 +207,13 @@ const initAccessToken = async (routeProps: RouteProps, url: string) => {
 
   const accessToken = await jwt.sign(secret);
 
+  // If port specified, assume no http
+
   const client = createTRPCProxyClient<ApiRouter>({
     transformer,
     links: [
       httpBatchLink({
-        url: `http://localhost:3001/trpc`,
+        url: PUBLIC_API_HTTP_SERVER_URL,
         // You can pass any HTTP headers you wish here
         async headers() {
           return {

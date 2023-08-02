@@ -1,4 +1,4 @@
-import { StartGameBlock } from '@strikers/client/components/ui/message-blocks/start-game-block';
+import { StartGameBlock } from './start-game-block';
 import { TurnStartedBlock } from './turn-started-block';
 
 export const strikersMessageBlockMap = {

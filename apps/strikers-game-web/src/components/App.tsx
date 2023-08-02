@@ -9,10 +9,11 @@ import { useMyUserEntityStore } from '@hooks/useMyUserEntityStore';
 import { useStore } from '@nanostores/react';
 import { Chat, ChatContext } from '@organisms/chat';
 import { FC, useContext } from 'react';
-// import { ChannelListDialog } from './ChannelListDialog';
-// import { Menu } from './Menu';
-// import { RoutePanel } from './RoutePanel';
-// import { ScenePanel } from './ScenePanel';
+import { ChannelListDialog } from './ChannelListDialog';
+import { Menu } from './Menu';
+import { RoutePanel } from './RoutePanel';
+import { ScenePanel } from './ScenePanel';
+import { Modal } from './Modal';
 
 interface Props {
   initialRouteProps: RouteProps;
@@ -35,11 +36,11 @@ export const App: FC<Props> = ({ initialRouteProps }) => {
 
   return (
     <AppContainer>
-      {/* <ScenePanel />
+      <ScenePanel />
       <Menu />
-      <ChannelListDialog /> */}
+      <ChannelListDialog />
       <MainPanel />
-      {/* <Modal /> */}
+      <Modal />
     </AppContainer>
   );
 };

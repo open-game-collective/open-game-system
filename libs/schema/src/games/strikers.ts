@@ -14,7 +14,15 @@ import {
   UpdateMessageEventTypeLiteral,
 } from '../literals';
 import { EventBaseSchema } from '@schema/events/base';
-import { StartGameBlockSchema } from '@schema/lib/room';
+import {
+  MultipleChoiceBlockSchema,
+  PlainMessageBlockSchema,
+  StartGameBlockSchema,
+} from '@schema/lib/room';
+import {
+  MultipleChoiceConfirmCommandSchema,
+  MultipleChoiceSelectCommandSchema,
+} from '@schema/commands';
 
 // Define literals for each formation name
 const Formation433Literal = z.literal('4-3-3');
@@ -22,7 +30,7 @@ const Formation541Literal = z.literal('5-4-1');
 const Formation344Literal = z.literal('3-4-4');
 
 // Combine them into a union
-const FormationLiteral = z.union([
+export const FormationLiteral = z.union([
   Formation433Literal,
   Formation541Literal,
   Formation344Literal,
@@ -44,16 +52,12 @@ const FormationDataSchema = z.object({
 const AllFormationsSchema = z.array(FormationDataSchema);
 
 export const LineupContextSchema = z.object({
-  messageIds: z.array(z.string()),
+  messageIdsByPlayerId: z.record(SnowflakeIdSchema),
+  formationsByPlayerId: z.record(FormationLiteral),
+  finishedPlayerIds: z.array(SnowflakeIdSchema),
 });
 
 export type LineupContext = z.infer<typeof LineupContextSchema>;
-
-const SelectFormationCommandSchema = z.object({
-  type: z.literal('SELECT_FORMATION'),
-  messageId: SnowflakeIdSchema,
-  formation: FormationLiteral,
-});
 
 const ConfirmCommandSchema = z.object({
   type: z.literal('CONFIRM'),
@@ -61,8 +65,9 @@ const ConfirmCommandSchema = z.object({
 });
 
 export const LineupCommandSchema = z.union([
-  SelectFormationCommandSchema,
   ConfirmCommandSchema,
+  MultipleChoiceConfirmCommandSchema,
+  MultipleChoiceSelectCommandSchema,
 ]);
 export type LineupCommand = z.infer<typeof LineupCommandSchema>;
 
@@ -153,7 +158,8 @@ const LeaveCommandSchema = z.object({
 export const StrikersGameCommandSchema = z.union([
   StartCommandSchema,
   LeaveCommandSchema,
-  // StrikersLineupCommandSchema,
+  MultipleChoiceConfirmCommandSchema,
+  MultipleChoiceSelectCommandSchema,
 ]);
 
 // export const ConnectionCommandSchema = z.union([
@@ -477,27 +483,33 @@ export const StrikersPlayerContextSchema = z.object({
 // const TurnStartMessageEventSchema = z.object({
 //   type: z.literal('TURN_START'),
 // });
-export const TurnStartedBlockSchema = z.object({
+const TurnStartedBlockSchema = z.object({
   type: z.literal('TurnStarted'),
   turnId: SnowflakeIdSchema,
   timestamp: z.date(),
 });
 
-export const SetLineupBlockSchema = z.object({
-  type: z.literal('SetLineup'),
-});
+// const ChooseFormationBlockSchema = z.object({
+//   type: z.literal('ChooseFormation'),
+// });
 
-const MessageContentBlockSchema = z.discriminatedUnion('type', [
+// const SubmittedFormationBlockSchema = z.object({
+//   type: z.literal('SubmittedFormation'),
+//   formation: FormationLiteral,
+// });
+
+export const StrikersMessageContentBlockSchema = z.union([
   TurnStartedBlockSchema,
   StartGameBlockSchema,
-  SetLineupBlockSchema,
+  MultipleChoiceBlockSchema,
+  PlainMessageBlockSchema,
 ]);
 
 export const StrikersGameEventSchema = EventBaseSchema(
   MessageEventTypeLiteral,
   z.object({
     recipientId: SnowflakeIdSchema.optional(),
-    contents: z.array(MessageContentBlockSchema),
+    contents: z.array(StrikersMessageContentBlockSchema),
   })
 );
 

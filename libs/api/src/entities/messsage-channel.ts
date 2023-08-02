@@ -69,24 +69,44 @@ export const createMessageChannelMachine = ({
             invoke: {
               src: async () => {
                 channel.subscribe((event) => {
+                  // // If a new message jsut add it ot the list
                   if (event.type === 'MESSAGE') {
+                    const messageId = event.id;
+
                     if (
                       event.recipientId &&
                       event.recipientId !== userEntity.id
-                    )
+                    ) {
                       // Don't add messages if a recipient is specified
                       // and it doesn't match this user
                       return;
+                    }
+
+                    // first check if this message id already there
+                    // todo make not o(n) somehow
+                    const existingMessage = messageChannelEntity.messages.find(
+                      (message) => message.id === messageId
+                    );
+
+                    if (!existingMessage) {
+                      messageChannelEntity.messages = [
+                        ...messageChannelEntity.messages,
+                        event,
+                      ];
+                    } else {
+                      // if its an existing message, remove the old one from the list
+                      // and put new one at the end
+                      const messages = messageChannelEntity.messages.filter(
+                        (message) => {
+                          return message.id !== existingMessage.id;
+                        }
+                      );
+                      messageChannelEntity.messages = [...messages, event];
+                    }
                   }
-
-                  // todo filter debug logs ?
-
-                  messageChannelEntity.messages = [
-                    ...messageChannelEntity.messages,
-                    event,
-                  ];
                 });
 
+                // Keep the machine invoked/listening
                 const parentChannel = channelsById.get(channelEntity.id);
                 assert(
                   parentChannel,
@@ -94,9 +114,12 @@ export const createMessageChannelMachine = ({
                 );
                 await parentChannel.toPromise();
               },
+              onError: 'Error',
             },
           },
-          Error: {},
+          Error: {
+            entry: console.error,
+          },
         },
       },
     },
