@@ -1,6 +1,6 @@
 # Open Game Collective Main Monorepo
 
-For more about us see our website at [opengame.org](opengame.org).
+For more about us see our website at [opengame.org](https://opengame.org).
 
 ## Strikers TCG
 
@@ -8,7 +8,7 @@ Strikers is the first title we are developing and will be available at https://s
 
 ### Dev Commands
 
-`npx nx run api-server:serve` (game/api server)
-`npx nx run strikers:storybook` (strikers storybook)
-`npx nx run strikers-game-web:dev` (strikers.game website)
-`npx nx run opengame-org-web:dev` (opengame.org website)
+- `npx nx run api-server:serve` (game/api server)
+- `npx nx run strikers:storybook` (strikers storybook)
+- `npx nx run strikers-game-web:dev` (strikers.game website)
+- `npx nx run opengame-org-web:dev` (opengame.org website)
