@@ -112,9 +112,7 @@ export const createMessageChannelMachine = ({
                   parentChannel,
                   'expect parentChannel when subscribing to chanel'
                 );
-                console.log('awiating');
                 await parentChannel.toPromise();
-                console.log('unexpected done');
               },
               onError: 'Error',
             },
