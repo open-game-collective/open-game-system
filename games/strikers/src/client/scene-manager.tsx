@@ -73,10 +73,10 @@ const GameScene = () => {
   });
   const { gameEntity } = useContext(StrikersContext);
   console.log({ gameEntity });
-  const players = useEntitySelector(
-    gameEntity,
-    (entity) => entity.gameState.players
-  );
+  // const players = useEntitySelector(
+  //   gameEntity,
+  //   (entity) => entity.gameState.players
+  // );
 
   return (
     <CameraRigProvider grid={grid}>
@@ -85,14 +85,14 @@ const GameScene = () => {
       <axesHelper />
       <SunsetSky />
       <Field grid={grid}>
-        {players.map((player) => (
+        {/* {players.map((player) => (
           <FieldCell tilePosition={player.tilePosition}>
             <mesh>
               <boxBufferGeometry args={[1, 1, 1]} />
               <meshStandardMaterial color={0xcccccc} />
             </mesh>
           </FieldCell>
-        ))}
+        ))} */}
         <Goal side="away" />
         <Goal side="home" />
         {/* {cells.map((cell) => (

@@ -45,7 +45,6 @@ import {
   CodebreakersPlayerStateValueSchema,
 } from './games/codebreakers';
 import {
-  StrikersBoardCardSchema,
   StrikersEffectCommandSchema,
   StrikersEffectContextSchema,
   StrikersEffectDataSchema,
@@ -63,7 +62,7 @@ import {
   StrikersPlayerEntitySchema,
   StrikersPlayerStateValueSchema,
   // StrikersLineupCommandSchema,
-  StrikersTeamSchema,
+  StrikersSideSchema,
   StrikersTurnCommandSchema,
   StrikersTurnContextSchema,
   StrikersTurnEntitySchema,
@@ -675,9 +674,8 @@ export type StrikersCardSettings = z.infer<typeof StrikersCardSettingsSchema>;
 export type StrikersGameplaySettings = z.infer<
   typeof StrikersGameplaySettingsSchema
 >;
-export type StrikersTeam = z.infer<typeof StrikersTeamSchema>;
+export type StrikersTeam = z.infer<typeof StrikersSideSchema>;
 export type StrikersBoard = z.infer<typeof StrikersGameStateSchema>;
-export type StrikersBoardCard = z.infer<typeof StrikersBoardCardSchema>;
 export type StrikersPlayerPosition = z.infer<
   typeof StrikersRosterPositionSchema
 >;

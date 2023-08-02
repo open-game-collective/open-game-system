@@ -4,6 +4,7 @@ import {
   assertChannelEntity,
   assertEntitySchema,
 } from '@explorers-club/utils';
+import { CardId } from '@schema/game-configuration/strikers';
 import {
   LobbyGameConfig,
   SnowflakeId,
@@ -14,6 +15,7 @@ import {
 } from '@schema/types';
 import { cardSettings, gameplaySettings } from '@strikers/config';
 import { randomUUID } from 'crypto';
+import { generateCard } from 'games/strikers/data/generateCards';
 import { createEntity } from 'libs/api/src/ecs';
 
 export const createStrikersGame = (
@@ -47,60 +49,13 @@ export const createStrikersGame = (
     gameEntityId,
   });
 
-  const cards = [
-    {
-      id: '1234',
-      name: 'J. Moreno',
-      team: 'Oakland Roots',
-      rosterPosition: 'FWD',
-      league: 'EPL',
-      year: 2023,
-      possession: 12,
-      speed: 'A',
-      endurance: 7,
-      salary: 10000,
-      possessionChartWeights: {
-        plusOneAction: {
-          orderWeight: 0,
-          rollWeight: 10,
-        },
-      },
-      shotChartWeights: {
-        save: 10,
-        corner: 10,
-        deflect: 10,
-        goal: 10,
-      },
-    },
-    {
-      id: '5678',
-      name: 'J. Lin',
-      team: 'Bristol Rovers',
-      rosterPosition: 'MID',
-      league: 'EPL',
-      year: 2022,
-      possession: 11,
-      speed: 'S',
-      endurance: 6,
-      salary: 90000,
-      possessionChartWeights: {
-        plusOneAction: {
-          orderWeight: 0,
-          rollWeight: 10,
-        },
-      },
-      shotChartWeights: {
-        save: 10,
-        corner: 10,
-        deflect: 10,
-        goal: 10,
-      },
-    },
-  ] satisfies StrikersCard[];
+  const cards = Array.from({ length: 200 }).map(generateCard);
 
   const config = {
     lobbyConfig,
-    playerIds: [p1PlayerEntity.id, p2PlayerEntity.id],
+    homePlayerIds: [p1PlayerEntity.id],
+    awayPlayerIds: [p2PlayerEntity.id],
+    playerIds: [p1PlayerEntity.id, p2PlayerEntity.id], // for convenience, expect to never change
     gameplaySettings,
     cardSettings,
     cards,
@@ -122,20 +77,10 @@ export const createStrikersGame = (
     gameState: {
       ballPosition: [0, 0],
       possession: 'home',
-      players: [
-        {
-          team: 'home',
-          cardId: '1234',
-          tilePosition: [14, 10],
-          stamina: 7,
-        },
-        {
-          team: 'away',
-          cardId: '5678',
-          tilePosition: [11, 10],
-          stamina: 6,
-        },
-      ],
+      tilePositionsByCardId: {},
+      homeSideCardIds: [],
+      awaySideCardIds: [],
+      staminaByCardId: {},
     },
     turnsIds: [],
   });
