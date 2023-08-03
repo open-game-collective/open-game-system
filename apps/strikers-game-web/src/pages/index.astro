@@ -1,9 +1,8 @@
 ---
 import { assertRouteName } from '@explorers-club/utils';
-import { App } from '../components/App';
+import { HomeScene } from '../components/HomeScene';
 import Layout from '../layouts/Layout.astro';
 import { getRouteProps } from '../routing';
-import { HomeScene } from '../components/HomeScene';
 
 const routeProps = getRouteProps(Astro.url);
 assertRouteName(routeProps, 'Home');
