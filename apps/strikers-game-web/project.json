@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
-      "executor": "@nxtensions/astro:build",
+      "executor": "@ogc/astro:build",
       "options": {}
     },
     "dev": {
