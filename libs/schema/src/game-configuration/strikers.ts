@@ -169,6 +169,7 @@ export const StrikersPlayerCardSchema = z.object({
 export const StrikersCardSchema = StrikersPlayerCardSchema;
 
 export const CardIdSchema = z.string();
+export type CardId = z.infer<typeof CardIdSchema>;
 
 export const StrikersLobbyConfigSchema = z.object({
   p1UserId: SnowflakeIdSchema,
@@ -180,6 +181,8 @@ export const StrikersGameConfigDataSchema = z.object({
   gameplaySettings: StrikersGameplaySettingsSchema,
   cardSettings: StrikersCardSettingsSchema,
   playerIds: z.array(SnowflakeIdSchema),
+  homePlayerIds: z.array(SnowflakeIdSchema),
+  awayPlayerIds: z.array(SnowflakeIdSchema),
   cards: z.array(StrikersCardSchema),
   gameMode: z.enum(['quickplay', 'draft']).default('quickplay'),
   turnsPerHalf: z.number().default(20),

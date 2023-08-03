@@ -35,6 +35,7 @@ export const FormationLiteral = z.union([
   Formation541Literal,
   Formation344Literal,
 ]);
+export type Formation = z.infer<typeof FormationLiteral>;
 
 const PositionSchema = z.object({
   x: z.number().int().nonnegative(),
@@ -82,24 +83,20 @@ const CardIdSchema = z.string();
 
 // const PlayerIdSchema = z.string();
 
-export const StrikersTeamSchema = z.enum(['home', 'away']);
+export const StrikersSideSchema = z.enum(['home', 'away']);
+export type StrikersSide = z.infer<typeof StrikersSideSchema>;
 
-const TilePositionSchema = z.custom<HexCoordinates>();
+export const TilePositionSchema = z.custom<HexCoordinates>();
 
 const StaminaSchema = z.number();
 
-export const StrikersBoardCardSchema = z.object({
-  team: StrikersTeamSchema,
-  cardId: CardIdSchema,
-  tilePosition: TilePositionSchema,
-  stamina: StaminaSchema,
-  // activeModifiers: z.array(ModifiersSchema) add endurance and other modifiers here...
-});
-
 export const StrikersGameStateSchema = z.object({
   ballPosition: TilePositionSchema,
-  possession: StrikersTeamSchema,
-  players: z.array(StrikersBoardCardSchema),
+  possession: StrikersSideSchema,
+  tilePositionsByCardId: z.record(CardIdSchema, TilePositionSchema),
+  homeSideCardIds: z.array(CardIdSchema),
+  awaySideCardIds: z.array(CardIdSchema),
+  staminaByCardId: z.record(CardIdSchema, StaminaSchema),
 });
 
 const StrikersGameEntityPropSchema = z.object({
@@ -375,7 +372,7 @@ const StrikersTurnEntityPropsSchema = z.object({
   schema: StrikersTurnSchemaTypeLiteral,
   stagedGameState: StrikersGameStateSchema,
   startedAt: z.date(),
-  side: StrikersTeamSchema,
+  side: StrikersSideSchema,
   playerId: SnowflakeIdSchema,
   totalActionCount: z.number(),
   modifiers: z.array(ModifierSchema),

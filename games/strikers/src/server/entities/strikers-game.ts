@@ -9,24 +9,18 @@ import {
   WithSenderId,
 } from '@explorers-club/schema';
 import { assert, assertEntitySchema } from '@explorers-club/utils';
+import { Formation } from '@schema/games/strikers';
 import type {
-  CreateEventProps,
-  StrikersBoard,
-  StrikersBoardCard,
-  StrikersCard,
-  StrikersGameEvent,
+  SnowflakeId,
   StrikersGameEventInput,
   StrikersGameStateValue,
-  StrikersPlayerPosition,
-  StrikersTeam,
   StrikersTurnEntity,
-  UpdateEventProps,
 } from '@schema/types';
+import { deepClone } from 'fast-json-patch';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
 import { DoneInvokeEvent, createMachine } from 'xstate';
 import { createLineupMachine } from '../services/lineup';
-import { deepClone } from 'fast-json-patch';
 
 export const createStrikersGameMachine = ({
   world,
@@ -38,7 +32,7 @@ export const createStrikersGameMachine = ({
   channel: ReplaySubject<any>;
 }) => {
   assert(entity.schema === 'strikers_game', 'expected strikers_game entity');
-  const initialBoard = initializeBoard(entity.config.cards);
+  // const initialBoard = arrangeBoard(entity.config.cards);
 
   const gameChannel = channel as ReplaySubject<StrikersGameEventInput>;
 
@@ -76,9 +70,14 @@ export const createStrikersGameMachine = ({
                 autoForward: true,
                 onDone: {
                   target: 'Regulation',
-                  // todo set board using data from lineup
-                  // do same after turn is over
-                  // rather than turn manipulate data directly
+                  actions: (
+                    context,
+                    event: DoneInvokeEvent<{
+                      formationsByPlayerId: Record<SnowflakeId, Formation>;
+                    }>
+                  ) => {
+                    // todo set board using data from lineup
+                  },
                 },
               },
             },
@@ -213,7 +212,6 @@ export const createStrikersGameMachine = ({
           assertEntitySchema(playerEntity, 'strikers_player');
           const userEntity = entitiesById.get(playerEntity.userId);
           assertEntitySchema(userEntity, 'user');
-          console.log({ userEntity });
 
           userEntity.send({
             type: 'ENTER_CHANNEL',
@@ -225,7 +223,6 @@ export const createStrikersGameMachine = ({
           gameChannel.next({
             id,
             type: 'MESSAGE',
-            // recipientId: turnEntity.playerId,
             contents: [
               {
                 type: 'TurnStarted',
@@ -235,11 +232,6 @@ export const createStrikersGameMachine = ({
             ],
             senderId: entity.id,
           });
-
-          // todo here is where we want do so something with the message id
-          // that was just created
-          // we need to take it and listen for events
-          // example, MOVE
 
           await waitForCondition(
             turnEntity,
@@ -251,96 +243,91 @@ export const createStrikersGameMachine = ({
   );
 };
 
-// const waitUntilMatches = <TEntity extends Entity>(entity: TEntity, 0timeout?: number ) => {
-//   return new Promise((resolve) => {
+// const arrangePlayers = ({
+//   cards,
+//   homeFormation,
+//   awayFormation,
+//   homeSide,
+// }: {
+//   cards: StrikersCard[];
+//   homeFormation: Formation;
+//   awayFormation: Formation;
+//   homeSide: 'WEST' | 'EAST';
+// }) => {
+//   // Shuffle the cards to ensure randomness
+//   cards.sort(() => Math.random() - 0.5);
 
-//   })
+//   const cardsById: Record<StrikersCard['id'], StrikersCard> = {};
+//   cards.forEach((card) => (cardsById[card.id] = card));
+
+//   // Initialize empty lists for each position
+//   const homeTeam: StrikersCard[] = [];
+//   const awayTeam: StrikersCard[] = [];
+
+//   // Distribute the cards to each team
+//   for (const card of cards) {
+//     const positionCount = (team: StrikersBoardCard[], position: string) =>
+//       team.filter(
+//         (playerCard) => cardsById[playerCard.cardId].rosterPosition === position
+//       ).length;
+
+//     if (
+//       positionCount(homeTeam, card.rosterPosition) <
+//       (card.rosterPosition === 'GK' ? 1 : card.rosterPosition === 'DEF' ? 4 : 3)
+//     ) {
+//       homeTeam.push({
+//         team: 'home',
+//         cardId: card.id,
+//         stamina: card.endurance,
+//         tilePosition: getTilePositionForPlayer(
+//           card.rosterPosition,
+//           'home',
+//           positionCount(homeTeam, card.rosterPosition)
+//         ),
+//       });
+//     } else if (
+//       positionCount(awayTeam, card.rosterPosition) <
+//       (card.rosterPosition === 'GK' ? 1 : card.rosterPosition === 'DEF' ? 4 : 3)
+//     ) {
+//       awayTeam.push({
+//         team: 'away',
+//         cardId: card.id,
+//         stamina: card.endurance,
+//         tilePosition: getTilePositionForPlayer(
+//           card.rosterPosition,
+//           'away',
+//           positionCount(awayTeam, card.rosterPosition)
+//         ),
+//       });
+//     }
+//   }
+
+//   return [...homeTeam, ...awayTeam];
+// };
+
+// function getTilePositionForPlayer(
+//   position: StrikersPlayerPosition,
+//   team: StrikersTeam,
+//   playerIndex: number
+// ): [number, number] {
+//   // Define the column for each position and team
+//   const columns = {
+//     home: {
+//       GK: 0,
+//       DEF: 1,
+//       MID: 3,
+//       FWD: 5,
+//     },
+//     away: {
+//       GK: 12,
+//       DEF: 10,
+//       MID: 8,
+//       FWD: 7,
+//     },
+//   } as const;
+
+//   // The row for the player depends on their index within their position group
+//   const row = playerIndex * 2; // assuming 2 spaces between each player in a column
+
+//   return [columns[team][position], row];
 // }
-
-type InitializeLineupService = (cards: StrikersCard[]) => StrikersBoard;
-
-const initializeBoard: InitializeLineupService = (cards) => {
-  // Shuffle the cards to ensure randomness
-  cards.sort(() => Math.random() - 0.5);
-
-  const cardsById: Record<StrikersCard['id'], StrikersCard> = {};
-  cards.forEach((card) => (cardsById[card.id] = card));
-
-  // Initialize empty lists for each position
-  const homeTeam: StrikersBoardCard[] = [];
-  const awayTeam: StrikersBoardCard[] = [];
-
-  // Distribute the cards to each team
-  for (const card of cards) {
-    const positionCount = (team: StrikersBoardCard[], position: string) =>
-      team.filter(
-        (playerCard) => cardsById[playerCard.cardId].rosterPosition === position
-      ).length;
-
-    if (
-      positionCount(homeTeam, card.rosterPosition) <
-      (card.rosterPosition === 'GK' ? 1 : card.rosterPosition === 'DEF' ? 4 : 3)
-    ) {
-      homeTeam.push({
-        team: 'home',
-        cardId: card.id,
-        stamina: card.endurance,
-        tilePosition: getTilePositionForPlayer(
-          card.rosterPosition,
-          'home',
-          positionCount(homeTeam, card.rosterPosition)
-        ),
-      });
-    } else if (
-      positionCount(awayTeam, card.rosterPosition) <
-      (card.rosterPosition === 'GK' ? 1 : card.rosterPosition === 'DEF' ? 4 : 3)
-    ) {
-      awayTeam.push({
-        team: 'away',
-        cardId: card.id,
-        stamina: card.endurance,
-        tilePosition: getTilePositionForPlayer(
-          card.rosterPosition,
-          'away',
-          positionCount(awayTeam, card.rosterPosition)
-        ),
-      });
-    }
-  }
-
-  // Join the teams and create the initial board state
-  const initialBoardState: StrikersBoard = {
-    ballPosition: [0, 0], // assuming the ball starts at the center
-    possession: Math.random() > 0.5 ? 'away' : 'home', // todo flip a coin for a it
-    players: [...homeTeam, ...awayTeam],
-  };
-
-  return initialBoardState;
-};
-
-function getTilePositionForPlayer(
-  position: StrikersPlayerPosition,
-  team: StrikersTeam,
-  playerIndex: number
-): [number, number] {
-  // Define the column for each position and team
-  const columns = {
-    home: {
-      GK: 0,
-      DEF: 1,
-      MID: 3,
-      FWD: 5,
-    },
-    away: {
-      GK: 12,
-      DEF: 10,
-      MID: 8,
-      FWD: 7,
-    },
-  } as const;
-
-  // The row for the player depends on their index within their position group
-  const row = playerIndex * 2; // assuming 2 spaces between each player in a column
-
-  return [columns[team][position], row];
-}
