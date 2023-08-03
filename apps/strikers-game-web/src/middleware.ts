@@ -1,21 +1,41 @@
-import {
-  ApiRouter,
-  generateSnowflakeId,
-  transformer,
-} from '@explorers-club/api-client';
-import type { ConnectionAccessTokenProps, RouteProps } from '@schema/types';
-import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
-import type { AstroCookies } from 'astro';
+import { generateSnowflakeId } from '@api/ids';
 import * as JWT from 'jsonwebtoken';
+import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
+import type { ConnectionAccessTokenProps, RouteProps } from '@schema/types';
+import type { AstroCookies, MiddlewareResponseHandler, Params } from 'astro';
+import { sequence } from 'astro/middleware';
+import { ApiRouter, transformer } from '@explorers-club/api-client';
+import { defineMiddleware } from 'astro/middleware';
+import { getRouteProps } from './routing';
 
-export const initAccessToken = (
+const authHandler: MiddlewareResponseHandler = defineMiddleware(
+  (context, next) => {
+    const { cookies, url, locals } = context;
+
+    const routeProps = getRouteProps(url);
+
+    const { accessToken, connectionId } = initAccessToken(
+      cookies,
+      routeProps,
+      url.href
+    );
+
+    locals.accessToken = accessToken;
+    locals.connectionId = connectionId;
+
+    return next();
+  }
+);
+
+export const onRequest = sequence(authHandler);
+
+const initAccessToken = (
   cookies: AstroCookies,
   routeProps: RouteProps,
   url: string
 ) => {
   let deviceId = cookies.get('deviceId').value;
   let sessionId = cookies.get('sessionId').value;
-  // let refreshToken = cookies.get('refreshToken').value;
   let accessToken = cookies.get('accessToken').value;
 
   if (!deviceId) {

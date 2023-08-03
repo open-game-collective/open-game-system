@@ -6,7 +6,6 @@ import { FieldContext } from './field.context';
 export const Goal: FC<{ side: 'home' | 'away' }> = ({ side }) => {
   const { grid } = useContext(FieldContext);
   const xPos = (grid.pixelWidth / 2) * (side === 'home' ? 1 : -1);
-  console.log({ xPos });
 
   return (
     <mesh position={[xPos, 0, 0]}>

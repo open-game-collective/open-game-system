@@ -1,4 +1,5 @@
 import { StateSchema } from 'xstate';
+import type { Params } from 'astro';
 import { z } from 'zod';
 
 export const PlayerNameSchema = z.string();
@@ -49,7 +50,6 @@ export type LayoutIsland = z.infer<typeof LayoutIslandSchema>;
 export const LayoutPropsSchema = z.object({
   focusArea: LayoutIslandSchema.optional(),
 });
-export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
 
 export const RouteNameSchema = z.enum([
   'Home',
@@ -84,6 +84,13 @@ export const RoutePropsSchema = z.union([
   LoginRoutePropsSchema,
 ]);
 
+export const PageParamsSchema = z.union([
+  HomeRoutePropsSchema,
+  NewRoutePropsSchema,
+  RoomRoutePropsSchema,
+  LoginRoutePropsSchema,
+]);
+
 export const ConnectionAccessTokenPropsSchema = z.object({
   sub: SnowflakeIdSchema,
   deviceId: SnowflakeIdSchema,
@@ -94,5 +101,5 @@ export const ConnectionAccessTokenPropsSchema = z.object({
 
 export const SessionAccessOneTimeTokenPropsSchema = z.object({
   sub: SnowflakeIdSchema,
-  jwtid: z.literal("ONE")
+  jwtid: z.literal('ONE'),
 });

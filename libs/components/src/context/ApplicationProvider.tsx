@@ -1,25 +1,20 @@
-import { ApplicationContext } from '@context/ApplicationContext';
-import { LayoutProvider } from '@context/LayoutProvider';
 import { WorldProvider } from '@context/WorldProvider';
 import { transformer, trpc } from '@explorers-club/api-client';
-import type { Entity, RouteProps, SnowflakeId } from '@explorers-club/schema';
+import type { Entity, SnowflakeId } from '@explorers-club/schema';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createWSClient, loggerLink, wsLink } from '@trpc/client';
 import { enablePatches } from 'immer';
 import { World } from 'miniplex';
-import { atom } from 'nanostores';
 import { FC, ReactNode, createContext, useState } from 'react';
 
 enablePatches();
 
 export const ApplicationProvider: FC<{
   trpcUrl: string;
-  initialRouteProps: RouteProps;
   connectionId: string;
   children: ReactNode;
-}> = ({ trpcUrl, initialRouteProps, connectionId, children }) => {
+}> = ({ trpcUrl, connectionId, children }) => {
   const [world] = useState(new World<Entity>());
-  const [routeStore] = useState(atom<RouteProps>(initialRouteProps));
 
   // todo change route story when entites change
 
@@ -83,49 +78,18 @@ export const ApplicationProvider: FC<{
   );
 
   return (
-    <ApplicationContext.Provider
-      value={{
-        routeStore,
-      }}
-    >
-      <trpc.Provider client={trpcClient} queryClient={queryClient}>
-        <QueryClientProvider client={queryClient}>
-          <LayoutProvider>
-            <WorldProvider world={world}>
-              <ConnectionContext.Provider
-                value={{ myConnectionId: connectionId }}
-              >
-                {children}
-              </ConnectionContext.Provider>
-            </WorldProvider>
-          </LayoutProvider>
-        </QueryClientProvider>
-      </trpc.Provider>
-    </ApplicationContext.Provider>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <WorldProvider world={world}>
+          <ConnectionContext.Provider value={{ myConnectionId: connectionId }}>
+            {children}
+          </ConnectionContext.Provider>
+        </WorldProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
   );
 };
 
 export const ConnectionContext = createContext(
   {} as { myConnectionId?: SnowflakeId }
 );
-
-// const getCurrentRouteFromState = (entity: ConnectionEntity) => {
-//   switch (entity.states.Route) {
-//     case 'Home':
-//       return '/';
-//     case 'Login':
-//       return '/login';
-//     case 'NewRoom':
-//       return '/new';
-//     case 'Room':
-//       return `/${entity.currentRoomSlug}`;
-//     default:
-//       return '/not-found';
-//   }
-// };
-
-// const updateUrl = (path: string) => {
-//   if (typeof window !== 'undefined' && path !== window.location.pathname) {
-//     history.replaceState({}, '', path);
-//   }
-// };

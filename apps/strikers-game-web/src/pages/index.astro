@@ -1,17 +1,14 @@
 ---
-import { HomeScene } from '../components/HomeScene';
+import { assertRouteName } from '@explorers-club/utils';
+import { App } from '../components/App';
 import Layout from '../layouts/Layout.astro';
+import { getRouteProps } from '../routing';
+import { HomeScene } from '../components/HomeScene';
+
+const routeProps = getRouteProps(Astro.url);
+assertRouteName(routeProps, 'Home');
 ---
 
 <Layout title="Strikers: The Beautiful Trading Card Game™️">
-  <div
-    style={{
-      background: 'black',
-      width: '100vw',
-      height: '100vh',
-      position: 'relative',
-    }}
-  >
-    <HomeScene client:only />
-  </div>
+  <HomeScene client:only />
 </Layout>

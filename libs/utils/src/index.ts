@@ -1,4 +1,4 @@
-import { Entity } from '@explorers-club/schema';
+import { Entity, RouteProps } from '@explorers-club/schema';
 import { World } from 'miniplex';
 import { Observable, Subject } from 'rxjs';
 import { EventObject } from 'xstate';
@@ -26,6 +26,25 @@ export function assertType<
     );
   }
 }
+
+export function assertRouteName<
+  TRouteProps extends RouteProps,
+  TRouteName extends RouteProps['name']
+>(
+  routeProps: TRouteProps,
+  routeName: TRouteName
+): asserts routeProps is TRouteProps & { name: TRouteName } {
+  assert(
+    routeProps.name === routeName,
+    `expected routeProps for ${routeName} but route was` + routeProps.name
+  );
+}
+
+// assert(
+//   routeProps.name === 'Room',
+//   'expected routeProps for room but route was',
+//   routeProps.name
+// );
 
 export function assertEntitySchema<
   TEntity extends Entity,

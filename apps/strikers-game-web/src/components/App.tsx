@@ -1,22 +1,26 @@
 import { Flex } from '@atoms/Flex';
 import { ApplicationContext } from '@context/ApplicationContext';
 import { LayoutContext } from '@context/LayoutContext';
+import { LayoutProvider } from '@context/LayoutProvider';
 import { WorldContext } from '@context/WorldProvider';
-import type { RouteProps } from '@explorers-club/schema';
+import type { RouteProps, SnowflakeId } from '@explorers-club/schema';
 import { styled } from '@explorers-club/styles';
 import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
 import { useMyUserEntityStore } from '@hooks/useMyUserEntityStore';
 import { useStore } from '@nanostores/react';
 import { Chat, ChatContext } from '@organisms/chat';
-import { FC, useContext } from 'react';
+import { atom } from 'nanostores';
+import { FC, useContext, useState } from 'react';
 import { ChannelListDialog } from './ChannelListDialog';
 import { Menu } from './Menu';
-import { RoutePanel } from './RoutePanel';
-import { ScenePanel } from './ScenePanel';
 import { Modal } from './Modal';
+import { ScenePanel } from './ScenePanel';
+import { ApplicationProvider } from '@context/ApplicationProvider';
 
 interface Props {
   initialRouteProps: RouteProps;
+  connectionId: SnowflakeId;
+  trpcUrl: string;
 }
 
 const AppContainer = styled('div', {
@@ -30,18 +34,27 @@ const AppContainer = styled('div', {
   flexDirection: 'column',
 });
 
-export const App: FC<Props> = ({ initialRouteProps }) => {
-  const { routeStore } = useContext(ApplicationContext);
-  routeStore.set(initialRouteProps);
+export const App: FC<Props> = ({
+  initialRouteProps,
+  connectionId,
+  trpcUrl,
+}) => {
+  const [routeStore] = useState(atom(initialRouteProps));
 
   return (
-    <AppContainer>
-      <ScenePanel />
-      <Menu />
-      <ChannelListDialog />
-      <MainPanel />
-      <Modal />
-    </AppContainer>
+    <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
+      <ApplicationContext.Provider value={{ routeStore }}>
+        <AppContainer>
+          <LayoutProvider>
+            <ScenePanel />
+            <Menu />
+            <ChannelListDialog />
+            <MainPanel />
+            <Modal />
+          </LayoutProvider>
+        </AppContainer>
+      </ApplicationContext.Provider>
+    </ApplicationProvider>
   );
 };
 

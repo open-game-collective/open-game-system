@@ -4,6 +4,7 @@ import { IndexByType, InterpreterFrom, StateMachine } from 'xstate';
 import { z } from 'zod';
 import {
   ConnectionAccessTokenPropsSchema,
+  LayoutPropsSchema,
   RouteNameSchema,
   RoutePropsSchema,
   SnowflakeIdSchema,
@@ -747,3 +748,5 @@ export type ConnectionAccessTokenProps = z.infer<
 >;
 
 export type LobbyGameConfig = z.infer<typeof LobbyGameConfigSchema>;
+
+export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
