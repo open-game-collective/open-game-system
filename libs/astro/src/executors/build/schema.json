@@ -41,10 +41,22 @@
       "type": "string",
       "description": "URL of the deployed application."
     },
+    "watch": {
+      "type": "boolean",
+      "default": true
+    },
     "verbose": {
       "type": "boolean",
       "description": "Enable verbose logging.",
       "default": false
+    },
+    "outputPath": {
+      "type": "string",
+      "description": "the directory where the entrypoint will go"
+    },
+    "outputFileName": {
+      "type": "string",
+      "description": "the filename of the entrypoint"
     }
   },
   "additionalProperties": false,
