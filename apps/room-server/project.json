@@ -5,14 +5,16 @@
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nx/node:webpack",
+      "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
       "options": {
         "generatePackageJson": true,
         "outputPath": "dist/apps/room-server",
         "main": "apps/room-server/src/main.ts",
         "tsConfig": "apps/room-server/tsconfig.app.json",
-        "assets": ["apps/room-server/src/assets"]
+        "assets": ["apps/room-server/src/assets"],
+        "compiler": "tsc",
+        "target": "node"
       },
       "configurations": {
         "production": {
@@ -37,7 +39,7 @@
       }
     },
     "serve": {
-      "executor": "@nx/node:node",
+      "executor": "@nx/js:node",
       "options": {
         "buildTarget": "room-server:build"
       },
