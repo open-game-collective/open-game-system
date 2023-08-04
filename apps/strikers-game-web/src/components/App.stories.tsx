@@ -213,7 +213,7 @@ const initAccessToken = async (routeProps: RouteProps, url: string) => {
     transformer,
     links: [
       httpBatchLink({
-        url: PUBLIC_API_HTTP_SERVER_URL,
+        url: 'http://localhost:4400/trpc',
         // You can pass any HTTP headers you wish here
         async headers() {
           return {
