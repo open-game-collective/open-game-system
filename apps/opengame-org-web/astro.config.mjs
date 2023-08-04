@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  outDir: '../../dist/apps/opengames-org-web',
+  outDir: '../../dist/apps/opengame-org-web',
   experimental: {
     assets: true,
   },

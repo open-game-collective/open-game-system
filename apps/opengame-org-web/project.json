@@ -2,7 +2,7 @@
   "name": "opengame-org-web",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "apps/opengames-org-web/src",
+  "sourceRoot": "apps/opengame-org-web/src",
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
@@ -34,8 +34,9 @@
       "options": {
         "host": "0.0.0.0",
         "buildTarget": "opengame-org-web:build",
+        "watch": false,
         "parallel": false,
-        "staticFilePath": "dist/apps/opengames-org-web"
+        "staticFilePath": "dist/apps/opengame-org-web"
       }
     }
   },
