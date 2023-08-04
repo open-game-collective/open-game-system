@@ -40,9 +40,7 @@ wss.on('connection', (ws, req) => {
     const accessToken = url.searchParams.get('accessToken');
     assert(accessToken, 'failed to parse for accessToken');
 
-    const verifiedToken = JWT.verify(accessToken, 'my_private_key', {
-      jwtid: 'ACCESS_TOKEN',
-    });
+    const verifiedToken = JWT.verify(accessToken, 'my_private_key');
 
     const { sub } = ConnectionAccessTokenPropsSchema.parse(verifiedToken);
     const entity = entitiesById.get(sub);

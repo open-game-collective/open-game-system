@@ -19,6 +19,7 @@
     "start": {
       "executor": "@nx/js:node",
       "options": {
+        "watch": false,
         "buildTarget": "strikers-game-web:build",
         "host": "0.0.0.0"
       }
