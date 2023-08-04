@@ -6,20 +6,22 @@
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
-      "executor": "@nxtensions/astro:build",
-      "options": {}
+      "executor": "@ogc/astro:build",
+      "options": {
+        "outputPath": "dist/apps/strikers-game-web/dist/server",
+        "outputFileName": "entry.mjs"
+      }
     },
     "dev": {
       "executor": "@nxtensions/astro:dev",
       "options": {}
     },
     "start": {
-      "executor": "@nx/web:file-server",
+      "executor": "@nx/js:node",
       "options": {
-        "host": "0.0.0.0",
+        "watch": false,
         "buildTarget": "strikers-game-web:build",
-        "parallel": false,
-        "staticFilePath": "dist/apps/strikers-game-web"
+        "host": "0.0.0.0"
       }
     },
     "preview": {

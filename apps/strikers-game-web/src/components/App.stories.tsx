@@ -48,14 +48,14 @@ const RoomWrapper: FC<{ slug: string }> = (props) => {
     return <></>;
   }
 
+  const trpcUrl = `${PUBLIC_API_WS_SERVER_URL}/?accessToken=${creds.accessToken}`;
+
   return (
-    <ApplicationProvider
-      trpcUrl={`${PUBLIC_API_WS_SERVER_URL}/?accessToken=${creds.accessToken}`}
+    <App
       initialRouteProps={routeProps}
       connectionId={creds.connectionId}
-    >
-      <App initialRouteProps={routeProps} />
-    </ApplicationProvider>
+      trpcUrl={trpcUrl}
+    />
   );
 };
 

@@ -1,0 +1,64 @@
+{
+  "version": 2,
+  "outputCapture": "direct-nodejs",
+  "$schema": "http://json-schema.org/schema",
+  "$id": "NxAstroBuildExecutor",
+  "cli": "nx",
+  "title": "Astro build executor",
+  "type": "object",
+  "properties": {
+    "config": {
+      "type": "string",
+      "description": "Specify the path, relative to the project root, to the Astro config file."
+    },
+    "drafts": {
+      "type": "boolean",
+      "description": "Include markdown draft pages in the build.",
+      "default": false
+    },
+    "deleteOutputPath": {
+      "type": "boolean",
+      "description": "Delete the output path before building.",
+      "default": true
+    },
+    "host": {
+      "description": "Expose server on network.",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "silent": {
+      "type": "boolean",
+      "description": "Disable logging.",
+      "default": false
+    },
+    "site": {
+      "type": "string",
+      "description": "URL of the deployed application."
+    },
+    "watch": {
+      "type": "boolean",
+      "default": true
+    },
+    "verbose": {
+      "type": "boolean",
+      "description": "Enable verbose logging.",
+      "default": false
+    },
+    "outputPath": {
+      "type": "string",
+      "description": "the directory where the entrypoint will go"
+    },
+    "outputFileName": {
+      "type": "string",
+      "description": "the filename of the entrypoint"
+    }
+  },
+  "additionalProperties": false,
+  "required": []
+}

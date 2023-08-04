@@ -160,9 +160,7 @@ export const createContextWebsocket = async (opts: {
 export type TRPCContext = inferAsyncReturnType<typeof createContextInner>;
 
 const parseAccessToken = (accessToken: string) => {
-  const verifiedToken = JWT.verify(accessToken, 'my_private_key', {
-    jwtid: 'ACCESS_TOKEN',
-  });
+  const verifiedToken = JWT.verify(accessToken, 'my_private_key');
 
   return ConnectionAccessTokenPropsSchema.parse(verifiedToken);
 };
