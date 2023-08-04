@@ -13,7 +13,7 @@
       "path": "./tsconfig.lib.json"
     },
     {
-      "path": "./tsconfig.storybook.json"
+      "path": "./.storybook/tsconfig.json"
     }
   ],
   "extends": "../../tsconfig.base.json"

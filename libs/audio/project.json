@@ -11,8 +11,7 @@
         "outputPath": "dist/libs/audio",
         "main": "libs/audio/src/index.ts",
         "tsConfig": "libs/audio/tsconfig.lib.json",
-        "assets": ["libs/audio/*.md"],
-        "updateBuildableProjectDepsInPackageJson": true
+        "assets": ["libs/audio/*.md"]
       }
     },
     "lint": {

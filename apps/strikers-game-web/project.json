@@ -14,17 +14,12 @@
       "options": {}
     },
     "start": {
-      "executor": "@nx/js:node",
+      "executor": "@nx/web:file-server",
       "options": {
+        "host": "0.0.0.0",
         "buildTarget": "strikers-game-web:build",
-        "buildTargetOptions": {
-          "outputFileName": "dist/apps/strikers-game-web/dist/server/entry.mjs"
-        }
-      },
-      "configurations": {
-        "production": {
-          "buildTarget": "strikers-game-web:build:production"
-        }
+        "parallel": false,
+        "staticFilePath": "dist/apps/strikers-game-web"
       }
     },
     "preview": {
