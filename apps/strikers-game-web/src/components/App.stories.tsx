@@ -47,6 +47,7 @@ const RoomWrapper: FC<{ slug: string }> = (props) => {
   if (!creds) {
     return <></>;
   }
+
   const trpcUrl = `${PUBLIC_API_WS_SERVER_URL}/?accessToken=${creds.accessToken}`;
 
   return (
@@ -55,13 +56,6 @@ const RoomWrapper: FC<{ slug: string }> = (props) => {
       connectionId={creds.connectionId}
       trpcUrl={trpcUrl}
     />
-    // <ApplicationProvider
-    //   trpcUrl={`${PUBLIC_API_WS_SERVER_URL}/?accessToken=${creds.accessToken}`}
-    //   initialRouteProps={routeProps}
-    //   connectionId={creds.connectionId}
-    // >
-    //   <App initialRouteProps={routeProps} />
-    // </ApplicationProvider>
   );
 };
 

@@ -1,5 +1,5 @@
 import { generateSnowflakeId } from '@api/ids';
-import jwt from 'jwt-simple';
+import * as jose from 'jose';
 import type { RouteProps } from '@schema/types';
 import type { AstroCookies, MiddlewareResponseHandler } from 'astro';
 import { defineMiddleware, sequence } from 'astro/middleware';
@@ -7,6 +7,8 @@ import { getRouteProps } from './routing';
 import type { ApiRouter } from '@api/index';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { transformer } from '@api/transformer';
+
+const alg = 'HS256';
 
 const authHandler: MiddlewareResponseHandler = defineMiddleware(
   async (context, next) => {
@@ -98,21 +100,34 @@ const initAccessToken = async (
   // }
 
   if (!accessToken) {
-    const payload = {
+    // const payload = {
+    //   deviceId,
+    //   sessionId,
+    //   initialRouteProps: routeProps,
+    //   url,
+    //   jwtid: 'ACCESS_TOKEN', // JWT ID
+    //   sub: connectionId, // Subject
+    // };
+    // const secret = 'my_private_key'; // You should store this securely
+    // accessToken = jwt.encode(payload, secret, undefined, {
+    //   header: {
+    //     exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // Expires in 1 day
+    //     iss: 'explorers-game-web', // Issuer
+    //   },
+    // });
+    const jwt = new jose.SignJWT({
       deviceId,
       sessionId,
       initialRouteProps: routeProps,
       url,
-      jwtid: 'ACCESS_TOKEN', // JWT ID
-      sub: connectionId, // Subject
-    };
-    const secret = 'my_private_key'; // You should store this securely
-    accessToken = jwt.encode(payload, secret, undefined, {
-      header: {
-        exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // Expires in 1 day
-        iss: 'explorers-game-web', // Issuer
-      },
-    });
+    })
+      .setProtectedHeader({ alg })
+      .setSubject(connectionId)
+      .setExpirationTime('1d')
+      .setJti('ACCESS_TOKEN')
+      .setIssuer('STORYBOOK');
+    const secret = new TextEncoder().encode('my_private_key');
+    accessToken = await jwt.sign(secret);
 
     cookies.set('accessToken', accessToken, {
       maxAge: 24 * 60 * 60, // 24 hours
