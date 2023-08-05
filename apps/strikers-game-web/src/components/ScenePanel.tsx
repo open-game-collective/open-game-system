@@ -19,11 +19,6 @@ import { StrikersSceneManager } from '../../../../games/strikers/src/client/scen
 import { BottomNav } from './BottomNav';
 import { TopNav } from './TopNav';
 import { getProject } from '@theatre/core';
-import studio from '@theatre/studio';
-import extension from '@theatre/r3f/dist/extension';
-
-studio.initialize();
-studio.extend(extension);
 
 const sheet = getProject('Demo Project').sheet('Demo Sheet');
 
