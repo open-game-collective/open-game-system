@@ -11,7 +11,7 @@ import {
   UserEntity,
 } from '@explorers-club/schema';
 import { AnyFunction, assert } from '@explorers-club/utils';
-import { applyPatch } from 'fast-json-patch';
+import { Operation, applyPatch } from 'fast-json-patch';
 import { createIndex } from 'libs/api/src/world';
 import { World } from 'miniplex';
 import { Atom, WritableAtom, atom } from 'nanostores';
@@ -154,6 +154,14 @@ export const WorldProvider: FC<{
             }
             console.log({ patches: change.patches });
 
+            /**
+             * Applies any to-level "add" or "remove" operations on the entity
+             * to the world/ecs so indexes can updates.
+             *
+             * All other operations are batched together and applied to the
+             * entity directly
+             */
+            const changeOps: Operation[] = [];
             for (const operation of change.patches) {
               if (operation.path.match(/^\/\w+$/) && operation.op === 'add') {
                 const pathParts = operation.path.split('/');
@@ -167,10 +175,14 @@ export const WorldProvider: FC<{
                 const component = pathParts[1] as keyof typeof entity;
                 world.removeComponent(entity, component);
               } else {
-                applyPatch(entity, change.patches);
+                changeOps.push(operation);
               }
             }
+            if (changeOps.length) {
+              applyPatch(entity, changeOps);
+            }
 
+            // Notify observers about changes
             const next = nextFnById.get(entity.id);
             assert(
               next,
