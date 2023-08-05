@@ -20,7 +20,13 @@ import { BottomNav } from './BottomNav';
 import { TopNav } from './TopNav';
 import { getProject } from '@theatre/core';
 
-const sheet = getProject('Demo Project').sheet('Demo Sheet');
+const state = {
+  sheetsById: {},
+  definitionVersion: '0.4.0',
+  revisionHistory: ['Tiv5mLLJzgHUMkcw'],
+};
+
+const sheet = getProject('Demo Project', { state }).sheet('Demo Sheet');
 
 export const ScenePanel = () => {
   const { isMainPanelFocusedStore } = useContext(LayoutContext);
