@@ -22,10 +22,6 @@ studio.extend(extension);
 
 const sheet = getProject('Demo Project').sheet('Demo Sheet');
 
-sheet.sequence.attachAudio({ source: '/strikers_intro.mp3' }).then(() => {
-  // console.log("audio context loaded")
-});
-
 const gridStore = atom(
   new Grid(defineHex(), rectangle({ width: 26, height: 20 }))
 );
@@ -35,7 +31,10 @@ export const HomeScene = () => {
 
   const handlePlay = useCallback(() => {
     sheet.sequence.position = 0;
-    sheet.sequence.play();
+    sheet.sequence.attachAudio({ source: '/strikers_intro.mp3' }).then(() => {
+      sheet.sequence.play();
+      // console.log("audio context loaded")
+    });
   }, [sheet]);
 
   return (
