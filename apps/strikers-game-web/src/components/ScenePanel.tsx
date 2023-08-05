@@ -1,5 +1,7 @@
 // import { isMainSceneFocusedStore } from '../global/layout';
 import { Box } from '@atoms/Box';
+import { SheetProvider } from '@theatre/r3f';
+
 import { OrbitControls, useContextBridge } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 // import { GoogleMaps } from './GoogleMaps';
@@ -16,6 +18,14 @@ import { useContext } from 'react';
 import { StrikersSceneManager } from '../../../../games/strikers/src/client/scene-manager';
 import { BottomNav } from './BottomNav';
 import { TopNav } from './TopNav';
+import { getProject } from '@theatre/core';
+import studio from '@theatre/studio';
+import extension from '@theatre/r3f/dist/extension';
+
+studio.initialize();
+studio.extend(extension);
+
+const sheet = getProject('Demo Project').sheet('Demo Sheet');
 
 export const ScenePanel = () => {
   const { isMainPanelFocusedStore } = useContext(LayoutContext);
@@ -48,9 +58,11 @@ export const ScenePanel = () => {
       <BottomNav />
       <div id="map" style={{ height: '100%' }} />
       <Canvas style={{ position: 'absolute', left: 0, top: 0 }}>
-        <ContextBridge>
-          <SceneManager />
-        </ContextBridge>
+        <SheetProvider sheet={sheet}>
+          <ContextBridge>
+            <SceneManager />
+          </ContextBridge>
+        </SheetProvider>
       </Canvas>
     </Box>
   );

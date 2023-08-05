@@ -1,6 +1,5 @@
 import { SunsetSky } from '@3d/sky';
 import { useStore } from '@nanostores/react';
-import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import {
   CameraRigContext,
@@ -8,10 +7,19 @@ import {
 } from '@strikers/client/components/camera-rig.context';
 import { Field } from '@strikers/client/components/field';
 import { Goal } from '@strikers/client/components/goal';
+import { getProject } from '@theatre/core';
+import { SheetProvider } from '@theatre/r3f';
+import extension from '@theatre/r3f/dist/extension';
+import studio from '@theatre/studio';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { atom } from 'nanostores';
 import { useContext, useEffect } from 'react';
 import { Vector3 } from 'three';
+
+studio.initialize();
+studio.extend(extension);
+
+const demoSheet = getProject('Demo Project').sheet('Demo Sheet');
 
 const gridStore = atom(
   new Grid(defineHex(), rectangle({ width: 26, height: 20 }))
@@ -32,14 +40,22 @@ export const HomeScene = () => {
       }}
       camera={{ position: new Vector3(0, 1000, 1000) }}
     >
-      <CameraRigProvider grid={grid}>
-        <AnimationSequence />
-        <SunsetSky />
-        <Field grid={grid}>
-          <Goal side="home" />
-          <Goal side="away" />
-        </Field>
-      </CameraRigProvider>
+      <SheetProvider sheet={demoSheet}>
+        <CameraRigProvider grid={grid}>
+          {/* <PerspectiveCamera
+          attachArray={undefined}
+          attachObject={undefined}
+          attachFns={undefined}
+          theatreKey={'Camera'}
+        /> */}
+          <AnimationSequence />
+          <SunsetSky />
+          <Field grid={grid}>
+            <Goal side="home" />
+            <Goal side="away" />
+          </Field>
+        </CameraRigProvider>
+      </SheetProvider>
     </Canvas>
   );
 };
