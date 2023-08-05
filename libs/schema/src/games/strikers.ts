@@ -372,6 +372,7 @@ const StrikersTurnEntityPropsSchema = z.object({
   schema: StrikersTurnSchemaTypeLiteral,
   stagedGameState: StrikersGameStateSchema,
   startedAt: z.date(),
+  gameEntityId: SnowflakeIdSchema,
   side: StrikersSideSchema,
   playerId: SnowflakeIdSchema,
   totalActionCount: z.number(),
@@ -417,9 +418,11 @@ const StrikersRollCommandSchema = z.object({
 });
 
 export const StrikersTurnCommandSchema = z.discriminatedUnion('type', [
-  StrikersMoveActionCommandSchema,
-  StrikersPassActionCommandSchema,
-  StrikersShootActionCommandSchema,
+  // StrikersMoveActionCommandSchema,
+  // StrikersPassActionCommandSchema,
+  // StrikersShootActionCommandSchema,
+  MultipleChoiceConfirmCommandSchema,
+  MultipleChoiceSelectCommandSchema,
   // StrikersRollCommandSchema,
 ]);
 
@@ -448,7 +451,7 @@ export const StrikersEffectContextSchema = z.object({
 });
 
 export const StrikersTurnContextSchema = z.object({
-  foo: z.string(),
+  actionMessageIds: z.array(z.string()),
 });
 
 const StrikersPlayerEntityPropSchema = z.object({

@@ -19,7 +19,7 @@ import {
 import { assert, assertEntitySchema } from '@explorers-club/utils';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
-import { channelsById, entitiesById } from '../server/state';
+import { channelObservablesById, entitiesById } from '../server/state';
 
 // return createMachine({
 //   id: 'MessageChannelMachine',
@@ -42,7 +42,7 @@ export const createMessageChannelMachine = ({
   const messageChannelEntity = entity as MessageChannelEntity;
   const channelEntity = entitiesById.get(messageChannelEntity.channelId);
   assert(channelEntity, "expected channelEntity but wasn't found");
-  const channel = channelsById.get(channelEntity.id);
+  const channel = channelObservablesById.get(channelEntity.id);
   assert(channel, 'expected channel but was undefined');
 
   const userEntity = entitiesById.get(messageChannelEntity.userId);
@@ -107,7 +107,7 @@ export const createMessageChannelMachine = ({
                 });
 
                 // Keep the machine invoked/listening
-                const parentChannel = channelsById.get(channelEntity.id);
+                const parentChannel = channelObservablesById.get(channelEntity.id);
                 assert(
                   parentChannel,
                   'expect parentChannel when subscribing to chanel'

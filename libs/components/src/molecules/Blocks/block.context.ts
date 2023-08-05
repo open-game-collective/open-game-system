@@ -1,5 +1,7 @@
 import type {
+  BlockCommand,
   ChannelEntity,
+  Entity,
   MessageContentBlock,
   MessageEvent,
 } from '@schema/types';
@@ -10,5 +12,6 @@ export const BlockContext = createContext(
     block: MessageContentBlock;
     message: MessageEvent;
     channelEntity: ChannelEntity;
+    respond: (input: BlockCommand) => void;
   }
 );

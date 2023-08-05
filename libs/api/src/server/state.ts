@@ -1,11 +1,18 @@
-import { ChannelEvent, Entity, SnowflakeId } from '@explorers-club/schema';
+import { ChannelEvent, ChannelEventInput, Entity, SnowflakeId } from '@explorers-club/schema';
 import { World } from 'miniplex';
+import { Observable, ReplaySubject } from 'rxjs';
 import { createIndex } from '../world';
-import { Observable } from 'rxjs';
 
 export const world = new World<Entity>();
 export const entitiesById = createIndex(world);
-export const channelsById = new Map<SnowflakeId, Observable<ChannelEvent>>();
+export const channelObservablesById = new Map<
+  SnowflakeId,
+  Observable<ChannelEvent>
+>();
+export const channelSubjectsById = new Map<
+  SnowflakeId,
+  ReplaySubject<ChannelEventInput>
+>();
 
 // todo make persistence
 // pretend this is a database table

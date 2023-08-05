@@ -3,6 +3,7 @@ import { Operation } from 'fast-json-patch';
 import { IndexByType, InterpreterFrom, StateMachine } from 'xstate';
 import { z } from 'zod';
 import {
+  BlockCommandSchema,
   ConnectionAccessTokenPropsSchema,
   LayoutPropsSchema,
   RouteNameSchema,
@@ -750,3 +751,5 @@ export type ConnectionAccessTokenProps = z.infer<
 export type LobbyGameConfig = z.infer<typeof LobbyGameConfigSchema>;
 
 export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
+
+export type BlockCommand = z.infer<typeof BlockCommandSchema>;

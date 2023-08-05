@@ -80,7 +80,7 @@ export const ApplicationProvider: FC<{
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <WorldProvider world={world}>
+        <WorldProvider world={world} connectionId={connectionId}>
           <ConnectionContext.Provider value={{ myConnectionId: connectionId }}>
             {children}
           </ConnectionContext.Provider>

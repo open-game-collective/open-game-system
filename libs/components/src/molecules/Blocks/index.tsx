@@ -1,9 +1,18 @@
+import { Box } from '@atoms/Box';
+import { Button } from '@atoms/Button';
+import { Text } from '@atoms/Text';
+import { WorldContext } from '@context/WorldProvider';
 import { assertEntitySchema, assertType } from '@explorers-club/utils';
+import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
+import { useEntityIdSelector } from '@hooks/useEntityIdSelector';
+import { useStore } from '@nanostores/react';
 import {
+  BlockCommand,
   ChannelEntity,
   MessageContentBlock,
   MessageEvent,
 } from '@schema/types';
+import { strikersMessageBlockMap } from '@strikers/client/components/ui/message-blocks';
 import React, {
   MouseEventHandler,
   useCallback,
@@ -11,15 +20,6 @@ import React, {
   useState,
 } from 'react';
 import { BlockContext } from './block.context';
-import { useEntityIdSelector } from '@hooks/useEntityIdSelector';
-import { WorldContext, WorldProvider } from '@context/WorldProvider';
-import { strikersMessageBlockMap } from '@strikers/client/components/ui/message-blocks';
-import { GameId } from '@schema/literals';
-import { ConnectionContext } from '@context/ApplicationProvider';
-import { useConnectionEntity } from '@hooks/useConnectionEntity';
-import { Box } from '@atoms/Box';
-import { Text } from '@atoms/Text';
-import { Button } from '@atoms/Button';
 
 const PlainMessageBlock = () => {
   const { block } = useContext(BlockContext);
@@ -33,15 +33,16 @@ const PlainMessageBlock = () => {
 };
 
 const MultipleChoiceBlock = () => {
-  const { block, channelEntity } = useContext(BlockContext);
+  const { block, respond } = useContext(BlockContext);
   const [selectedValue, setSelectValue] = useState<string | null>(null);
   assertType(block, 'MultipleChoice');
+  console.log(block.options);
 
   const handleClickSubmit = useCallback(() => {
-    channelEntity.send({
+    respond({
       type: 'MULTIPLE_CHOICE_CONFIRM',
     });
-  }, [channelEntity]);
+  }, [respond]);
 
   const handleClickOption: MouseEventHandler<HTMLButtonElement> = useCallback(
     (event) => {
@@ -54,12 +55,12 @@ const MultipleChoiceBlock = () => {
       }
       setSelectValue(value);
 
-      channelEntity.send({
+      respond({
         type: 'MULTIPLE_CHOICE_SELECT',
         value: value,
       });
     },
-    [channelEntity, setSelectValue]
+    [setSelectValue]
   );
 
   return (
@@ -67,6 +68,7 @@ const MultipleChoiceBlock = () => {
       <Text>{block.text}</Text>
       <ul style={{ listStyle: 'none' }}>
         {block.options.map(({ value, name }) => {
+          console.log(block.options);
           return (
             <Button
               key={value}
@@ -156,8 +158,34 @@ export const MessageContent: React.FC<{
   // ts hack to get around not having game-specfici type info in allBlocks
   const Component = allBlocks[block.type as unknown as keyof typeof allBlocks];
   const { entitiesById } = useContext(WorldContext);
+
+  const channelEntityStore = useCreateEntityStore<ChannelEntity>(
+    (entity) => entity.id === message.channelId,
+    [message.channelId]
+  );
+
+  const responderId = message.responderId || message.channelId;
+
   // warn: not safe
-  const channelEntity = entitiesById.get(message.channelId) as ChannelEntity;
+  const channelEntity = useStore(channelEntityStore);
+
+  const respond = useCallback(
+    (command: BlockCommand) => {
+      const responderEntity = entitiesById.get(responderId);
+      if (!responderEntity) {
+        console.warn(
+          'unexpected missing responderEntity when responding to message'
+        );
+      } else {
+        responderEntity.send(command as any);
+      }
+    },
+    [entitiesById, responderId]
+  );
+
+  if (!channelEntity) {
+    return null;
+  }
 
   if (!Component) {
     console.warn(`No component found for block type "${block.type}"`);
@@ -171,6 +199,7 @@ export const MessageContent: React.FC<{
         block,
         message,
         channelEntity,
+        respond,
       }}
     >
       <Component />

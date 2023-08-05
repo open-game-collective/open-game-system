@@ -1,16 +1,31 @@
-import { entitiesById } from '@api/index';
+import {
+  channelObservablesById,
+  channelSubjectsById,
+  entitiesById,
+  generateSnowflakeId,
+} from '@api/index';
+import { assign } from '@xstate/immer';
 import {
   Entity,
   StrikersEffectData,
   StrikersEffectEntity,
   WithSenderId,
 } from '@explorers-club/schema';
-import { assertEntitySchema, assertEventType } from '@explorers-club/utils';
+import {
+  assert,
+  assertEntitySchema,
+  assertEventType,
+} from '@explorers-club/utils';
 import { StrikersEffectDataSchema } from '@schema/games/strikers';
-import { StrikersTurnCommand, StrikersTurnContext } from '@schema/types';
+import {
+  StrikersGameEventInput,
+  StrikersTurnCommand,
+  StrikersTurnContext,
+} from '@schema/types';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
 import * as effects from '../effects';
+import { ReplaySubject } from 'rxjs';
 
 export const createStrikersTurnMachine = ({
   world,
@@ -20,6 +35,13 @@ export const createStrikersTurnMachine = ({
   entity: Entity;
 }) => {
   assertEntitySchema(entity, 'strikers_turn');
+  const gameChannel = channelSubjectsById.get(entity.gameEntityId) as
+    | ReplaySubject<StrikersGameEventInput>
+    | undefined;
+  assert(gameChannel, 'expected gameChannel but not found');
+
+  const gameEntity = entitiesById.get(entity.gameEntityId);
+  assertEntitySchema(gameEntity, 'strikers_game');
 
   return createMachine(
     {
@@ -29,100 +51,201 @@ export const createStrikersTurnMachine = ({
         context: {} as StrikersTurnContext,
         events: {} as WithSenderId<StrikersTurnCommand>,
       },
+      context: {
+        actionMessageIds: [],
+      },
       states: {
         Status: {
           initial: 'InProgress',
           states: {
             InProgress: {
-              initial: 'WaitingForInput',
+              initial: 'SendSelectActionMessage',
               onDone: 'Complete',
               states: {
-                WaitingForInput: {
+                SendSelectActionMessage: {
+                  invoke: {
+                    onDone: {
+                      target: 'WaitingForAction',
+                      actions: assign((context, event) => {
+                        context.actionMessageIds.push(event.data);
+                      }),
+                    },
+                    src: async ({ actionMessageIds }) => {
+                      const playerId =
+                        entity.side === 'home'
+                          ? gameEntity.config.homePlayerIds[0]
+                          : gameEntity.config.awayPlayerIds[0];
+                      const playerEntity = entitiesById.get(playerId);
+                      assertEntitySchema(playerEntity, 'strikers_player');
+
+                      const id = generateSnowflakeId();
+
+                      gameChannel.next({
+                        id,
+                        type: 'MESSAGE',
+                        recipientId: playerEntity.userId,
+                        responderId: entity.id,
+                        contents: [
+                          {
+                            type: 'MultipleChoice',
+                            text: 'Choose an action',
+                            options: [
+                              {
+                                name: 'Move',
+                                value: 'MOVE',
+                              },
+                              {
+                                name: 'Pass',
+                                value: 'PASS',
+                              },
+                              {
+                                name: 'Shoot',
+                                value: 'SHOOT',
+                              },
+                            ],
+                          },
+                        ],
+                      });
+
+                      return id;
+                    },
+                  },
+                },
+                WaitingForAction: {
                   on: {
-                    MOVE: {
-                      target: 'Moving',
-                    },
-                    PASS: {
-                      target: 'Passing',
-                    },
-                    SHOOT: {
-                      target: 'Shooting',
-                    },
+                    MULTIPLE_CHOICE_SELECT: [
+                      {
+                        target: 'Moving',
+                        cond: (_, event) => event.value === 'MOVE',
+                      },
+                      {
+                        target: 'Passing',
+                        cond: (_, event) => event.value === 'PASS',
+                      },
+                      {
+                        target: 'Shooting',
+                        cond: (_, event) => event.value === 'SHOOT',
+                      },
+                    ],
                   },
                 },
                 Moving: {
-                  invoke: {
-                    src: 'runEffect',
-                    meta: (
-                      _: StrikersTurnContext,
-                      event: WithSenderId<StrikersTurnCommand>
-                    ) => {
-                      assertEventType(event, 'MOVE');
-                      // todo: get playerId from event.senderId
-                      // todo perform move, fix from/to
+                  initial: 'SendMoveMessage',
+                  states: {
+                    SendMoveMessage: {
+                      invoke: {
+                        src: async ({ actionMessageIds }) => {
+                          const messageId =
+                            actionMessageIds[actionMessageIds.length - 1];
 
-                      return {
-                        type: 'MOVE',
-                        category: 'ACTION',
-                        cardId: event.cardId,
-                        fromPosition: event.target,
-                        toPosition: event.target,
-                      } satisfies StrikersEffectData;
+                          gameChannel.next({
+                            id: messageId,
+                            type: 'MESSAGE',
+                            contents: [
+                              {
+                                type: 'MultipleChoice',
+                                text: 'Select a direction',
+                                options: [
+                                  {
+                                    name: 'NorthEast',
+                                    value: 'NE',
+                                  },
+                                  {
+                                    name: 'NorthWest',
+                                    value: 'NW',
+                                  },
+                                  {
+                                    name: 'SouthEast',
+                                    value: 'SE',
+                                  },
+                                  {
+                                    name: 'SouthWest',
+                                    value: 'SW',
+                                  },
+                                  {
+                                    name: 'West',
+                                    value: 'W',
+                                  },
+                                  {
+                                    name: 'Eeast',
+                                    value: 'E',
+                                  },
+                                ],
+                              },
+                            ],
+                          });
+                        },
+                        // onDone: 'ActionComplete',
+                        // onError: 'Error',
+                        // src: 'runEffect',
+                        // meta: (
+                        //   _: StrikersTurnContext,
+                        //   event: WithSenderId<StrikersTurnCommand>
+                        // ) => {
+                        //   assertEventType(event, 'MOVE');
+                        //   // todo: get playerId from event.senderId
+                        //   // todo perform move, fix from/to
+
+                        //   return {
+                        //     type: 'MOVE',
+                        //     category: 'ACTION',
+                        //     cardId: event.cardId,
+                        //     fromPosition: event.target,
+                        //     toPosition: event.target,
+                        //   } satisfies StrikersEffectData;
+                        // },
+                      },
                     },
-                    onDone: 'ActionComplete',
-                    onError: 'Error',
                   },
                 },
                 Passing: {
-                  invoke: {
-                    src: 'runEffect',
-                    meta: (
-                      _: StrikersTurnContext,
-                      event: WithSenderId<StrikersTurnCommand>
-                    ) => {
-                      assertEventType(event, 'PASS');
-                      // todo fix these values
-
-                      return {
-                        type: 'PASS',
-                        category: 'ACTION',
-                        fromCardId: '',
-                        fromPosition: event.target,
-                        toCardId: '',
-                        toPosition: event.target,
-                      } satisfies StrikersEffectData;
-                    },
-                    onDone: 'ActionComplete',
-                    onError: 'Error',
-                  },
+                  // invoke: {
+                  //   src: 'runEffect',
+                  //   meta: (
+                  //     _: StrikersTurnContext,
+                  //     event: WithSenderId<StrikersTurnCommand>
+                  //   ) => {
+                  //     assertEventType(event, 'PASS');
+                  //     // todo fix these values
+                  //     return {
+                  //       type: 'PASS',
+                  //       category: 'ACTION',
+                  //       fromCardId: '',
+                  //       fromPosition: event.target,
+                  //       toCardId: '',
+                  //       toPosition: event.target,
+                  //     } satisfies StrikersEffectData;
+                  //   },
+                  //   onDone: 'ActionComplete',
+                  //   onError: 'Error',
+                  // },
                 },
                 Shooting: {
-                  invoke: {
-                    src: 'runEffect',
-                    meta: (
-                      _: StrikersTurnContext,
-                      event: WithSenderId<StrikersTurnCommand>
-                    ) => {
-                      assertEventType(event, 'SHOOT');
-                      // todo fix these values
-
-                      return {
-                        type: 'SHOOT',
-                        category: 'ACTION',
-                        fromCardId: '',
-                        fromPosition: event.target,
-                        toCardId: '',
-                        toPosition: event.target,
-                      } satisfies StrikersEffectData;
-                    },
-                    onDone: 'ActionComplete',
-                    onError: 'Error',
-                  },
+                  // invoke: {
+                  //   src: 'runEffect',
+                  //   meta: (
+                  //     _: StrikersTurnContext,
+                  //     event: WithSenderId<StrikersTurnCommand>
+                  //   ) => {
+                  //     assertEventType(event, 'SHOOT');
+                  //     // todo fix these values
+                  //     return {
+                  //       type: 'SHOOT',
+                  //       category: 'ACTION',
+                  //       fromCardId: '',
+                  //       fromPosition: event.target,
+                  //       toCardId: '',
+                  //       toPosition: event.target,
+                  //     } satisfies StrikersEffectData;
+                  //   },
+                  //   onDone: 'ActionComplete',
+                  //   onError: 'Error',
+                  // },
                 },
                 ActionComplete: {
                   always: [
                     {
-                      target: 'WaitingForInput',
+                      target: 'WaitingForAction',
                       cond: 'hasActionsRemaining',
                     },
                     {

@@ -11,7 +11,7 @@ import { assign as immerAssign } from '@xstate/immer';
 import { assign, createMachine } from 'xstate';
 import { createEntity } from '../ecs';
 import { entitiesById, world } from '../server/state';
-import { channelsById } from '../server/state';
+import { channelObservablesById } from '../server/state';
 
 export const createChatMachine = <TMessage extends ChannelEvent>({
   userEntity,

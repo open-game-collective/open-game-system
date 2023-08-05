@@ -53,18 +53,21 @@ export const WorldContext = createContext({} as WorldContextType);
 
 declare global {
   interface Window {
-    $WORLD: World<Entity>;
+    $WORLDS: Record<SnowflakeId, World<Entity>>;
   }
 }
+
+window.$WORLDS = {};
 
 export const WorldProvider: FC<{
   children: ReactNode;
   world: World<Entity>;
-}> = ({ children, world }) => {
+  connectionId: SnowflakeId;
+}> = ({ children, world, connectionId }) => {
   const { client } = trpc.useContext();
   type Callback = Parameters<Entity['subscribe']>[0];
   const [entitiesById] = useState(createIndex(world));
-  // window.$WORLD = world;
+  window.$WORLDS[connectionId] = world;
   // const [subscribersById] = useState(new Map<SnowflakeId, Set<() => void>>());
   const [nextFnById] = useState(new Map<SnowflakeId, Callback>());
 
@@ -149,6 +152,7 @@ export const WorldProvider: FC<{
               console.error('missing entity when trying to apply patches');
               return;
             }
+            console.log({ patches: change.patches });
 
             for (const operation of change.patches) {
               if (operation.path.match(/^\/\w+$/) && operation.op === 'add') {

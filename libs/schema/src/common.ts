@@ -1,6 +1,10 @@
 import { StateSchema } from 'xstate';
 import type { Params } from 'astro';
 import { z } from 'zod';
+import {
+  MultipleChoiceConfirmCommandSchema,
+  MultipleChoiceSelectCommandSchema,
+} from './commands';
 
 export const PlayerNameSchema = z.string();
 
@@ -103,3 +107,8 @@ export const SessionAccessOneTimeTokenPropsSchema = z.object({
   sub: SnowflakeIdSchema,
   jwtid: z.literal('ONE'),
 });
+
+export const BlockCommandSchema = z.discriminatedUnion('type', [
+  MultipleChoiceConfirmCommandSchema,
+  MultipleChoiceSelectCommandSchema,
+]);

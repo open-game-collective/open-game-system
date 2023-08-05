@@ -27,7 +27,12 @@ import {
 } from 'xstate';
 import { generateSnowflakeId } from './ids';
 import { entityMachineMap } from './machines';
-import { channelsById, entitiesById, world } from './server/state';
+import {
+  channelObservablesById,
+  channelSubjectsById,
+  entitiesById,
+  world,
+} from './server/state';
 // import { eventTriggerDispatchMachine } from './services/event-trigger-dispatch.service';
 import { World } from 'miniplex';
 // import { greetOnJoinTrigger } from './configs/triggers';
@@ -41,6 +46,7 @@ setAutoFreeze(false);
  * @param entityProps
  * @returns
  */
+
 export const createEntity = <TEntity extends Entity>(
   entityProps: InitialEntityProps<TEntity>
 ) => {
@@ -165,7 +171,8 @@ export const createEntity = <TEntity extends Entity>(
     messagesById.set(event.id, event);
   });
 
-  channelsById.set(id, channelObservable);
+  channelObservablesById.set(id, channelObservable);
+  channelSubjectsById.set(id, channelSubject);
 
   const entity: TEntity = {
     ...entityBase,
@@ -249,13 +256,14 @@ const eventTriggerDispatchMachine = createMachine({
       on: {
         '*': {
           actions: 'maybeCreateEventTriggerEntity',
+
         },
       },
       invoke: {
         src: (context) =>
           fromWorld(context.world).pipe(
             mergeMap((entity) => {
-              const channel = channelsById.get(entity.id);
+              const channel = channelObservablesById.get(entity.id);
               assert(channel, 'expected channel when creating trigger');
               return channel;
             })

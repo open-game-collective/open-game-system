@@ -198,6 +198,7 @@ export const createStrikersGameMachine = ({
           const turnEntity = createEntity<StrikersTurnEntity>({
             schema: 'strikers_turn',
             startedAt: new Date(),
+            gameEntityId: entity.id,
             side: 'home',
             playerId,
             totalActionCount: entity.config.gameplaySettings.actionsPerTurn,
