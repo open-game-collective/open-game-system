@@ -1,4 +1,5 @@
 import { SunsetSky } from '@3d/sky';
+import { Button } from '@atoms/Button';
 import { useStore } from '@nanostores/react';
 import { Canvas } from '@react-three/fiber';
 import {
@@ -13,13 +14,17 @@ import extension from '@theatre/r3f/dist/extension';
 import studio from '@theatre/studio';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { atom } from 'nanostores';
-import { useContext, useEffect } from 'react';
+import { useCallback, useContext, useEffect } from 'react';
 import { Vector3 } from 'three';
 
 studio.initialize();
 studio.extend(extension);
 
-const demoSheet = getProject('Demo Project').sheet('Demo Sheet');
+const sheet = getProject('Demo Project').sheet('Demo Sheet');
+
+sheet.sequence.attachAudio({ source: '/strikers_intro.mp3' }).then(() => {
+  // console.log("audio context loaded")
+});
 
 const gridStore = atom(
   new Grid(defineHex(), rectangle({ width: 26, height: 20 }))
@@ -28,35 +33,54 @@ const gridStore = atom(
 export const HomeScene = () => {
   const grid = useStore(gridStore);
 
+  const handlePlay = useCallback(() => {
+    sheet.sequence.position = 0;
+    sheet.sequence.play();
+  }, [sheet]);
+
   return (
-    <Canvas
-      style={{
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        right: 0,
-        zIndex: 1,
-      }}
-      camera={{ position: new Vector3(0, 1000, 1000) }}
-    >
-      <SheetProvider sheet={demoSheet}>
-        <CameraRigProvider grid={grid}>
-          {/* <PerspectiveCamera
+    <>
+      <Button
+        onClick={handlePlay}
+        css={{
+          position: 'absolute',
+          bottom: '$2',
+          zIndex: 10,
+          left: '50%',
+          marginRight: '-50%',
+        }}
+      >
+        Play
+      </Button>
+      <Canvas
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          right: 0,
+          zIndex: 1,
+        }}
+        camera={{ position: new Vector3(0, 1000, 1000) }}
+      >
+        <SheetProvider sheet={sheet}>
+          <CameraRigProvider grid={grid}>
+            {/* <PerspectiveCamera
           attachArray={undefined}
           attachObject={undefined}
           attachFns={undefined}
           theatreKey={'Camera'}
         /> */}
-          <AnimationSequence />
-          <SunsetSky />
-          <Field grid={grid}>
-            <Goal side="home" />
-            <Goal side="away" />
-          </Field>
-        </CameraRigProvider>
-      </SheetProvider>
-    </Canvas>
+            <AnimationSequence />
+            <SunsetSky />
+            <Field grid={grid}>
+              <Goal side="home" />
+              <Goal side="away" />
+            </Field>
+          </CameraRigProvider>
+        </SheetProvider>
+      </Canvas>
+    </>
   );
 };
 
