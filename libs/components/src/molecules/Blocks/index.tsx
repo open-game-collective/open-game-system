@@ -149,7 +149,8 @@ const commonMessageBlockMap = {
 export const MessageContent: React.FC<{
   block: MessageContentBlock;
   message: MessageEvent;
-}> = ({ block, message }) => {
+  blockIndex: number;
+}> = ({ block, message, blockIndex }) => {
   const allBlocks = {
     ...strikersMessageBlockMap,
     ...commonMessageBlockMap,
@@ -197,6 +198,7 @@ export const MessageContent: React.FC<{
     <BlockContext.Provider
       value={{
         block,
+        blockIndex,
         message,
         channelEntity,
         respond,

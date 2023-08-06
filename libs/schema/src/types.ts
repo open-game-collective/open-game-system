@@ -6,6 +6,7 @@ import {
   BlockCommandSchema,
   ConnectionAccessTokenPropsSchema,
   LayoutPropsSchema,
+  PointyDirectionSchema,
   RouteNameSchema,
   RoutePropsSchema,
   SnowflakeIdSchema,
@@ -753,3 +754,5 @@ export type LobbyGameConfig = z.infer<typeof LobbyGameConfigSchema>;
 export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
 
 export type BlockCommand = z.infer<typeof BlockCommandSchema>;
+
+export type PointyDirection = z.infer<typeof PointyDirectionSchema>;

@@ -112,3 +112,12 @@ export const BlockCommandSchema = z.discriminatedUnion('type', [
   MultipleChoiceConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 ]);
+
+export const PointyDirectionSchema = z.union([
+  z.literal('NE'),
+  z.literal('NW'),
+  z.literal('W'),
+  z.literal('E'),
+  z.literal('SE'),
+  z.literal('SW'),
+]);

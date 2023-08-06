@@ -294,6 +294,17 @@ export const StrikersPassActionEffectDataSchema = z.object({
   toPosition: TilePositionSchema,
 });
 
+const StrikersShootActionLiteral = z.literal('SHOOT');
+const StrikersMoveActionLiteral = z.literal('MOVE');
+const StrikersPassActionLiteral = z.literal('PASS');
+
+export const StrikersActionSchema = z.union([
+  StrikersShootActionLiteral,
+  StrikersMoveActionLiteral,
+  StrikersPassActionLiteral,
+]);
+export type StrikersAction = z.infer<typeof StrikersActionSchema>;
+
 export const StrikersShootActionEffectDataSchema = z.object({
   type: z.literal('SHOOT'),
   category: ActionEffectLiteral,

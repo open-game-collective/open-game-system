@@ -16,11 +16,19 @@ import {
   assertEntitySchema,
   assertEventType,
 } from '@explorers-club/utils';
-import { StrikersEffectDataSchema } from '@schema/games/strikers';
 import {
+  StrikersAction,
+  StrikersEffectDataSchema,
+} from '@schema/games/strikers';
+import {
+  // PointyDirection,
+  // StrikersCard,
+  StrikersGameEntity,
   StrikersGameEventInput,
+  StrikersPlayerEntity,
   StrikersTurnCommand,
   StrikersTurnContext,
+  StrikersTurnEntity,
 } from '@schema/types';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
@@ -80,6 +88,15 @@ export const createStrikersTurnMachine = ({
 
                       const id = generateSnowflakeId();
 
+                      const availableActions = getAvailableActions({
+                        gameEntity,
+                        playerEntity,
+                      });
+                      const actionCount = getActionCount({ entity });
+
+                      const remainingActionCount =
+                        entity.totalActionCount - actionCount + 1;
+
                       gameChannel.next({
                         id,
                         type: 'MESSAGE',
@@ -88,21 +105,13 @@ export const createStrikersTurnMachine = ({
                         contents: [
                           {
                             type: 'MultipleChoice',
-                            text: 'Choose an action',
-                            options: [
-                              {
-                                name: 'Move',
-                                value: 'MOVE',
-                              },
-                              {
-                                name: 'Pass',
-                                value: 'PASS',
-                              },
-                              {
-                                name: 'Shoot',
-                                value: 'SHOOT',
-                              },
-                            ],
+                            text: `Select an action (${remainingActionCount} remaining)`,
+                            options: availableActions.map((action) => {
+                              return {
+                                name: actionNames[action],
+                                value: action,
+                              };
+                            }),
                           },
                         ],
                       });
@@ -344,20 +353,24 @@ export const createStrikersTurnMachine = ({
       },
       guards: {
         hasActionsRemaining: () => {
-          const entities = entity.effects
-            .map(entitiesById.get)
-            .filter((entity) => {
-              assertEntitySchema(entity, 'strikers_effect');
-              return (
-                entity.category === 'ACTION' &&
-                entity.states.Status === 'Resolved'
-              );
-            });
-          return entities.length < entity.totalActionCount;
+          const actionCount = getActionCount({ entity });
+          return actionCount < entity.totalActionCount;
         },
       },
     }
   );
+};
+
+const getActionCount = (props: { entity: StrikersTurnEntity }) => {
+  const entities = props.entity.effects
+    .map(entitiesById.get)
+    .filter((entity) => {
+      assertEntitySchema(entity, 'strikers_effect');
+      return (
+        entity.category === 'ACTION' && entity.states.Status === 'Resolved'
+      );
+    });
+  return entities.length;
 };
 
 const effectMachineMap = {
@@ -372,29 +385,46 @@ function rollTwentySidedDie(): number {
   return Math.floor(Math.random() * 20) + 1;
 }
 
-// const createEffect = (effectProps: Omit<StrikersTurnEffect, 'id'>) => {
-//   return
+/**
+ * @returns the list of actions that the player can take
+ * one of {MOVE, PASS, SHOOT}
+ */
+const getAvailableActions = (props: {
+  gameEntity: StrikersGameEntity;
+  playerEntity: StrikersPlayerEntity;
+}) => {
+  // todo: imlementation
+  return ['MOVE', 'PASS', 'SHOOT'] as StrikersAction[];
+};
 
-// }
-
-// const createEffectMachine = (effect: StrikersTurnEffectProps) => {
-//   switch (effect.type) {
-//     case 'MOVE':
-//       return createMachine({
-//         id: 'MoveActionEffectMachine',
-//         initial: 'Initializing',
-//         states: {
-//           Initializing: {
-//             always: [
-//               {
-//                 cond: 'moveTrigger',
-//               },
-//             ],
-//           },
-//           TackleAttempt: {},
-//         },
-//       });
-//   }
-
-//   return createMachine({});
+// /**
+//  * Given a cardId, returns the list of tile directions
+//  * that that card can move to. One of
+//  */
+// export const getMoveTargets: (props: {
+//   gameEntity: StrikersGameEntity;
+//   playerEntity: StrikersPlayerEntity;
+//   cardId: string;
+// }) => PointyDirection[] = (props: {}) => {
+//   // todo implement
+//   return "NE"
 // };
+
+/**
+ * Given the current game instance and the current players
+ * turn, return a list of tile positions that the player
+ * is allowed to pass to
+ */
+// const getPassTargets = (props: {
+//   gameEntity: StrikersGameEntity;
+//   playerEntity: StrikersPlayerEntity;
+// }) => {
+//   // todo: imlementation
+//   return ['MOVE', 'PASS', 'SHOOT'] as StrikersAction[];
+// };
+
+const actionNames: Record<StrikersAction, string> = {
+  MOVE: 'Move',
+  PASS: 'Pass',
+  SHOOT: 'Shoot',
+};

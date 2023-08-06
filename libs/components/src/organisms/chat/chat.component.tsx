@@ -416,6 +416,7 @@ const ChatMessage: FC<{
       {message.contents.map((block, index) => (
         <MessageContent
           key={index}
+          blockIndex={index}
           block={block as unknown as MessageContentBlock}
           message={message as any} // idk
         />
