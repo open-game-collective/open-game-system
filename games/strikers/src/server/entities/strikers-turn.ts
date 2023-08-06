@@ -4,18 +4,12 @@ import {
   entitiesById,
   generateSnowflakeId,
 } from '@api/index';
-import { assign } from '@xstate/immer';
 import {
   Entity,
-  StrikersEffectData,
   StrikersEffectEntity,
   WithSenderId,
 } from '@explorers-club/schema';
-import {
-  assert,
-  assertEntitySchema,
-  assertEventType,
-} from '@explorers-club/utils';
+import { assert, assertEntitySchema } from '@explorers-club/utils';
 import {
   StrikersAction,
   StrikersEffectDataSchema,
@@ -24,16 +18,18 @@ import {
   // PointyDirection,
   // StrikersCard,
   StrikersGameEntity,
+  StrikersGameEvent,
   StrikersGameEventInput,
   StrikersPlayerEntity,
   StrikersTurnCommand,
   StrikersTurnContext,
   StrikersTurnEntity,
 } from '@schema/types';
+import { assign } from '@xstate/immer';
 import { World } from 'miniplex';
+import { Observable, ReplaySubject } from 'rxjs';
 import { createMachine } from 'xstate';
 import * as effects from '../effects';
-import { ReplaySubject } from 'rxjs';
 
 export const createStrikersTurnMachine = ({
   world,
@@ -43,13 +39,23 @@ export const createStrikersTurnMachine = ({
   entity: Entity;
 }) => {
   assertEntitySchema(entity, 'strikers_turn');
-  const gameChannel = channelSubjectsById.get(entity.gameEntityId) as
+  const gameChannelSubject = channelSubjectsById.get(entity.gameEntityId) as
     | ReplaySubject<StrikersGameEventInput>
     | undefined;
-  assert(gameChannel, 'expected gameChannel but not found');
+  assert(gameChannelSubject, 'expected gameChannelSubject but not found');
+
+  const gameChannelObservable = channelObservablesById.get(
+    entity.gameEntityId
+  ) as Observable<StrikersGameEvent> | undefined;
+  assert(gameChannelObservable, 'expected gameChannelObservable but not found');
 
   const gameEntity = entitiesById.get(entity.gameEntityId);
   assertEntitySchema(gameEntity, 'strikers_game');
+
+  const messagesById = new Map();
+  gameChannelObservable.subscribe((event) => {
+    messagesById.set(event.id, event);
+  });
 
   return createMachine(
     {
@@ -97,7 +103,7 @@ export const createStrikersTurnMachine = ({
                       const remainingActionCount =
                         entity.totalActionCount - actionCount + 1;
 
-                      gameChannel.next({
+                      gameChannelSubject.next({
                         id,
                         type: 'MESSAGE',
                         recipientId: playerEntity.userId,
@@ -147,62 +153,48 @@ export const createStrikersTurnMachine = ({
                           const messageId =
                             actionMessageIds[actionMessageIds.length - 1];
 
-                          gameChannel.next({
+                          const message = messagesById.get(messageId);
+
+                          const contents = [
+                            ...message.contents,
+                            {
+                              type: 'MultipleChoice',
+                              text: 'Select a direction',
+                              options: [
+                                {
+                                  name: 'NorthEast',
+                                  value: 'NE',
+                                },
+                                {
+                                  name: 'NorthWest',
+                                  value: 'NW',
+                                },
+                                {
+                                  name: 'SouthEast',
+                                  value: 'SE',
+                                },
+                                {
+                                  name: 'SouthWest',
+                                  value: 'SW',
+                                },
+                                {
+                                  name: 'West',
+                                  value: 'W',
+                                },
+                                {
+                                  name: 'Eeast',
+                                  value: 'E',
+                                },
+                              ],
+                            },
+                          ];
+
+                          gameChannelSubject.next({
                             id: messageId,
                             type: 'MESSAGE',
-                            contents: [
-                              {
-                                type: 'MultipleChoice',
-                                text: 'Select a direction',
-                                options: [
-                                  {
-                                    name: 'NorthEast',
-                                    value: 'NE',
-                                  },
-                                  {
-                                    name: 'NorthWest',
-                                    value: 'NW',
-                                  },
-                                  {
-                                    name: 'SouthEast',
-                                    value: 'SE',
-                                  },
-                                  {
-                                    name: 'SouthWest',
-                                    value: 'SW',
-                                  },
-                                  {
-                                    name: 'West',
-                                    value: 'W',
-                                  },
-                                  {
-                                    name: 'Eeast',
-                                    value: 'E',
-                                  },
-                                ],
-                              },
-                            ],
+                            contents,
                           });
                         },
-                        // onDone: 'ActionComplete',
-                        // onError: 'Error',
-                        // src: 'runEffect',
-                        // meta: (
-                        //   _: StrikersTurnContext,
-                        //   event: WithSenderId<StrikersTurnCommand>
-                        // ) => {
-                        //   assertEventType(event, 'MOVE');
-                        //   // todo: get playerId from event.senderId
-                        //   // todo perform move, fix from/to
-
-                        //   return {
-                        //     type: 'MOVE',
-                        //     category: 'ACTION',
-                        //     cardId: event.cardId,
-                        //     fromPosition: event.target,
-                        //     toPosition: event.target,
-                        //   } satisfies StrikersEffectData;
-                        // },
                       },
                     },
                   },

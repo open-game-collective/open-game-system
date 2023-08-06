@@ -20,7 +20,7 @@ import {
   StartGameBlockSchema,
 } from '@schema/lib/room';
 import {
-  MultipleChoiceConfirmCommandSchema,
+  ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 } from '@schema/commands';
 
@@ -60,14 +60,9 @@ export const LineupContextSchema = z.object({
 
 export type LineupContext = z.infer<typeof LineupContextSchema>;
 
-const ConfirmCommandSchema = z.object({
-  type: z.literal('CONFIRM'),
-  messageId: SnowflakeIdSchema,
-});
 
 export const LineupCommandSchema = z.union([
   ConfirmCommandSchema,
-  MultipleChoiceConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 ]);
 export type LineupCommand = z.infer<typeof LineupCommandSchema>;
@@ -155,7 +150,7 @@ const LeaveCommandSchema = z.object({
 export const StrikersGameCommandSchema = z.union([
   StartCommandSchema,
   LeaveCommandSchema,
-  MultipleChoiceConfirmCommandSchema,
+  ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 ]);
 
@@ -432,7 +427,7 @@ export const StrikersTurnCommandSchema = z.discriminatedUnion('type', [
   // StrikersMoveActionCommandSchema,
   // StrikersPassActionCommandSchema,
   // StrikersShootActionCommandSchema,
-  MultipleChoiceConfirmCommandSchema,
+  ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
   // StrikersRollCommandSchema,
 ]);

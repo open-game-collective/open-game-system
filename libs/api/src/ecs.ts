@@ -136,8 +136,12 @@ export const createEntity = <TEntity extends Entity>(
     subscribe,
   };
 
+  /**
+   * The channel subject is used by other services to get references to
+   * other recent messages.
+   */
   const channelSubject = new ReplaySubject<ChannelEventInput>(
-    5 /* msg buffer size */
+    25 /* msg buffer size */
   );
   const channelObservable = channelSubject.pipe(
     map((event) => {

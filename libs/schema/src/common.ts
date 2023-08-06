@@ -2,7 +2,7 @@ import { StateSchema } from 'xstate';
 import type { Params } from 'astro';
 import { z } from 'zod';
 import {
-  MultipleChoiceConfirmCommandSchema,
+  ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 } from './commands';
 
@@ -109,7 +109,7 @@ export const SessionAccessOneTimeTokenPropsSchema = z.object({
 });
 
 export const BlockCommandSchema = z.discriminatedUnion('type', [
-  MultipleChoiceConfirmCommandSchema,
+  ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 ]);
 

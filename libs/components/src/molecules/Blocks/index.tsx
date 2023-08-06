@@ -36,11 +36,10 @@ const MultipleChoiceBlock = () => {
   const { block, respond } = useContext(BlockContext);
   const [selectedValue, setSelectValue] = useState<string | null>(null);
   assertType(block, 'MultipleChoice');
-  console.log(block.options);
 
   const handleClickSubmit = useCallback(() => {
     respond({
-      type: 'MULTIPLE_CHOICE_CONFIRM',
+      type: 'CONFIRM',
     });
   }, [respond]);
 
@@ -83,7 +82,9 @@ const MultipleChoiceBlock = () => {
           );
         })}
       </ul>
-      {selectedValue && <Button onClick={handleClickSubmit}>Submit</Button>}
+      {block.showConfirm && selectedValue && (
+        <Button onClick={handleClickSubmit}>Submit</Button>
+      )}
     </Box>
   );
 };

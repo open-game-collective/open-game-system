@@ -13,7 +13,7 @@ import {
 } from '../literals';
 import { StrikersMessageContentBlockSchema } from '@schema/games/strikers';
 import {
-  MultipleChoiceConfirmCommandSchema,
+  ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 } from '@schema/commands';
 
@@ -49,7 +49,7 @@ export const RoomCommandSchema = z.union([
   JoinCommandSchema,
   StartCommandSchema,
   LeaveCommandSchema,
-  MultipleChoiceConfirmCommandSchema,
+  ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 ]);
 
@@ -136,6 +136,7 @@ export const StartGameBlockSchema = z.object({
 export const MultipleChoiceBlockSchema = z.object({
   type: z.literal('MultipleChoice'),
   text: z.string(),
+  showConfirm: z.boolean().optional(),
   options: z.array(
     z.object({
       name: z.string(),

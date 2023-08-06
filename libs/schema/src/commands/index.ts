@@ -5,6 +5,6 @@ export const MultipleChoiceSelectCommandSchema = z.object({
   value: z.string(),
 });
 
-export const MultipleChoiceConfirmCommandSchema = z.object({
-  type: z.literal('MULTIPLE_CHOICE_CONFIRM'),
+export const ConfirmCommandSchema = z.object({
+  type: z.literal('CONFIRM'),
 });
