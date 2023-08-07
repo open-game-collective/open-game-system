@@ -400,7 +400,6 @@ const ChatMessage: FC<{
     // todo make not o(n)
     return entity.messages.find((message) => message.id == messageId);
   });
-  console.log({ message });
 
   if (!message) {
     return <div>placeholder</div>;

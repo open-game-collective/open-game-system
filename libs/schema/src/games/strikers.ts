@@ -29,6 +29,17 @@ const Formation433Literal = z.literal('4-3-3');
 const Formation541Literal = z.literal('5-4-1');
 const Formation344Literal = z.literal('3-4-4');
 
+const StrikersShootActionLiteral = z.literal('SHOOT');
+const StrikersMoveActionLiteral = z.literal('MOVE');
+const StrikersPassActionLiteral = z.literal('PASS');
+
+export const StrikersActionSchema = z.union([
+  StrikersShootActionLiteral,
+  StrikersMoveActionLiteral,
+  StrikersPassActionLiteral,
+]);
+export type StrikersAction = z.infer<typeof StrikersActionSchema>;
+
 // Combine them into a union
 export const FormationLiteral = z.union([
   Formation433Literal,
@@ -59,7 +70,6 @@ export const LineupContextSchema = z.object({
 });
 
 export type LineupContext = z.infer<typeof LineupContextSchema>;
-
 
 export const LineupCommandSchema = z.union([
   ConfirmCommandSchema,
@@ -289,17 +299,6 @@ export const StrikersPassActionEffectDataSchema = z.object({
   toPosition: TilePositionSchema,
 });
 
-const StrikersShootActionLiteral = z.literal('SHOOT');
-const StrikersMoveActionLiteral = z.literal('MOVE');
-const StrikersPassActionLiteral = z.literal('PASS');
-
-export const StrikersActionSchema = z.union([
-  StrikersShootActionLiteral,
-  StrikersMoveActionLiteral,
-  StrikersPassActionLiteral,
-]);
-export type StrikersAction = z.infer<typeof StrikersActionSchema>;
-
 export const StrikersShootActionEffectDataSchema = z.object({
   type: z.literal('SHOOT'),
   category: ActionEffectLiteral,
@@ -458,6 +457,7 @@ export const StrikersEffectContextSchema = z.object({
 
 export const StrikersTurnContextSchema = z.object({
   actionMessageIds: z.array(z.string()),
+  selectedAction: StrikersActionSchema.optional(),
 });
 
 const StrikersPlayerEntityPropSchema = z.object({
