@@ -400,7 +400,6 @@ const ChatMessage: FC<{
     // todo make not o(n)
     return entity.messages.find((message) => message.id == messageId);
   });
-  console.log({ message });
 
   if (!message) {
     return <div>placeholder</div>;
@@ -416,6 +415,7 @@ const ChatMessage: FC<{
       {message.contents.map((block, index) => (
         <MessageContent
           key={index}
+          blockIndex={index}
           block={block as unknown as MessageContentBlock}
           message={message as any} // idk
         />

@@ -20,7 +20,7 @@ import {
   StartGameBlockSchema,
 } from '@schema/lib/room';
 import {
-  MultipleChoiceConfirmCommandSchema,
+  ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 } from '@schema/commands';
 
@@ -28,6 +28,17 @@ import {
 const Formation433Literal = z.literal('4-3-3');
 const Formation541Literal = z.literal('5-4-1');
 const Formation344Literal = z.literal('3-4-4');
+
+const StrikersShootActionLiteral = z.literal('SHOOT');
+const StrikersMoveActionLiteral = z.literal('MOVE');
+const StrikersPassActionLiteral = z.literal('PASS');
+
+export const StrikersActionSchema = z.union([
+  StrikersShootActionLiteral,
+  StrikersMoveActionLiteral,
+  StrikersPassActionLiteral,
+]);
+export type StrikersAction = z.infer<typeof StrikersActionSchema>;
 
 // Combine them into a union
 export const FormationLiteral = z.union([
@@ -60,14 +71,8 @@ export const LineupContextSchema = z.object({
 
 export type LineupContext = z.infer<typeof LineupContextSchema>;
 
-const ConfirmCommandSchema = z.object({
-  type: z.literal('CONFIRM'),
-  messageId: SnowflakeIdSchema,
-});
-
 export const LineupCommandSchema = z.union([
   ConfirmCommandSchema,
-  MultipleChoiceConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 ]);
 export type LineupCommand = z.infer<typeof LineupCommandSchema>;
@@ -155,7 +160,7 @@ const LeaveCommandSchema = z.object({
 export const StrikersGameCommandSchema = z.union([
   StartCommandSchema,
   LeaveCommandSchema,
-  MultipleChoiceConfirmCommandSchema,
+  ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 ]);
 
@@ -394,7 +399,48 @@ const StrikersEffectEntityPropsSchema = z.object({
 });
 
 export const StrikersTurnStateValueSchema = z.object({
-  Status: z.union([z.literal('InProgress'), z.literal('Complete')]),
+  Status: z.union([
+    z.object({
+      Actions: z.union([
+        z.literal('SendingSelectActionMessage'),
+        z.object({
+          InputtingAction: z.union([
+            z.literal('Unselected'),
+            z.object({
+              Moving: z.union([
+                z.literal('SendingSelectPlayerMessage'),
+                z.object({
+                  InputtingPlayer: z.union([
+                    z.literal('Unselected'),
+                    z.object({
+                      PlayerSelected: z.union([
+                        z.literal('SendingTargetSelectMessage'),
+                        z.literal('InputtingTarget'),
+                        z.literal('Ready'),
+                        z.literal('Complete'),
+                      ]),
+                    }),
+                    z.literal('Complete'),
+                  ]),
+                }),
+                z.literal('Complete'),
+              ]),
+              Passing: z.union([
+                z.literal('SendingTargetSelectMessage'),
+                z.literal('InputtingTarget'),
+                z.literal('Ready'),
+                z.literal('Complete'),
+              ]),
+              Shooting: z.union([z.literal('Ready'), z.literal('Complete')]),
+            }),
+            z.literal('Complete'),
+          ]),
+        }),
+        z.literal('Complete'),
+      ]),
+    }),
+    z.literal('Complete'),
+  ]),
 });
 
 const StrikersMoveActionCommandSchema = z.object({
@@ -421,7 +467,7 @@ export const StrikersTurnCommandSchema = z.discriminatedUnion('type', [
   // StrikersMoveActionCommandSchema,
   // StrikersPassActionCommandSchema,
   // StrikersShootActionCommandSchema,
-  MultipleChoiceConfirmCommandSchema,
+  ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
   // StrikersRollCommandSchema,
 ]);
@@ -450,8 +496,19 @@ export const StrikersEffectContextSchema = z.object({
   foo: z.string(),
 });
 
+export const StrikersTileCoordinateSchema = z.custom<string>((val: any) => {
+  // Use a regex to test the validity of the string format
+  // This regex matches a single letter (A-Z) followed by a number (1-20)
+  return /^[A-Z](?:[1-9]|1[0-9]|20)$/.test(val as string);
+}, 'Invalid StrikersTileCoordinate format. It should be A-Z for columns and 1-20 for rows. Example: A1, C10, Z20.');
+export type StrikersTileCoordinate = z.infer<
+  typeof StrikersTileCoordinateSchema
+>;
+
 export const StrikersTurnContextSchema = z.object({
   actionMessageIds: z.array(z.string()),
+  selectedCardId: CardIdSchema.optional(),
+  selectedTarget: StrikersTileCoordinateSchema.optional(),
 });
 
 const StrikersPlayerEntityPropSchema = z.object({

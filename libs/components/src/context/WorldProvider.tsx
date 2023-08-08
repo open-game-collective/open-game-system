@@ -152,7 +152,6 @@ export const WorldProvider: FC<{
               console.error('missing entity when trying to apply patches');
               return;
             }
-            console.log({ patches: change.patches });
 
             /**
              * Applies any to-level "add" or "remove" operations on the entity

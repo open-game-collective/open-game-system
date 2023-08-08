@@ -33,16 +33,16 @@ const PlainMessageBlock = () => {
 };
 
 const MultipleChoiceBlock = () => {
-  const { block, respond } = useContext(BlockContext);
+  const { block, blockIndex, respond } = useContext(BlockContext);
   const [selectedValue, setSelectValue] = useState<string | null>(null);
   assertType(block, 'MultipleChoice');
-  console.log(block.options);
 
   const handleClickSubmit = useCallback(() => {
     respond({
-      type: 'MULTIPLE_CHOICE_CONFIRM',
+      type: 'CONFIRM',
+      blockIndex,
     });
-  }, [respond]);
+  }, [respond, blockIndex]);
 
   const handleClickOption: MouseEventHandler<HTMLButtonElement> = useCallback(
     (event) => {
@@ -57,10 +57,11 @@ const MultipleChoiceBlock = () => {
 
       respond({
         type: 'MULTIPLE_CHOICE_SELECT',
-        value: value,
+        value,
+        blockIndex,
       });
     },
-    [setSelectValue]
+    [setSelectValue, blockIndex]
   );
 
   return (
@@ -68,7 +69,6 @@ const MultipleChoiceBlock = () => {
       <Text>{block.text}</Text>
       <ul style={{ listStyle: 'none' }}>
         {block.options.map(({ value, name }) => {
-          console.log(block.options);
           return (
             <Button
               key={value}
@@ -83,7 +83,9 @@ const MultipleChoiceBlock = () => {
           );
         })}
       </ul>
-      {selectedValue && <Button onClick={handleClickSubmit}>Submit</Button>}
+      {block.showConfirm && selectedValue && (
+        <Button onClick={handleClickSubmit}>Submit</Button>
+      )}
     </Box>
   );
 };
@@ -149,7 +151,8 @@ const commonMessageBlockMap = {
 export const MessageContent: React.FC<{
   block: MessageContentBlock;
   message: MessageEvent;
-}> = ({ block, message }) => {
+  blockIndex: number;
+}> = ({ block, message, blockIndex }) => {
   const allBlocks = {
     ...strikersMessageBlockMap,
     ...commonMessageBlockMap,
@@ -170,17 +173,20 @@ export const MessageContent: React.FC<{
   const channelEntity = useStore(channelEntityStore);
 
   const respond = useCallback(
-    (command: BlockCommand) => {
+    (command: Omit<BlockCommand, 'blockIndex'>) => {
       const responderEntity = entitiesById.get(responderId);
       if (!responderEntity) {
         console.warn(
           'unexpected missing responderEntity when responding to message'
         );
       } else {
-        responderEntity.send(command as any);
+        responderEntity.send({
+          ...command,
+          blockIndex,
+        } as any);
       }
     },
-    [entitiesById, responderId]
+    [entitiesById, responderId, blockIndex]
   );
 
   if (!channelEntity) {
@@ -197,6 +203,7 @@ export const MessageContent: React.FC<{
     <BlockContext.Provider
       value={{
         block,
+        blockIndex,
         message,
         channelEntity,
         respond,

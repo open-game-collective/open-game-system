@@ -60,7 +60,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                 homeTeamCardIds,
                 awayTeamCardIds,
               } = initializeBoard({
-                cards: gameEntity.config.cards,
+                cards: Object.values(gameEntity.config.cardsById),
               });
 
               gameEntity.gameState = {
@@ -89,6 +89,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                   contents: [
                     {
                       type: 'MultipleChoice',
+                      showConfirm: true,
                       text: 'Choose a formation',
                       options: [
                         {
@@ -166,7 +167,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                 };
               }),
             },
-            MULTIPLE_CHOICE_CONFIRM: [
+            CONFIRM: [
               {
                 actions: 'markPlayerFinished',
                 cond: 'allPlayersDone',
