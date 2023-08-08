@@ -49,7 +49,12 @@ export const createStrikersGame = (
     gameEntityId,
   });
 
-  const cards = Array.from({ length: 200 }).map(generateCard);
+  const cardsById = Array.from({ length: 200 })
+    .map(generateCard)
+    .reduce((acc, card) => {
+      acc[card.id] = card;
+      return acc;
+    }, {} as Record<CardId, StrikersCard>);
 
   const config = {
     lobbyConfig,
@@ -58,7 +63,7 @@ export const createStrikersGame = (
     playerIds: [p1PlayerEntity.id, p2PlayerEntity.id], // for convenience, expect to never change
     gameplaySettings,
     cardSettings,
-    cards,
+    cardsById,
     gameMode: 'quickplay',
     turnsPerHalf: 15,
     extraTime: {

@@ -154,6 +154,8 @@ export const StrikersShotChartWeightsSchema = z.object({
 export const StrikersPlayerCardSchema = z.object({
   id: z.string(),
   name: z.string(),
+  abbreviation: z.string(),
+  jerseyNum: z.number(),
   team: z.string(),
   rosterPosition: StrikersRosterPositionSchema,
   league: z.string(),
@@ -183,7 +185,7 @@ export const StrikersGameConfigDataSchema = z.object({
   playerIds: z.array(SnowflakeIdSchema),
   homePlayerIds: z.array(SnowflakeIdSchema),
   awayPlayerIds: z.array(SnowflakeIdSchema),
-  cards: z.array(StrikersCardSchema),
+  cardsById: z.record(CardIdSchema, StrikersCardSchema),
   gameMode: z.enum(['quickplay', 'draft']).default('quickplay'),
   turnsPerHalf: z.number().default(20),
   extraTime: z.object({

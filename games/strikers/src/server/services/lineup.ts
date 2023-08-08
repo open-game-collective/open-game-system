@@ -60,7 +60,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                 homeTeamCardIds,
                 awayTeamCardIds,
               } = initializeBoard({
-                cards: gameEntity.config.cards,
+                cards: Object.values(gameEntity.config.cardsById),
               });
 
               gameEntity.gameState = {

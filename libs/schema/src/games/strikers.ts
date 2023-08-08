@@ -399,7 +399,48 @@ const StrikersEffectEntityPropsSchema = z.object({
 });
 
 export const StrikersTurnStateValueSchema = z.object({
-  Status: z.union([z.literal('InProgress'), z.literal('Complete')]),
+  Status: z.union([
+    z.object({
+      Actions: z.union([
+        z.literal('SendingSelectActionMessage'),
+        z.object({
+          InputtingAction: z.union([
+            z.literal('Unselected'),
+            z.object({
+              Moving: z.union([
+                z.literal('SendingSelectPlayerMessage'),
+                z.object({
+                  InputtingPlayer: z.union([
+                    z.literal('Unselected'),
+                    z.object({
+                      PlayerSelected: z.union([
+                        z.literal('SendingTargetSelectMessage'),
+                        z.literal('InputtingTarget'),
+                        z.literal('Ready'),
+                        z.literal('Complete'),
+                      ]),
+                    }),
+                    z.literal('Complete'),
+                  ]),
+                }),
+                z.literal('Complete'),
+              ]),
+              Passing: z.union([
+                z.literal('SendingTargetSelectMessage'),
+                z.literal('InputtingTarget'),
+                z.literal('Ready'),
+                z.literal('Complete'),
+              ]),
+              Shooting: z.union([z.literal('Ready'), z.literal('Complete')]),
+            }),
+            z.literal('Complete'),
+          ]),
+        }),
+        z.literal('Complete'),
+      ]),
+    }),
+    z.literal('Complete'),
+  ]),
 });
 
 const StrikersMoveActionCommandSchema = z.object({
@@ -455,9 +496,19 @@ export const StrikersEffectContextSchema = z.object({
   foo: z.string(),
 });
 
+export const StrikersTileCoordinateSchema = z.custom<string>((val: any) => {
+  // Use a regex to test the validity of the string format
+  // This regex matches a single letter (A-Z) followed by a number (1-20)
+  return /^[A-Z](?:[1-9]|1[0-9]|20)$/.test(val as string);
+}, 'Invalid StrikersTileCoordinate format. It should be A-Z for columns and 1-20 for rows. Example: A1, C10, Z20.');
+export type StrikersTileCoordinate = z.infer<
+  typeof StrikersTileCoordinateSchema
+>;
+
 export const StrikersTurnContextSchema = z.object({
   actionMessageIds: z.array(z.string()),
-  selectedAction: StrikersActionSchema.optional(),
+  selectedCardId: CardIdSchema.optional(),
+  selectedTarget: StrikersTileCoordinateSchema.optional(),
 });
 
 const StrikersPlayerEntityPropSchema = z.object({
