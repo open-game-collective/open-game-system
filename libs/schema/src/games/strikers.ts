@@ -283,7 +283,6 @@ const RollEffectTypeLiteral = z.literal('ROLL');
 
 export const StrikersMoveActionEffectDataSchema = z.object({
   type: z.literal('MOVE'),
-  category: ActionEffectLiteral,
   cardId: CardIdSchema,
   fromPosition: TilePositionSchema,
   toPosition: TilePositionSchema,
@@ -292,20 +291,16 @@ export const StrikersMoveActionEffectDataSchema = z.object({
 //   StrikersMoveActionEffectDataSchema.merge(EffectSchemaBase);
 export const StrikersPassActionEffectDataSchema = z.object({
   type: z.literal('PASS'),
-  category: ActionEffectLiteral,
   fromCardId: CardIdSchema,
   fromPosition: TilePositionSchema,
-  toCardId: CardIdSchema,
   toPosition: TilePositionSchema,
+  toCardId: CardIdSchema.optional(),
 });
 
 export const StrikersShootActionEffectDataSchema = z.object({
   type: z.literal('SHOOT'),
-  category: ActionEffectLiteral,
   fromCardId: CardIdSchema,
   fromPosition: TilePositionSchema,
-  toCardId: CardIdSchema,
-  toPosition: TilePositionSchema,
 });
 
 const InterceptAttemptEffectDataSchema = z.object({

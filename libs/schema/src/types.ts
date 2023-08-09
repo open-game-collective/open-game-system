@@ -678,7 +678,7 @@ export type StrikersGameplaySettings = z.infer<
   typeof StrikersGameplaySettingsSchema
 >;
 export type StrikersTeam = z.infer<typeof StrikersSideSchema>;
-export type StrikersBoard = z.infer<typeof StrikersGameStateSchema>;
+export type StrikersGameState = z.infer<typeof StrikersGameStateSchema>;
 export type StrikersPlayerPosition = z.infer<
   typeof StrikersRosterPositionSchema
 >;
