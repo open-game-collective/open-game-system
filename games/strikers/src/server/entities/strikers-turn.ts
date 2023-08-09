@@ -14,12 +14,16 @@ import {
   assertEntitySchema,
   assertEventType,
 } from '@explorers-club/utils';
+<<<<<<< HEAD
 import { BlockCommandSchema } from '@schema/common';
 import { CardId } from '@schema/game-configuration/strikers';
+=======
+>>>>>>> main
 import {
   StrikersAction,
   StrikersActionSchema,
   StrikersEffectDataSchema,
+<<<<<<< HEAD
   StrikersSide,
   StrikersTileCoordinate,
   StrikersTileCoordinateSchema,
@@ -30,20 +34,43 @@ import {
   StrikersGameEvent,
   StrikersGameEventInput,
   StrikersGameState,
+=======
+  StrikersTileCoordinate,
+  StrikersTileCoordinateSchema,
+  TilePositionSchema,
+} from '@schema/games/strikers';
+import {
+  BlockCommand,
+  GameEntity,
+  // PointyDirection,
+  // StrikersCard,
+  StrikersGameEntity,
+  StrikersGameEvent,
+  StrikersGameEventInput,
+>>>>>>> main
   StrikersPlayerEntity,
   StrikersTurnCommand,
   StrikersTurnContext,
   StrikersTurnEntity,
 } from '@schema/types';
 import { assign } from '@xstate/immer';
+<<<<<<< HEAD
 import { compare } from 'fast-json-patch';
 import { HexCoordinates } from 'honeycomb-grid';
 import { produce } from 'immer';
+=======
+>>>>>>> main
 import { World } from 'miniplex';
 import { Observable, ReplaySubject } from 'rxjs';
 import { createMachine } from 'xstate';
 import { z } from 'zod';
 import * as effects from '../effects';
+<<<<<<< HEAD
+=======
+import { BlockCommandSchema } from '@schema/common';
+import { CardId, CardIdSchema } from '@schema/game-configuration/strikers';
+import { z } from 'zod';
+>>>>>>> main
 
 export const createStrikersTurnMachine = ({
   world,
@@ -196,7 +223,10 @@ export const createStrikersTurnMachine = ({
                                   },
                                 },
                                 Complete: {
+<<<<<<< HEAD
                                   entry: 'createMoveEffect',
+=======
+>>>>>>> main
                                   type: 'final',
                                 },
                               },
@@ -255,7 +285,10 @@ export const createStrikersTurnMachine = ({
                           },
                         },
                         Complete: {
+<<<<<<< HEAD
                           entry: 'createPassEffect',
+=======
+>>>>>>> main
                           type: 'final',
                         },
                       },
@@ -284,7 +317,10 @@ export const createStrikersTurnMachine = ({
                           },
                         },
                         Complete: {
+<<<<<<< HEAD
                           entry: 'createShotEffect',
+=======
+>>>>>>> main
                           type: 'final',
                         },
                       },
@@ -331,6 +367,7 @@ export const createStrikersTurnMachine = ({
             contents: [message.contents[0]],
           });
         }),
+<<<<<<< HEAD
 
         createMoveEffect: async ({ selectedCardId, selectedTarget }) => {
           assert(selectedCardId, 'expected selectedCardId');
@@ -442,6 +479,8 @@ export const createStrikersTurnMachine = ({
 
           return entity;
         },
+=======
+>>>>>>> main
       },
       services: {
         sendSelectActionMessage: async () => {
@@ -749,6 +788,7 @@ const getMoveTargets: (props: {
   return ['G2', 'G3', 'F4', 'F3', 'H5'];
 };
 
+<<<<<<< HEAD
 // const getCardIdsByTile = (
 //   state: StrikersGameState,
 //   coordinate: HexCoordinates
