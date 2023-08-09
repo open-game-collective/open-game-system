@@ -130,23 +130,15 @@ const SecondHalfSchema = z.object({
   SecondHalf: PlayPeriodStateEnum,
 });
 
-const RegulationSchema = z.object({
-  Regulation: z.union([FirstHalfSchema, HalfTimeSchema, SecondHalfSchema]),
-});
-
-const ExtraTimeSchema = z.object({
-  ExtraTime: PlayPeriodStateEnum,
-});
-
 export const StrikersGameStateValueSchema = z.object({
   RunStatus: z.enum(['Paused', 'Running', 'Resuming', 'Error']),
-  PlayStatus: z.object({
-    Regulation: z.object({
-      FirstHalf: PlayPeriodStateEnum.optional(),
-      SecondHalf: PlayPeriodStateEnum.optional(),
+  PlayStatus: z.union([
+    z.literal('Lineup'),
+    z.object({
+      Regulation: z.union([FirstHalfSchema, HalfTimeSchema, SecondHalfSchema]),
     }),
-    ExtraTime: PlayPeriodStateEnum.optional(),
-  }),
+    z.literal('ExtraTime'),
+  ]),
 });
 
 const StartCommandSchema = z.object({

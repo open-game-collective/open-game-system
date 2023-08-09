@@ -1,15 +1,14 @@
 import { CameraControls } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
-import { Grid, Hex } from 'honeycomb-grid';
 import {
   FC,
   ReactNode,
   createContext,
+  useContext,
   useEffect,
   useRef,
   useState,
 } from 'react';
-import CameraControlsImpl from 'camera-controls';
+import { GridContext } from '../context/grid.context';
 
 // CameraControlsImpl.install({ THREE: THREE });
 
@@ -19,8 +18,8 @@ export const CameraRigContext = createContext(
 
 export const CameraRigProvider: FC<{
   children: ReactNode;
-  grid: Grid<Hex>;
-}> = ({ children, grid }) => {
+}> = ({ children }) => {
+  const grid = useContext(GridContext);
   const cameraControlsRef = useRef<CameraControls | null>(null);
   const [cameraControls, setCameraControls] = useState<CameraControls | null>(
     null

@@ -175,13 +175,13 @@ export const createStrikersGameMachine = ({
     {
       guards: {
         hasTimeRemainingInHalf: (context, event, meta) => {
-          const stateValue = meta.state.value as StrikersGameStateValue;
-          stateValue.PlayStatus.Regulation.FirstHalf === 'NormalTime';
+          // todo
+          // returns true if the # of turns played are less than the config specified turns per half
           return true;
         },
         hasStoppageTimeRemaining: (context, event, meta) => {
-          console.log(meta);
-          // calcaulte based off # of turns played
+          // todo
+          // returns true if the # of turns played are less than the half + the stoppageTime added minutes
           return true;
         },
       },
