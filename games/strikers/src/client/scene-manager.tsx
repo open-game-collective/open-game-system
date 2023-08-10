@@ -1,38 +1,41 @@
+import { SunsetSky } from '@3d/sky';
 import type {
   SnowflakeId,
   StrikersGameEntity,
   StrikersPlayerEntity,
 } from '@explorers-club/schema';
-import { SunsetSky } from '@3d/sky';
-import { useFrame } from '@react-three/fiber';
 import { assertEntitySchema } from '@explorers-club/utils';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
+import {
+  useEntitySelector,
+  useEntitySelectorDeepEqual,
+} from '@hooks/useEntitySelector';
 import { useStore } from '@nanostores/react';
-import { MapControls, OrbitControls } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import {
   FC,
   createContext,
-  useEffect,
   useContext,
-  useState,
+  useEffect,
   useLayoutEffect,
+  useState,
 } from 'react';
-import { SplashScene } from './scenes/splash-scene';
-import { FieldCell } from './components/field-cell';
-import { Field } from './components/field';
-import { FieldCamera } from './components/field-camera';
+import { selectCurrentScene } from '../selectors';
 import {
   CameraRigContext,
   CameraRigProvider,
 } from './components/camera-rig.context';
-import { useEntitySelector } from '@hooks/useEntitySelector';
+import { Field } from './components/field';
+import { GridContext } from './context/grid.context';
+import { Vector3 } from 'three';
+import { useMyUserId } from '@hooks/useMyUserId';
+import { FieldCell } from './components/field-cell';
 import { Goal } from './components/goal';
+import { Environment } from '@react-three/drei';
 
 const StrikersContext = createContext({
   gameEntity: {} as StrikersGameEntity,
-  playerEntity: {} as StrikersPlayerEntity | undefined,
+  playerEntity: {} as StrikersPlayerEntity | null,
 });
 
 const HexTile = defineHex();
@@ -40,14 +43,24 @@ const HexTile = defineHex();
 export const StrikersSceneManager: FC<{
   gameInstanceId: SnowflakeId;
 }> = ({ gameInstanceId }) => {
+  const currentUserId = useMyUserId();
   const gameEntityStore = useCreateEntityStore<StrikersGameEntity>(
     (entity) => {
       return entity.id === gameInstanceId;
     },
     [gameInstanceId]
   );
+  const playerEntityStore = useCreateEntityStore<StrikersPlayerEntity>(
+    (entity) => {
+      return (
+        entity.schema === 'strikers_player' && entity.userId === currentUserId
+      );
+    },
+    [currentUserId]
+  );
 
   const gameEntity = useStore(gameEntityStore);
+  const playerEntity = useStore(playerEntityStore);
   if (!gameEntity) {
     return <></>;
   }
@@ -58,48 +71,123 @@ export const StrikersSceneManager: FC<{
   );
 
   return (
-    <StrikersContext.Provider value={{ gameEntity, playerEntity: undefined }}>
-      <GameScene />
+    <StrikersContext.Provider value={{ gameEntity, playerEntity }}>
+      <GridContext.Provider value={grid}>
+        <CameraRigProvider>
+          <GameScenes />
+        </CameraRigProvider>
+      </GridContext.Provider>
     </StrikersContext.Provider>
   );
 };
 
 const Tile = defineHex({ dimensions: 30 });
 
-const GameScene = () => {
-  const [grid] = useState(new Grid(Tile, rectangle({ width: 25, height: 15 })));
-  const cells = Array.from(grid).map((cell) => {
-    return cell;
-  });
+const GameScenes = () => {
   const { gameEntity } = useContext(StrikersContext);
-  console.log({ gameEntity });
-  // const players = useEntitySelector(
-  //   gameEntity,
-  //   (entity) => entity.gameState.players
-  // );
+
+  const currentScene = useEntitySelector(gameEntity, selectCurrentScene);
 
   return (
-    <CameraRigProvider grid={grid}>
-      <OpeningSequence />
-      {/* <MapControls screenSpacePanning={true} /> */}
-      <axesHelper />
+    <>
+      {currentScene === 'lineup' && <LineupScene />}
+      {currentScene === 'game' && <GameScene />}
+    </>
+  );
+};
+
+const LineupScene = () => {
+  const { playerEntity } = useContext(StrikersContext);
+  const grid = useContext(GridContext);
+
+  return (
+    <>
       <SunsetSky />
-      <Field grid={grid}>
-        {/* {players.map((player) => (
-          <FieldCell tilePosition={player.tilePosition}>
-            <mesh>
-              <boxBufferGeometry args={[1, 1, 1]} />
-              <meshStandardMaterial color={0xcccccc} />
-            </mesh>
-          </FieldCell>
-        ))} */}
+      <LineupSceneCamera initialCameraPosition={new Vector3(0, 10, 120)} />
+      <Field>
         <Goal side="away" />
         <Goal side="home" />
-        {/* {cells.map((cell) => (
-          <FieldCell key={cell.toString()} tilePosition={[cell.q, cell.r]} />
-        ))} */}
+        {Array.from(grid).map((hex) => {
+          return (
+            <FieldCell key={hex.toString()} tilePosition={[hex.q, hex.r]}>
+              <mesh>
+                // todo use a an extrudeGeometry over the hex points instead?
+                <cylinderBufferGeometry
+                  attach="geometry"
+                  args={[1, 1, 0.1, 6, 1]}
+                />
+                <meshBasicMaterial color={0xffffff} />
+              </mesh>
+            </FieldCell>
+          );
+        })}
+        {playerEntity && <MyCardsInFormation playerEntity={playerEntity} />}
       </Field>
-    </CameraRigProvider>
+    </>
+  );
+};
+
+const MyCardsInFormation: FC<{ playerEntity: StrikersPlayerEntity }> = ({
+  playerEntity,
+}) => {
+  const { gameEntity } = useContext(StrikersContext);
+
+  const playerId = useEntitySelector(playerEntity, (entity) => entity.id);
+  const playerCardIds = useEntitySelectorDeepEqual(gameEntity, (gameEntity) =>
+    gameEntity.config.homePlayerIds.includes(playerId)
+      ? gameEntity.gameState.homeSideCardIds
+      : gameEntity.gameState.awaySideCardIds
+  );
+
+  const tilePositions = useEntitySelectorDeepEqual(
+    gameEntity,
+    (gameEntity) => gameEntity.gameState.tilePositionsByCardId
+  );
+
+  return (
+    <>
+      {playerCardIds.map((cardId) => {
+        return (
+          <FieldCell key={cardId} tilePosition={tilePositions[cardId]}>
+            <axesHelper />
+            <mesh>
+              // todo use a an extrudeGeometry over the hex points instead?
+              <cylinderBufferGeometry
+                attach="geometry"
+                args={[1, 1, 1, 6, 1]}
+              />
+              <meshBasicMaterial color={0x0000ff} />
+            </mesh>
+          </FieldCell>
+        );
+      })}
+    </>
+  );
+};
+
+const LineupSceneCamera: FC<{
+  initialCameraPosition: Vector3;
+}> = ({ initialCameraPosition }) => {
+  const { gameEntity } = useContext(StrikersContext);
+
+  const { cameraControls } = useContext(CameraRigContext);
+
+  useLayoutEffect(() => {
+    const { x, y, z } = initialCameraPosition;
+    cameraControls.setPosition(x, y, z, false);
+    cameraControls.setLookAt(0, 30, 0, 0, 0, 0, true);
+  }, [cameraControls]);
+
+  return null;
+};
+
+const GameScene = () => {
+  return (
+    <>
+      <SunsetSky />
+      <OpeningSequence />
+      <Field></Field>
+    </>
   );
 };
 

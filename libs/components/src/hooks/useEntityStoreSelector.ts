@@ -3,6 +3,7 @@ import { Atom } from 'nanostores';
 import { useSyncExternalStore } from 'react';
 import { deepEqual } from '@explorers-club/utils';
 
+
 type EqualityFn<T> = (a: T | undefined, b: T | undefined) => boolean;
 
 const useEntityStoreSelectorBase = <TEntity extends Entity, TResult>(

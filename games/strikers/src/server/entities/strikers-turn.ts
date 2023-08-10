@@ -14,35 +14,36 @@ import {
   assertEntitySchema,
   assertEventType,
 } from '@explorers-club/utils';
+import { BlockCommandSchema } from '@schema/common';
+import { CardId } from '@schema/game-configuration/strikers';
 import {
   StrikersAction,
   StrikersActionSchema,
   StrikersEffectDataSchema,
+  StrikersSide,
   StrikersTileCoordinate,
   StrikersTileCoordinateSchema,
-  TilePositionSchema,
 } from '@schema/games/strikers';
 import {
   BlockCommand,
-  GameEntity,
-  // PointyDirection,
-  // StrikersCard,
   StrikersGameEntity,
   StrikersGameEvent,
   StrikersGameEventInput,
+  StrikersGameState,
   StrikersPlayerEntity,
   StrikersTurnCommand,
   StrikersTurnContext,
   StrikersTurnEntity,
 } from '@schema/types';
 import { assign } from '@xstate/immer';
+import { compare } from 'fast-json-patch';
+import { HexCoordinates } from 'honeycomb-grid';
+import { produce } from 'immer';
 import { World } from 'miniplex';
 import { Observable, ReplaySubject } from 'rxjs';
 import { createMachine } from 'xstate';
-import * as effects from '../effects';
-import { BlockCommandSchema } from '@schema/common';
-import { CardId, CardIdSchema } from '@schema/game-configuration/strikers';
 import { z } from 'zod';
+import * as effects from '../effects';
 
 export const createStrikersTurnMachine = ({
   world,
@@ -195,6 +196,7 @@ export const createStrikersTurnMachine = ({
                                   },
                                 },
                                 Complete: {
+                                  entry: 'createMoveEffect',
                                   type: 'final',
                                 },
                               },
@@ -253,6 +255,7 @@ export const createStrikersTurnMachine = ({
                           },
                         },
                         Complete: {
+                          entry: 'createPassEffect',
                           type: 'final',
                         },
                       },
@@ -281,6 +284,7 @@ export const createStrikersTurnMachine = ({
                           },
                         },
                         Complete: {
+                          entry: 'createShotEffect',
                           type: 'final',
                         },
                       },
@@ -327,6 +331,117 @@ export const createStrikersTurnMachine = ({
             contents: [message.contents[0]],
           });
         }),
+
+        createMoveEffect: async ({ selectedCardId, selectedTarget }) => {
+          assert(selectedCardId, 'expected selectedCardId');
+          assert(selectedTarget, 'expected selectedTarget');
+          const toPosition =
+            convertStrikersTileCoordinateToRowCol(selectedTarget);
+
+          const fromPosition =
+            gameEntity.gameState.tilePositionsByCardId[selectedCardId];
+
+          const nextGameState = produce(gameEntity.gameState, (draft) => {
+            draft.ballPosition = toPosition;
+          });
+          const patches = compare(gameEntity.gameState, nextGameState);
+
+          const { createEntity } = await import('@api/ecs');
+          const effectEntity = createEntity<StrikersEffectEntity>({
+            schema: 'strikers_effect',
+            patches,
+            parentId: entity.id,
+            category: 'ACTION',
+            data: {
+              type: 'MOVE',
+              cardId: selectedCardId,
+              fromPosition,
+              toPosition,
+            },
+          });
+          world.add(effectEntity);
+          entity.effects.push(effectEntity.id);
+          gameEntity.gameState = nextGameState;
+
+          return entity;
+        },
+
+        createPassEffect: async ({ selectedTarget }) => {
+          assert(selectedTarget, 'expected selectedTarget');
+          const toPosition =
+            convertStrikersTileCoordinateToRowCol(selectedTarget);
+
+          const fromCardId = getCardIdWithPossession(gameEntity.gameState);
+          assert(fromCardId, 'expected fromCardId when creating pass effect');
+
+          const fromPosition = gameEntity.gameState.ballPosition;
+          assert(
+            fromPosition,
+            'expected fromPosition when creating pass effect'
+          );
+          const toCardId = getCardIdAtPosessionOnTeam(
+            gameEntity.gameState,
+            toPosition,
+            gameEntity.gameState.possession
+          );
+
+          const nextGameState = produce(gameEntity.gameState, (draft) => {
+            draft.ballPosition = toPosition;
+          });
+          const patches = compare(gameEntity.gameState, nextGameState);
+
+          const { createEntity } = await import('@api/ecs');
+          const effectEntity = createEntity<StrikersEffectEntity>({
+            schema: 'strikers_effect',
+            patches,
+            parentId: entity.id,
+            category: 'ACTION',
+            data: {
+              type: 'PASS',
+              fromCardId,
+              fromPosition,
+              toPosition,
+              toCardId,
+            },
+          });
+          world.add(effectEntity);
+          entity.effects.push(effectEntity.id);
+          gameEntity.gameState = nextGameState;
+
+          return entity;
+        },
+
+        createShotEffect: async () => {
+          const { gameState } = gameEntity;
+
+          const nextGameState = produce(gameState, (draft) => {
+            // draft.ballPosition = toPosition;
+            // todo how to handle changing ball position
+          });
+          const patches = compare(gameEntity.gameState, nextGameState);
+          const fromCardId = getCardIdWithPossession(gameState);
+          assert(fromCardId, 'expected fromCardid');
+
+          const fromPosition = gameState.tilePositionsByCardId[fromCardId];
+
+          const { createEntity } = await import('@api/ecs');
+          const effectEntity = createEntity<StrikersEffectEntity>({
+            schema: 'strikers_effect',
+            patches,
+            parentId: entity.id,
+            category: 'ACTION',
+            data: {
+              type: 'SHOOT',
+              fromCardId,
+              fromPosition,
+            },
+          });
+          world.add(effectEntity);
+          entity.effects.push(effectEntity.id);
+          gameEntity.gameState = nextGameState;
+
+          return entity;
+        },
       },
       services: {
         sendSelectActionMessage: async () => {
@@ -634,6 +749,38 @@ const getMoveTargets: (props: {
   return ['G2', 'G3', 'F4', 'F3', 'H5'];
 };
 
+// const getCardIdsByTile = (
+//   state: StrikersGameState,
+//   coordinate: HexCoordinates
+// ) => {
+//   return Object.entries(state.tilePositionsByCardId)
+//     .filter(
+//       // does this equality work?
+//       ([cardId, position]) => position === coordinate
+//     )
+//     .map(([cardId]) => cardId);
+// };
+
+const getCardIdWithPossession = (state: StrikersGameState) => {
+  return getCardIdAtPosessionOnTeam(
+    state,
+    state.ballPosition,
+    state.possession
+  );
+};
+
+const getCardIdAtPosessionOnTeam = (
+  state: StrikersGameState,
+  position: HexCoordinates,
+  side: StrikersSide
+) => {
+  const cardIds =
+    side === 'home' ? state.homeSideCardIds : state.awaySideCardIds;
+  return cardIds.find((cardId) => {
+    state.tilePositionsByCardId[cardId] === position;
+  });
+};
+
 const getPassTargets: (props: {
   gameEntity: StrikersGameEntity;
 }) => StrikersTileCoordinate[] = (props) => {
@@ -651,47 +798,20 @@ type SendTargetSelectMessageMeta = z.infer<
   typeof SendTargetSelectMessageMetaSchema
 >;
 
-//       Passing: {
-//         // invoke: {
-//         //   src: 'runEffect',
-//         //   meta: (
-//         //     _: StrikersTurnContext,
-//         //     event: WithSenderId<StrikersTurnCommand>
-//         //   ) => {
-//         //     assertEventType(event, 'PASS');
-//         //     // todo fix these values
-//         //     return {
-//         //       type: 'PASS',
-//         //       category: 'ACTION',
-//         //       fromCardId: '',
-//         //       fromPosition: event.target,
-//         //       toCardId: '',
-//         //       toPosition: event.target,
-//         //     } satisfies StrikersEffectData;
-//         //   },
-//         //   onDone: 'ActionComplete',
-//         //   onError: 'Error',
-//         // },
-//       },
-//       Shooting: {
-//         // invoke: {
-//         //   src: 'runEffect',
-//         //   meta: (
-//         //     _: StrikersTurnContext,
-//         //     event: WithSenderId<StrikersTurnCommand>
-//         //   ) => {
-//         //     assertEventType(event, 'SHOOT');
-//         //     // todo fix these values
-//         //     return {
-//         //       type: 'SHOOT',
-//         //       category: 'ACTION',
-//         //       fromCardId: '',
-//         //       fromPosition: event.target,
-//         //       toCardId: '',
-//         //       toPosition: event.target,
-//         //     } satisfies StrikersEffectData;
-//         //   },
-//         //   onDone: 'ActionComplete',
-//         //   onError: 'Error',
-//         // },
-//       },
+function convertStrikersTileCoordinateToRowCol(
+  coordinate: StrikersTileCoordinate
+) {
+  // As per the zod schema, we know at this point that the format is correct.
+
+  // Extract the letter and number parts
+  const letter = coordinate[0];
+  const number = parseInt(coordinate.substring(1));
+
+  // Convert the letter to a row number (0-based)
+  const row = letter.charCodeAt(0) - 'A'.charCodeAt(0);
+
+  // Adjust the number to be 0-based column
+  const col = number - 1;
+
+  return { row, col };
+}

@@ -1,17 +1,13 @@
 import { useFrame } from '@react-three/fiber';
 import { Grid, Hex } from 'honeycomb-grid';
-import { ReactNode, useRef } from 'react';
+import { ReactNode, useContext, useRef } from 'react';
 import { CanvasTexture, DoubleSide } from 'three';
 import drawHexagons from '../drawing/drawHexagons';
 import { FieldContext } from './field.context';
+import { GridContext } from '../context/grid.context';
 
-export function Field({
-  grid,
-  children,
-}: {
-  grid: Grid<Hex>;
-  children?: ReactNode;
-}) {
+export function Field({ children }: { children?: ReactNode }) {
+  const grid = useContext(GridContext);
   // const canvasRef = useRef(document.createElement('canvas'));
   // canvasRef.current.width = grid.pixelWidth;
   // canvasRef.current.height = grid.pixelHeight;
@@ -39,8 +35,9 @@ export function Field({
 
   return (
     <FieldContext.Provider value={{ grid }}>
-      <group>
-        <mesh position={[0, 0, 0]} rotation-x={-Math.PI / 2}>
+      <group position={[0, 0, 0]}>
+        <axesHelper scale={20} />
+        <mesh rotation-x={-Math.PI / 2}>
           <planeBufferGeometry args={[grid.pixelWidth, grid.pixelHeight]} />
           <meshBasicMaterial side={DoubleSide} color={0x00ff00}>
             {/* <canvasTexture

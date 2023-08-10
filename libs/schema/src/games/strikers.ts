@@ -25,9 +25,16 @@ import {
 } from '@schema/commands';
 
 // Define literals for each formation name
+const Formation442Literal = z.literal('4-4-2');
 const Formation433Literal = z.literal('4-3-3');
+const Formation352Literal = z.literal('3-5-2');
+const Formation4231Literal = z.literal('4-2-3-1');
+const Formation343Literal = z.literal('3-4-3');
+const Formation4141Literal = z.literal('4-1-4-1');
+const Formation4511Literal = z.literal('4-5-1');
+const Formation532Literal = z.literal('5-3-2');
 const Formation541Literal = z.literal('5-4-1');
-const Formation344Literal = z.literal('3-4-4');
+const Formation4321Literal = z.literal('4-3-2-1');
 
 const StrikersShootActionLiteral = z.literal('SHOOT');
 const StrikersMoveActionLiteral = z.literal('MOVE');
@@ -42,9 +49,16 @@ export type StrikersAction = z.infer<typeof StrikersActionSchema>;
 
 // Combine them into a union
 export const FormationLiteral = z.union([
+  Formation442Literal,
   Formation433Literal,
+  Formation352Literal,
+  Formation4231Literal,
+  Formation343Literal,
+  Formation4141Literal,
+  Formation4511Literal,
+  Formation532Literal,
   Formation541Literal,
-  Formation344Literal,
+  Formation4321Literal,
 ]);
 export type Formation = z.infer<typeof FormationLiteral>;
 
@@ -130,23 +144,15 @@ const SecondHalfSchema = z.object({
   SecondHalf: PlayPeriodStateEnum,
 });
 
-const RegulationSchema = z.object({
-  Regulation: z.union([FirstHalfSchema, HalfTimeSchema, SecondHalfSchema]),
-});
-
-const ExtraTimeSchema = z.object({
-  ExtraTime: PlayPeriodStateEnum,
-});
-
 export const StrikersGameStateValueSchema = z.object({
   RunStatus: z.enum(['Paused', 'Running', 'Resuming', 'Error']),
-  PlayStatus: z.object({
-    Regulation: z.object({
-      FirstHalf: PlayPeriodStateEnum.optional(),
-      SecondHalf: PlayPeriodStateEnum.optional(),
+  PlayStatus: z.union([
+    z.literal('Lineup'),
+    z.object({
+      Regulation: z.union([FirstHalfSchema, HalfTimeSchema, SecondHalfSchema]),
     }),
-    ExtraTime: PlayPeriodStateEnum.optional(),
-  }),
+    z.literal('ExtraTime'),
+  ]),
 });
 
 const StartCommandSchema = z.object({
@@ -283,7 +289,6 @@ const RollEffectTypeLiteral = z.literal('ROLL');
 
 export const StrikersMoveActionEffectDataSchema = z.object({
   type: z.literal('MOVE'),
-  category: ActionEffectLiteral,
   cardId: CardIdSchema,
   fromPosition: TilePositionSchema,
   toPosition: TilePositionSchema,
@@ -292,20 +297,16 @@ export const StrikersMoveActionEffectDataSchema = z.object({
 //   StrikersMoveActionEffectDataSchema.merge(EffectSchemaBase);
 export const StrikersPassActionEffectDataSchema = z.object({
   type: z.literal('PASS'),
-  category: ActionEffectLiteral,
   fromCardId: CardIdSchema,
   fromPosition: TilePositionSchema,
-  toCardId: CardIdSchema,
   toPosition: TilePositionSchema,
+  toCardId: CardIdSchema.optional(),
 });
 
 export const StrikersShootActionEffectDataSchema = z.object({
   type: z.literal('SHOOT'),
-  category: ActionEffectLiteral,
   fromCardId: CardIdSchema,
   fromPosition: TilePositionSchema,
-  toCardId: CardIdSchema,
-  toPosition: TilePositionSchema,
 });
 
 const InterceptAttemptEffectDataSchema = z.object({
