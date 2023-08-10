@@ -30,6 +30,8 @@ import { GridContext } from './context/grid.context';
 import { Vector3 } from 'three';
 import { useMyUserId } from '@hooks/useMyUserId';
 import { FieldCell } from './components/field-cell';
+import { Goal } from './components/goal';
+import { Environment } from '@react-three/drei';
 
 const StrikersContext = createContext({
   gameEntity: {} as StrikersGameEntity,
@@ -96,12 +98,29 @@ const GameScenes = () => {
 
 const LineupScene = () => {
   const { playerEntity } = useContext(StrikersContext);
+  const grid = useContext(GridContext);
 
   return (
     <>
       <SunsetSky />
       <LineupSceneCamera initialCameraPosition={new Vector3(0, 10, 120)} />
       <Field>
+        <Goal side="away" />
+        <Goal side="home" />
+        {Array.from(grid).map((hex) => {
+          return (
+            <FieldCell key={hex.toString()} tilePosition={[hex.q, hex.r]}>
+              <mesh>
+                // todo use a an extrudeGeometry over the hex points instead?
+                <cylinderBufferGeometry
+                  attach="geometry"
+                  args={[1, 1, 0.1, 6, 1]}
+                />
+                <meshBasicMaterial color={0xffffff} />
+              </mesh>
+            </FieldCell>
+          );
+        })}
         {playerEntity && <MyCardsInFormation playerEntity={playerEntity} />}
       </Field>
     </>
@@ -128,7 +147,19 @@ const MyCardsInFormation: FC<{ playerEntity: StrikersPlayerEntity }> = ({
   return (
     <>
       {playerCardIds.map((cardId) => {
-        return <FieldCell key={cardId} tilePosition={tilePositions[cardId]} />;
+        return (
+          <FieldCell key={cardId} tilePosition={tilePositions[cardId]}>
+            <axesHelper />
+            <mesh>
+              // todo use a an extrudeGeometry over the hex points instead?
+              <cylinderBufferGeometry
+                attach="geometry"
+                args={[1, 1, 1, 6, 1]}
+              />
+              <meshBasicMaterial color={0x0000ff} />
+            </mesh>
+          </FieldCell>
+        );
       })}
     </>
   );

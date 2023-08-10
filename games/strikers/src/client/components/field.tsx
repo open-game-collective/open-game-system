@@ -35,8 +35,9 @@ export function Field({ children }: { children?: ReactNode }) {
 
   return (
     <FieldContext.Provider value={{ grid }}>
-      <group>
-        <mesh position={[0, 0, 0]} rotation-x={-Math.PI / 2}>
+      <group position={[0, 0, 0]}>
+        <axesHelper scale={20} />
+        <mesh rotation-x={-Math.PI / 2}>
           <planeBufferGeometry args={[grid.pixelWidth, grid.pixelHeight]} />
           <meshBasicMaterial side={DoubleSide} color={0x00ff00}>
             {/* <canvasTexture

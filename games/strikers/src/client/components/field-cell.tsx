@@ -13,25 +13,15 @@ export const FieldCell: FC<Props> = ({ children, tilePosition }) => {
   const [color, setColor] = useState(0x0000ff);
 
   const handlePointerOver = useCallback(() => {
-    console.log('OVER');
-  }, []);
-
-  const handleClick = useCallback(() => {
-    setColor(0xffffff);
-    console.log('click', hex);
+    console.log('OVER', hex.row, hex.col);
   }, [hex]);
 
   return (
     <group
-      position={[hex.center.x, 0, hex.center.y]}
+      position={[grid.pixelWidth / 2, 1, grid.pixelHeight / 2]}
       onPointerOver={handlePointerOver}
     >
-      <axesHelper />
-      {children}
-      <mesh onClick={handleClick} position={[0, -1, 0]}>
-        <cylinderBufferGeometry attach="geometry" args={[1, 1, 1, 6, 1]} />
-        <meshStandardMaterial attach="material" color={color} />
-      </mesh>
+      <group position={[hex.center.x, 0, hex.center.y]}>{children}</group>
     </group>
   );
 };

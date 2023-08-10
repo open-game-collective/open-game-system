@@ -25,9 +25,16 @@ import {
 } from '@schema/commands';
 
 // Define literals for each formation name
+const Formation442Literal = z.literal('4-4-2');
 const Formation433Literal = z.literal('4-3-3');
+const Formation352Literal = z.literal('3-5-2');
+const Formation4231Literal = z.literal('4-2-3-1');
+const Formation343Literal = z.literal('3-4-3');
+const Formation4141Literal = z.literal('4-1-4-1');
+const Formation4511Literal = z.literal('4-5-1');
+const Formation532Literal = z.literal('5-3-2');
 const Formation541Literal = z.literal('5-4-1');
-const Formation344Literal = z.literal('3-4-4');
+const Formation4321Literal = z.literal('4-3-2-1');
 
 const StrikersShootActionLiteral = z.literal('SHOOT');
 const StrikersMoveActionLiteral = z.literal('MOVE');
@@ -42,9 +49,16 @@ export type StrikersAction = z.infer<typeof StrikersActionSchema>;
 
 // Combine them into a union
 export const FormationLiteral = z.union([
+  Formation442Literal,
   Formation433Literal,
+  Formation352Literal,
+  Formation4231Literal,
+  Formation343Literal,
+  Formation4141Literal,
+  Formation4511Literal,
+  Formation532Literal,
   Formation541Literal,
-  Formation344Literal,
+  Formation4321Literal,
 ]);
 export type Formation = z.infer<typeof FormationLiteral>;
 
