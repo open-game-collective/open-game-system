@@ -20,7 +20,6 @@ export const FieldCell: FC<Props> = ({ children, tilePosition }) => {
     setColor(0xffffff);
     console.log('click', hex);
   }, [hex]);
-  console.log(hex.center.x, hex.center.y);
 
   return (
     <group

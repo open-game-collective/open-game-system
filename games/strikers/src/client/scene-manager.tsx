@@ -6,13 +6,17 @@ import type {
 } from '@explorers-club/schema';
 import { assertEntitySchema } from '@explorers-club/utils';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
-import { useEntitySelector } from '@hooks/useEntitySelector';
+import {
+  useEntitySelector,
+  useEntitySelectorDeepEqual,
+} from '@hooks/useEntitySelector';
 import { useStore } from '@nanostores/react';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import {
   FC,
   createContext,
   useContext,
+  useEffect,
   useLayoutEffect,
   useState,
 } from 'react';
@@ -23,10 +27,13 @@ import {
 } from './components/camera-rig.context';
 import { Field } from './components/field';
 import { GridContext } from './context/grid.context';
+import { Vector3 } from 'three';
+import { useMyUserId } from '@hooks/useMyUserId';
+import { FieldCell } from './components/field-cell';
 
 const StrikersContext = createContext({
   gameEntity: {} as StrikersGameEntity,
-  playerEntity: {} as StrikersPlayerEntity | undefined,
+  playerEntity: {} as StrikersPlayerEntity | null,
 });
 
 const HexTile = defineHex();
@@ -34,14 +41,24 @@ const HexTile = defineHex();
 export const StrikersSceneManager: FC<{
   gameInstanceId: SnowflakeId;
 }> = ({ gameInstanceId }) => {
+  const currentUserId = useMyUserId();
   const gameEntityStore = useCreateEntityStore<StrikersGameEntity>(
     (entity) => {
       return entity.id === gameInstanceId;
     },
     [gameInstanceId]
   );
+  const playerEntityStore = useCreateEntityStore<StrikersPlayerEntity>(
+    (entity) => {
+      return (
+        entity.schema === 'strikers_player' && entity.userId === currentUserId
+      );
+    },
+    [currentUserId]
+  );
 
   const gameEntity = useStore(gameEntityStore);
+  const playerEntity = useStore(playerEntityStore);
   if (!gameEntity) {
     return <></>;
   }
@@ -52,7 +69,7 @@ export const StrikersSceneManager: FC<{
   );
 
   return (
-    <StrikersContext.Provider value={{ gameEntity, playerEntity: undefined }}>
+    <StrikersContext.Provider value={{ gameEntity, playerEntity }}>
       <GridContext.Provider value={grid}>
         <CameraRigProvider>
           <GameScenes />
@@ -65,18 +82,9 @@ export const StrikersSceneManager: FC<{
 const Tile = defineHex({ dimensions: 30 });
 
 const GameScenes = () => {
-  // const cells = Array.from(grid).map((cell) => {
-  //   return cell;
-  // });
   const { gameEntity } = useContext(StrikersContext);
-  // console.log({ gameEntity });
-  // const players = useEntitySelector(
-  //   gameEntity,
-  //   (entity) => entity.states.PlayStatus
-  // );
 
   const currentScene = useEntitySelector(gameEntity, selectCurrentScene);
-  console.log({ currentScene });
 
   return (
     <>
@@ -87,11 +95,59 @@ const GameScenes = () => {
 };
 
 const LineupScene = () => {
+  const { playerEntity } = useContext(StrikersContext);
+
   return (
     <>
-      <Field></Field>
+      <SunsetSky />
+      <LineupSceneCamera initialCameraPosition={new Vector3(0, 10, 120)} />
+      <Field>
+        {playerEntity && <MyCardsInFormation playerEntity={playerEntity} />}
+      </Field>
     </>
   );
+};
+
+const MyCardsInFormation: FC<{ playerEntity: StrikersPlayerEntity }> = ({
+  playerEntity,
+}) => {
+  const { gameEntity } = useContext(StrikersContext);
+
+  const playerId = useEntitySelector(playerEntity, (entity) => entity.id);
+  const playerCardIds = useEntitySelectorDeepEqual(gameEntity, (gameEntity) =>
+    gameEntity.config.homePlayerIds.includes(playerId)
+      ? gameEntity.gameState.homeSideCardIds
+      : gameEntity.gameState.awaySideCardIds
+  );
+
+  const tilePositions = useEntitySelectorDeepEqual(
+    gameEntity,
+    (gameEntity) => gameEntity.gameState.tilePositionsByCardId
+  );
+
+  return (
+    <>
+      {playerCardIds.map((cardId) => {
+        return <FieldCell key={cardId} tilePosition={tilePositions[cardId]} />;
+      })}
+    </>
+  );
+};
+
+const LineupSceneCamera: FC<{
+  initialCameraPosition: Vector3;
+}> = ({ initialCameraPosition }) => {
+  const { gameEntity } = useContext(StrikersContext);
+
+  const { cameraControls } = useContext(CameraRigContext);
+
+  useLayoutEffect(() => {
+    const { x, y, z } = initialCameraPosition;
+    cameraControls.setPosition(x, y, z, false);
+    cameraControls.setLookAt(0, 30, 0, 0, 0, 0, true);
+  }, [cameraControls]);
+
+  return null;
 };
 
 const GameScene = () => {
