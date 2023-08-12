@@ -1,7 +1,9 @@
-import { MakeRequired, assert } from '@explorers-club/utils';
+import { MakeRequired, assert, assertProp } from '@explorers-club/utils';
 import { CameraControls } from '@react-three/drei';
+import { ISheet } from '@theatre/core';
 import { assign } from '@xstate/immer';
 import { useInterpret } from '@xstate/react';
+import { Hex, HexCoordinates, Traverser } from 'honeycomb-grid';
 import {
   FC,
   ReactNode,
@@ -11,95 +13,97 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Interpreter, StateMachine, createMachine } from 'xstate';
-import { GridContext } from '../context/grid.context';
-import { z } from 'zod';
-import { ISheet } from '@theatre/core';
-import { Traverser, Hex, HexCoordinates } from 'honeycomb-grid';
 import { Box3, Vector3 } from 'three';
+import { Interpreter, StateMachine, createMachine } from 'xstate';
+import { z } from 'zod';
+import { GridContext } from '../context/grid.context';
 
 const Vector3Schema = z.custom<Vector3>();
 const SheetSchema = z.custom<ISheet>();
 const TraverserSchema = z.custom<Traverser<Hex>>();
 const SphereSchema = z.custom<THREE.Sphere>();
+const Box3Schema = z.custom<Box3>();
 const HexCoordinatesSchema = z.custom<HexCoordinates>();
 
 const CameraZoomSchema = z.union([
-  z.literal('GROUND_LEVEL'), // This represents the camera being at ground level.
-  z.literal('EYE_LEVEL'), // This height is akin to a human's eye level when standing.
-  z.literal('BIRDSEYE'), // A view from high above, like a bird would see.
-  z.literal('SKYLINE'), // Very high up, akin to the view from the top of a skyscraper.
-  z.literal('STRATOSPHERE'), // Near the edge of the Earth's atmosphere.
-  z.literal('SPACE'), // Looking down on the grid/world from outer space.
+  z.literal('CLOSEST'),
+  z.literal('CLOSER'),
+  z.literal('MODERATE'),
+  z.literal('FAR'),
+  z.literal('FARTHER'),
+  z.literal('FARTHEST'),
 ]);
 
 export type CameraZoom = z.infer<typeof CameraZoomSchema>;
 
-const SetModePointFocusSchema = z.object({
-  type: z.literal('SET_MODE_POINT_FOCUS'),
-  center: Vector3Schema,
-  position: Vector3Schema.optional(),
-  transition: z.boolean().optional(),
-});
+// const FocusPointEventSchema = z.object({
+//   type: z.literal('FOCUS_POINT'),
+//   center: Vector3Schema,
+//   position: Vector3Schema.optional(),
+//   transition: z.boolean().optional(),
+//   zoom: CameraZoomSchema.optional(),
+// });
 
-const SetModeTileFocusSchema = z.object({
-  type: z.literal('SET_MODE_TILES_FOCUS'),
-  tiles: z.array(HexCoordinatesSchema),
+const FocusTileEventSchema = z.object({
+  type: z.literal('FOCUS_TILE'),
+  tileCoordinate: HexCoordinatesSchema,
+  position: Vector3Schema.optional(),
   transition: z.boolean().optional(),
   zoom: CameraZoomSchema.optional(),
 });
 
-const SetModeCinematicSchema = z.object({
-  type: z.literal('SET_MODE_CINEMATIC'),
+const FocusTilesEventSchema = z.object({
+  type: z.literal('FOCUS_TILES'),
+  tileCoordinates: z.array(HexCoordinatesSchema),
+  position: Vector3Schema.optional(),
+  transition: z.boolean().optional(),
+  zoom: CameraZoomSchema.optional(),
+});
+
+const FocusTraverserEventSchema = z.object({
+  type: z.literal('FOCUS_TRAVERSER'),
+  traverser: TraverserSchema,
+  position: Vector3Schema.optional(),
+  transition: z.boolean().optional(),
+  zoom: CameraZoomSchema.optional(),
+});
+
+const StartSheetEventSchema = z.object({
+  type: z.literal('START_SHEET'),
   sheet: SheetSchema,
 });
 
 const CameraRigEventSchema = z.discriminatedUnion('type', [
-  SetModePointFocusSchema,
-  SetModeTilesFocusSchema,
-  SetModeCinematicSchema,
+  // FocusPointEventSchema,
+  FocusTileEventSchema,
+  FocusTilesEventSchema,
+  FocusTraverserEventSchema,
+  StartSheetEventSchema,
 ]);
 
 export type CameraRigEvent = z.infer<typeof CameraRigEventSchema>;
 
 const CameraRigBaseContextSchema = z.object({
-  // The Vector3 position in space where the camera is located.
-  // Default: A position at the origin (0, 0, 0).
-  position: Vector3Schema.optional().default(new Vector3(0, 0, 0)),
-
-  // The Vector3 position in space that the camera is looking at.
-  // Default: A position just in front of the camera on the Z-axis.
-  center: Vector3Schema.optional().default(new Vector3(0, 0, -1)),
+  targetBox: Box3Schema,
 
   // The camera's rotation around the up axis, measured in degrees.
   // Default: 0 (facing North in a typical convention).
-  heading: z.number().optional().default(0),
+  heading: z.number().default(0),
 
   // The camera's tilt from the horizontal plane, measured in degrees.
   // Default: 0 (camera facing directly forward, no tilt).
-  tilt: z.number().optional().default(0),
+  tilt: z.number(),
 
-  // Traverser for dynamic or custom camera behavior.
-  traverser: TraverserSchema.optional(),
+  // The camera's zoom level. Determines how "close" the camera feels to the grid/world.
+  // Default: EYE_LEVEL (camera at human eye height).
+  zoom: CameraZoomSchema,
 
-  // The central hex tile that the camera focuses on.
-  // No default is provided because a sensible default would depend on the grid system specifics.
-  tile: HexCoordinatesSchema.optional(),
-
-  // The bounding sphere for camera limits or region of interest.
-  // No default provided as a bounding sphere is specific to the environment.
-  sphere: SphereSchema.optional(),
+  // Whether the most recent called action was a transition or if updated immediately
+  transition: z.boolean(),
 
   // The cinematic sheet, likely for predefined camera sequences.
   // No default as this would be specific to a cinematic sequence.
   sheet: SheetSchema.optional(),
-
-  // The camera's zoom level. Determines how "close" the camera feels to the grid/world.
-  // Default: EYE_LEVEL (camera at human eye height).
-  zoom: CameraZoomSchema.optional().default('EYE_LEVEL'),
-
-  // Whether the most recent called action was a transition or if updated immediately
-  transition: z.boolean().optional(),
 });
 
 export type CameraRigBaseContext = z.infer<typeof CameraRigBaseContextSchema>;
@@ -132,22 +136,14 @@ type CameraRigCinematicTypeState = {
   context: MakeRequired<CameraRigBaseContext, 'sheet'>;
 };
 
-type CameraRigTilesFocusTypeState = {
-  value: 'TilesFocus';
-  context: MakeRequired<CameraRigBaseContext, 'tile' | 'zoom' | 'heading' | 'tilt'>;
-};
-type CameraRigPointFocusTypeState = {
-  value: 'PointFocus';
-  context: MakeRequired<
-    CameraRigBaseContext,
-    'center' | 'zoom' | 'heading' | 'tilt'
-  >;
+type CameraRigFocusTypeState = {
+  value: 'Focus';
+  context: CameraRigBaseContext;
 };
 
 export type CameraRigTypeState =
   | CameraRigCinematicTypeState
-  | CameraRigPointFocusTypeState
-  | CameraRigTilesFocusTypeState;
+  | CameraRigFocusTypeState;
 
 export const CameraRigContext = createContext(
   {} as {
@@ -167,6 +163,8 @@ export const CaemraRigProvider: FC<{ children: ReactNode }> = ({
   useEffect(() => {
     setCameraControls(cameraControlsRef.current);
   }, [cameraControlsRef.current]);
+
+  // todo add sheet provider there
 
   return (
     <>
@@ -189,224 +187,149 @@ export const CameraRigProviderImpl: FC<{
   const [machine] = useState(
     createMachine<CameraRigBaseContext, CameraRigEvent, CameraRigTypeState>(
       {
-        initial: 'PointFocus',
+        initial: 'Focused',
+        context: {
+          targetBox: new Box3(new Vector3(0, 0, 0), new Vector3(1, 1, 1)),
+          tilt: 0,
+          zoom: 'GROUND_LEVEL',
+          heading: 0,
+          transition: false,
+        },
         on: {
-          SET_MODE_POINT_FOCUS: 'PointFocus',
-          SET_MODE_TILE_FOCUS: {
-            target: 'TileFocus',
-            actions: ['assignCenter', 'assignZoom', 'assignTransition'],
+          // FOCUS_POINT: {
+          //   target: 'Focused',
+          //   actions: [
+          //     'assignTargetBoxFromPoint',
+          //     'assignZoom',
+          //     'assignHeading',
+          //     'assignTilt',
+          //   ],
+          // },
+          FOCUS_TILE: {
+            target: 'Focused',
+            actions: [
+              'assignTargetBoxFromTileCoordiante',
+              'assignZoom',
+              'assignHeading',
+              'assignTilt',
+            ],
           },
-          SET_MODE_TRAVERSER_FOCUS: {
-            target: 'TraverserFocus',
-            actions: ['assignTraverser', 'assignZoom', 'assignTransition'],
+          FOCUS_TILES: {
+            target: 'Focused',
+            actions: [
+              'assignTargetBoxFromTileCoordiantes',
+              'assignZoom',
+              'assignHeading',
+              'assignTilt',
+            ],
           },
-          SET_MODE_CINEMATIC: {
+          FOCUS_TRAVERSER: {
+            target: 'Focused',
+            actions: [
+              'assignTargetBoxFromTraverser',
+              'assignZoom',
+              'assignHeading',
+              'assignTilt',
+            ],
+          },
+          START_SHEET: {
             target: 'Cinematic',
             actions: 'assignSheet',
           },
         },
         states: {
-          PointFocus: {
-            entry: ({ position, center }, event) => {
-              const transition =
-                'transition' in event ? !!event.transition : false;
-
-              cameraControls.setLookAt(
-                position.x,
-                position.y,
-                position.z,
-                center.x,
-                center.y,
-                center.z,
-                transition
-              );
-            },
-          },
-          TileFocus: {
+          Focused: {
             initial: 'Idle',
             states: {
               Idle: {
-                always: {
-                  target: 'Moving',
-                  actions: '',
-                },
+                entry: 'fitToBox',
               },
-              Moving: {},
-            },
-          },
-          TraverserFocus: {
-            initial: 'Starting',
-            states: {
-              Starting: {
-                always: [
-                  {
-                    target: 'Animating',
-                    cond: 'shouldTransition',
-                    actions: 'focusTraverser',
-                  },
-                  {
-                    target: 'Idle',
-                    actions: 'focusTraverser',
-                  },
-                ],
-              },
-              Animating: {
+              Active: {
                 invoke: {
                   src: 'onActionComplete',
                   onDone: 'Idle',
                 },
               },
-              Idle: {},
             },
           },
           Cinematic: {
-            entry: () => {
-              // todo play theatrejs sheet
-            },
-          },
-          FixedHeight: {
-            entry: () => {
-              // allow panning around the map at a fixed height
-              // todo: what commands to send to move around?
-            },
+            entry: 'startSheet',
           },
         },
         predictableActionArguments: true,
       },
       {
-        guards: {
-          shouldTransition: (context, event) => {
-            if ('transition' in event) {
-              return !!event.transition;
-            }
-            return false;
-          },
-        },
         actions: {
-          assignZoom: assign((context, event, meta) => {
-            if ('zoom' in event && !!event.zoom) {
-              // does 0 zoom work?
-              context.zoom = event.zoom;
-            }
+          /**
+           * Uses the zoom, heading, tilt, and center values to calculate
+           * the padding and bounding box for the camera and target then calls
+           * cameraControls.fitToBox with it.
+           */
+          fitToBox: (context) => {
+            const transition = context.transition || false;
+
+            const padding = getPaddingForZoom(context.zoom);
+
+            cameraControls.fitToBox(context.targetBox, transition, padding);
+          },
+
+          assignTargetBoxFromTileCoordiante: assign((context, event) => {
+            assertProp(event, 'tileCoordinate');
+            const hex = grid.getHex(event.tileCoordinate);
+            assert(hex, 'couldnt find hex');
+
+            context.targetBox = getBoundingBoxForHexes([hex]);
           }),
+
+          assignTargetBoxFromTileCoordiantes: assign((context, event) => {
+            assertProp(event, 'tileCoordinates');
+            const hexes = event.tileCoordinates.map((coordinate) => {
+              const hex = grid.getHex(coordinate);
+              assert(hex, 'expected hex');
+              return hex;
+            });
+
+            context.targetBox = getBoundingBoxForHexes(hexes);
+          }),
+
+          assignTargetBoxFromTraverser: assign((context, event) => {
+            assertProp(event, 'traverser');
+
+            const hexes = Array.from(grid.traverse(event.traverser));
+
+            context.targetBox = getBoundingBoxForHexes(hexes);
+          }),
+
           assignSheet: assign((context, event, meta) => {
             if ('sheet' in event) {
               context.sheet = event.sheet;
             }
           }),
-          assignTransition: assign((context, event) => {
-            if ('transition' in event) {
-              context.transition = event.transition;
-            }
-          }),
-          assignTraverser: assign((context, event) => {
-            if ('traverser' in event) {
-              context.traverser = event.traverser;
-            }
-          }),
-          assignCenter: assign((context, event) => {
-            if ('center' in event) {
-              context.center = event.center;
+
+          assignZoom: assign((context, event) => {
+            if ('zoom' in event && typeof event['zoom'] === 'number') {
+              context.zoom = event.zoom;
             }
           }),
 
-          /**
-           * Centers the camera on a given traverser.
-           *
-           * By default the traverser will fit to be entirely visible within
-           */
-          focusTraverser: ({ traverser, transition }) => {
-            assert(traverser, 'expected traverser');
-            transition = transition || false;
-
-            const hexes = Array.from(grid.traverse(traverser)); // Assuming this returns the hex cells for a given traverser
-
-            if (!hexes || hexes.length === 0) {
-              console.error('No hex cells returned by the traverser.');
-              return;
+          assignTilt: assign((context, event) => {
+            if ('heading' in event && typeof event.heading === 'number') {
+              context.heading = event.heading;
             }
+          }),
 
-            const { isPointy, width, height } = grid.hexPrototype; // Assuming `grid` has a `hexPrototype` property
-
-            // Determine bounding box for the set of hexes
-            let mostLeft, mostRight, mostTop, mostBottom;
-
-            if (isPointy) {
-              hexes.sort((a, b) => b.s - a.s || a.q - b.q);
-              mostLeft = hexes[0];
-              mostRight = hexes[hexes.length - 1];
-
-              hexes.sort((a, b) => a.r - b.r);
-              mostTop = hexes[0];
-              mostBottom = hexes[hexes.length - 1];
-            } else {
-              hexes.sort((a, b) => a.q - b.q);
-              mostLeft = hexes[0];
-              mostRight = hexes[hexes.length - 1];
-
-              hexes.sort((a, b) => b.s - a.s || a.r - b.r);
-              mostTop = hexes[0];
-              mostBottom = hexes[hexes.length - 1];
+          assignHeading: assign((context, event) => {
+            if ('heading' in event && typeof event.heading === 'number') {
+              context.heading = event.heading;
             }
+          }),
 
-            const box = new Box3(
-              new Vector3(mostLeft.x, mostTop.y, 0), // Bottom-left corner based on hex positions
-              new Vector3(mostRight.x + width, mostBottom.y + height, 0) // Top-right corner based on hex positions
-            );
-
-            // Use fitToBox on the camera with the potential transition.
-            cameraControls.fitToBox(box, transition);
+          startSheet: () => {
+            console.log('starting sheet!');
+            // todo call start sheet
           },
-
-          // focusTraverser: ({ traverser, zoom, transition }) => {
-          //   assert(traverser, 'expected traverser');
-          //   zoom = zoom || 'EYE_LEVEL';
-          //   transition = transition || false;
-
-          //   const { pixelWidth, pixelHeight } = grid.traverse(traverser);
-
-          //   // Calculate height based on zoom.
-          //   let boxHeight;
-          //   switch (zoom) {
-          //     case 'GROUND_LEVEL':
-          //       boxHeight = 1 * pixelHeight;
-          //       break;
-          //     case 'EYE_LEVEL':
-          //       boxHeight = 1.5 * pixelHeight;
-          //       break;
-          //     case 'BIRDSEYE':
-          //       boxHeight = 3 * pixelHeight;
-          //       break;
-          //     case 'SKYLINE':
-          //       boxHeight = 5 * pixelHeight;
-          //       break;
-          //     case 'STRATOSPHERE':
-          //       boxHeight = 10 * pixelHeight;
-          //       break;
-          //     case 'SPACE':
-          //       boxHeight = 20 * pixelHeight;
-          //       break;
-          //     default:
-          //       boxHeight = pixelHeight; // Defaulting to the original pixelHeight.
-          //       break;
-          //   }
-
-          //   // Generate a THREE.Box3 from the traverser's pixel dimensions.
-          //   // Note: This is just a basic example, adjust this according to your application's 3D space.
-          //   const box = new Box3(
-          //     new Vector3(0, 0, 0), // Assuming bottom-left corner
-          //     new Vector3(pixelWidth, boxHeight, 0) // Assuming top-right corner
-          //   );
-
-          //   // Use fitToBox on the viewableGrid with potential transition.
-          //   cameraControls.fitToBox(box, transition, {
-          //     paddingTop: 0,
-          //     paddingRight: 0,
-          //     paddingBottom: 0,
-          //     paddingLeft: 0,
-          //   });
-          // },
         },
+
         services: {
           /**
            * Returns a promise that resolves when the current action
@@ -430,15 +353,6 @@ export const CameraRigProviderImpl: FC<{
               cameraControls.addEventListener('rest', onRest);
             });
           },
-
-          // playCinematic: (context) => {
-          // return new Promise((resolve, reject) => {
-          //   // pseudo code
-          //   const result = playTheatreJSSheet(context.sheet);
-          //   if (result.success) resolve(result);
-          //   else reject(result);
-          // });
-          // },
         },
       }
     )
@@ -454,45 +368,79 @@ export const CameraRigProviderImpl: FC<{
   );
 };
 
-function getPolarAngleForZoomLevel(zoom: CameraZoom): number {
-  // todo
-  return 1;
-}
-
-function calculateHeightFromZoom(zoom: CameraZoom): number {
+/**
+ * Maps a zoom value to unit padding values to be able to zoom out from the current axis
+ * @param zoom
+ */
+const getPaddingForZoom = (
+  zoom: CameraZoom
+): {
+  paddingTop: number;
+  paddingLeft: number;
+  paddingRight: number;
+  paddingBottom: number;
+} => {
+  let basePadding: number;
   switch (zoom) {
-    case 'GROUND_LEVEL':
-      return 0; // On the ground
-    case 'EYE_LEVEL':
-      return 1.7; // Roughly average human height in meters
-    case 'BIRDSEYE':
-      return 100; // 100 meters high, like a drone view
-    case 'SKYLINE':
-      return 300; // Top of a skyscraper
-    case 'STRATOSPHERE':
-      return 1000;
-    case 'SPACE':
-      return 4000;
+    case 'CLOSEST':
+      basePadding = 0;
+      break;
+    case 'CLOSER':
+      basePadding = 1;
+      break;
+    case 'MODERATE':
+      basePadding = 2;
+      break;
+    case 'FAR':
+      basePadding = 4;
+      break;
+    case 'FARTHER':
+      basePadding = 8;
+      break;
+    case 'FARTHEST':
+      basePadding = 16;
+      break;
     default:
-      throw new Error(`Unknown zoom level: ${zoom}`);
+      throw new Error(`Unimplemented zoom level: ${zoom}`);
   }
-}
 
-const getHeightMultiplierForZoom = (zoom: string): number => {
-  switch (zoom) {
-    case 'GROUND_LEVEL':
-      return 1;
-    case 'EYE_LEVEL':
-      return 1.5;
-    case 'BIRDSEYE':
-      return 3;
-    case 'SKYLINE':
-      return 5;
-    case 'STRATOSPHERE':
-      return 10;
-    case 'SPACE':
-      return 20;
-    default:
-      return 1; // Defaulting to 1 for an unexpected zoom value.
+  // This is to ensure we don't exceed a padding of 20
+  basePadding = Math.min(basePadding, 20);
+
+  return {
+    paddingTop: basePadding,
+    paddingLeft: basePadding,
+    paddingRight: basePadding,
+    paddingBottom: basePadding,
+  };
+};
+
+/**
+ * Returns a Box3 that encapsulates the given hex tiles
+ */
+const getBoundingBoxForHexes: (hexes: Hex[]) => Box3 = (hexes) => {
+  if (hexes.length === 0) {
+    throw new Error('No hexes provided.');
   }
+
+  // Initialize the bounding box with the first hex's center coordinates.
+  let minX = hexes[0].center.x;
+  let minY = hexes[0].center.y;
+  let maxX = hexes[0].center.x;
+  let maxY = hexes[0].center.y;
+
+  // Go through each hex and update the bounding box values.
+  hexes.forEach((hex) => {
+    const { center } = hex;
+    minX = Math.min(minX, center.x);
+    minY = Math.min(minY, center.y);
+    maxX = Math.max(maxX, center.x);
+    maxY = Math.max(maxY, center.y);
+  });
+
+  // Z-values are constant for all hexes since we've decided on an arbitrary height of 1 unit.
+  const minZ = 0;
+  const maxZ = 1;
+
+  return new Box3(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
 };
