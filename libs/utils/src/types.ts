@@ -40,6 +40,10 @@ export type IndexByType<T extends { type: string }> = {
   [K in T['type']]: T extends any ? (K extends T['type'] ? T : never) : never;
 };
 
+export type IndexByValue<T extends { value: string }> = {
+  [K in T['value']]: T extends any ? (K extends T['value'] ? T : never) : never;
+};
+
 export type GetComponentProps<T> = T extends
   | React.ComponentType<infer P>
   | React.Component<infer P>
