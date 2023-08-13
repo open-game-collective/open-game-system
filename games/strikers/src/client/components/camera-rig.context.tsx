@@ -13,7 +13,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Box3, Vector3 } from 'three';
+import { Box3, MathUtils, Vector3 } from 'three';
 import { Interpreter, StateMachine, createMachine } from 'xstate';
 import { z } from 'zod';
 import { GridContext } from '../context/grid.context';
@@ -23,6 +23,8 @@ const SheetSchema = z.custom<ISheet>();
 const TraverserSchema = z.custom<Traverser<Hex>>();
 const Box3Schema = z.custom<Box3>();
 const HexCoordinatesSchema = z.custom<HexCoordinates>();
+const HeadingSchema = z.number().min(0).max(360).default(270);
+const TiltSchema = z.number().min(-90).max(90).default(90);
 
 const CameraZoomSchema = z.union([
   z.literal('CLOSEST'),
@@ -35,9 +37,37 @@ const CameraZoomSchema = z.union([
 
 export type CameraZoom = z.infer<typeof CameraZoomSchema>;
 
+const CameraDirectionSchema = z.union([
+  z.literal('FRONT'),
+  z.literal('BACK'),
+  z.literal('UP'),
+  z.literal('DOWN'),
+  z.literal('LEFT'),
+  z.literal('RIGHT'),
+]);
+
+export type CameraDirection = z.infer<typeof CameraDirectionSchema>;
+
+// const LookDirection = z.object({
+//   type: z.literal('ROTATE'),
+//   heading: HeadingSchema.optional(),
+//   tilt: TiltSchema.optional(),
+//   zoom: CameraZoomSchema.optional(),
+//   transition: z.boolean().optional(),
+// });
+
 const ZoomEventSchema = z.object({
   type: z.literal('ZOOM'),
   zoom: CameraZoomSchema,
+  transition: z.boolean().optional(),
+});
+
+const RotateEventSchema = z.object({
+  type: z.literal('ROTATE'),
+  heading: HeadingSchema.optional(),
+  tilt: TiltSchema.optional(),
+  zoom: CameraZoomSchema.optional(),
+  transition: z.boolean().optional(),
 });
 
 const FocusTileEventSchema = z.object({
@@ -71,6 +101,7 @@ const StartSheetEventSchema = z.object({
 
 const CameraRigEventSchema = z.discriminatedUnion('type', [
   FocusTileEventSchema,
+  RotateEventSchema,
   ZoomEventSchema,
   FocusTilesEventSchema,
   FocusTraverserEventSchema,
@@ -205,6 +236,12 @@ const CameraRigProviderImpl: FC<{
             target: 'Focused',
             actions: ['assignZoom'],
           },
+
+          ROTATE: {
+            target: 'Focused',
+            actions: ['assignZoom', 'assignTilt', 'assignHeading'],
+          },
+
           FOCUS_TILE: {
             target: 'Focused',
             actions: [
@@ -270,12 +307,23 @@ const CameraRigProviderImpl: FC<{
            * cameraControls.fitToBox with it.
            */
           fitToBox: (context) => {
+            // Extract heading and tilt from context
+            const { heading, tilt } = context;
+            // console.log({ heading, tilt });
+
+            const azimuthAngle = heading * MathUtils.DEG2RAD;
+            const polarAngle = tilt * MathUtils.DEG2RAD;
+
+            console.log({ heading, tilt, azimuthAngle, polarAngle });
+
+            // Rotate camera to the specified heading and tilt
+            cameraControls.setPosition(0, 50, 0, false);
+            cameraControls.rotateTo(azimuthAngle, polarAngle, false); // set third parameter to false to not transition during rotation
+
+            // After rotation, apply padding and fit the camera to the box
             const transition = context.transition || false;
-
             const padding = getPaddingForZoom(context.zoom);
-
-            console.log({ context });
-            cameraControls.fitToBox(context.targetBox, transition, padding);
+            // cameraControls.fitToBox(context.targetBox, transition, padding);
           },
 
           assignTargetBoxFromTileCoordiante: assign((context, event) => {
@@ -318,8 +366,8 @@ const CameraRigProviderImpl: FC<{
           }),
 
           assignTilt: assign((context, event) => {
-            if ('heading' in event && typeof event.heading === 'number') {
-              context.heading = event.heading;
+            if ('tilt' in event && typeof event.tilt === 'number') {
+              context.tilt = event.tilt;
             }
           }),
 
@@ -388,22 +436,22 @@ const getPaddingForZoom = (
   let basePadding: number;
   switch (zoom) {
     case 'CLOSEST':
-      basePadding = 1;
+      basePadding = 0;
       break;
     case 'CLOSER':
-      basePadding = 2;
+      basePadding = 1;
       break;
     case 'MID':
-      basePadding = 4;
+      basePadding = 2;
       break;
     case 'FAR':
-      basePadding = 8;
+      basePadding = 4;
       break;
     case 'FARTHER':
-      basePadding = 16;
+      basePadding = 8;
       break;
     case 'FARTHEST':
-      basePadding = 32;
+      basePadding = 16;
       break;
     default:
       throw new Error(`Unimplemented zoom level: ${zoom}`);

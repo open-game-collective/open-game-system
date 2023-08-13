@@ -32,11 +32,11 @@ export function Field({ children }: { children?: ReactNode }) {
   //     textureRef.current.needsUpdate = true;
   //   }
   // });
+  // console.log(grid.pixelWidth, grid.pixelHeight);
 
   return (
     <FieldContext.Provider value={{ grid }}>
-      <group position={[0, 0, 0]}>
-        <axesHelper scale={20} />
+      <group>
         <mesh rotation-x={-Math.PI / 2}>
           <planeBufferGeometry args={[grid.pixelWidth, grid.pixelHeight]} />
           <meshBasicMaterial side={DoubleSide} color={0x00ff00}>

@@ -22,6 +22,7 @@ import { CameraRigContext, CameraRigProvider } from './camera-rig.context';
 import { Field } from './field';
 import { GridContext } from '../context/grid.context';
 import { DecoratorFn, Unarray } from '@explorers-club/utils';
+import { FieldCell } from './field-cell';
 
 export default {
   component: CameraRigProvider,
@@ -88,6 +89,7 @@ export const FocusTile: Story = {
 
     return (
       <>
+        <Controls />
         <Shadows />
         <BoundingBox box={box3} />
         <ambientLight />
@@ -126,15 +128,33 @@ export const FocusTiles: Story = {
         <BoundingBox box={box3} />
         <ambientLight />
         <gridHelper />
-        <axesHelper />
         <SunsetSky />
         <GridContext.Provider value={gridStore.get()}>
-          <Field />
+          <Field>
+            <FieldCell tilePosition={[5, 5]}>
+              <PlayerBox />
+            </FieldCell>
+            <FieldCell tilePosition={[6, 6]}>
+              <PlayerBox />
+            </FieldCell>
+            <FieldCell tilePosition={[8, 8]}>
+              <PlayerBox />
+            </FieldCell>
+          </Field>
         </GridContext.Provider>
       </>
     );
   },
 };
+
+function PlayerBox() {
+  return (
+    <mesh>
+      <boxGeometry />
+      <meshBasicMaterial color={0xf0f0f0} />
+    </mesh>
+  );
+}
 
 function BoundingBox({ box }: { box: Box3 }) {
   const { scene } = useThree();
@@ -221,7 +241,26 @@ function ZoomControl() {
 function TiltControl() {
   const { service } = useContext(CameraRigContext);
   const { tilt } = useControls({
-    tilt: { value: 45, min: 0, max: 180, label: 'Tilt' },
+    tilt: { value: 90, min: 0, max: 180, label: 'Tilt' },
+  });
+  // useControls('tilt', {
+  //   'rotate +45': button(() => {
+  //     service.send({
+  //       type: 'ROTATE',
+  //       tilt: (5 + service.getSnapshot().context.tilt) % 90,
+  //     });
+  //   }),
+  //   'rotate -45': button(() => {
+  //     service.send({
+  //       type: 'ROTATE',
+  //       tilt: (-5 + service.getSnapshot().context.tilt) % 90,
+  //     });
+  //   }),
+  //   // value: { value: 45, min: 0, max: 180, label: 'Tilt' },
+  // });
+  service.send({
+    type: 'ROTATE',
+    tilt,
   });
 
   return null;
@@ -230,30 +269,35 @@ function TiltControl() {
 function HeadingControl() {
   const { service } = useContext(CameraRigContext);
   const { heading } = useControls({
-    heading: { value: 0, min: 0, max: 360, label: 'Heading' },
+    heading: { value: 0, min: -180, max: 180, label: 'Heading' },
+  });
+
+  service.send({
+    type: 'ROTATE',
+    heading,
   });
 
   return null;
 }
 
-function CenterControls() {
-  const cameraStore = useContext(CameraRigContext);
-  const { centerRow, centerColumn } = useControls({
-    centerRow: { value: 10, min: 1, max: 20, label: 'Hex Row' },
-    centerColumn: { value: 13, min: 1, max: 26, label: 'Hex Column' },
-  });
+// function CenterControls() {
+//   const cameraStore = useContext(CameraRigContext);
+//   const { centerRow, centerColumn } = useControls({
+//     centerRow: { value: 10, min: 1, max: 20, label: 'Hex Row' },
+//     centerColumn: { value: 13, min: 1, max: 26, label: 'Hex Column' },
+//   });
 
-  // useEffect(() => {
-  //   cameraStore.setKey('center', [centerRow, centerColumn]);
-  // }, [centerRow, centerColumn, cameraStore]);
+//   // useEffect(() => {
+//   //   cameraStore.setKey('center', [centerRow, centerColumn]);
+//   // }, [centerRow, centerColumn, cameraStore]);
 
-  // Render nothing as this component only updates the store
-  return null;
-}
+//   // Render nothing as this component only updates the store
+//   return null;
+// }
 
-function lerp(start: number, end: number, t: number) {
-  return start * (1 - t) + end * t;
-}
+// function lerp(start: number, end: number, t: number) {
+//   return start * (1 - t) + end * t;
+// }
 
 const Shadows = memo(() => (
   <AccumulativeShadows
