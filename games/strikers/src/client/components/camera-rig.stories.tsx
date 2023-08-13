@@ -5,7 +5,7 @@ import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { useSelector } from '@xstate/react';
 
 import { StoryObj } from '@storybook/react';
-import { useControls } from 'leva';
+import { button, useControls } from 'leva';
 import { atom } from 'nanostores';
 import { memo, useContext, useEffect, useMemo, useRef } from 'react';
 import {
@@ -80,8 +80,6 @@ export const FocusTile: Story = {
     const box3 = useSelector(service, (state) => state.context.targetBox);
 
     useEffect(() => {
-      // cameraControls.setLookAt(0, 10, 120, 0, 0, -20, true);
-      console.log('send');
       service.send({
         type: 'FOCUS_TILE',
         tileCoordinate: [5, 5],
@@ -90,6 +88,40 @@ export const FocusTile: Story = {
 
     return (
       <>
+        <Shadows />
+        <BoundingBox box={box3} />
+        <ambientLight />
+        <gridHelper />
+        <axesHelper />
+        <SunsetSky />
+        <GridContext.Provider value={gridStore.get()}>
+          <Field />
+        </GridContext.Provider>
+      </>
+    );
+  },
+};
+
+export const FocusTiles: Story = {
+  decorators: [decorator],
+  render: () => {
+    const { service } = useContext(CameraRigContext);
+    const box3 = useSelector(service, (state) => state.context.targetBox);
+
+    useEffect(() => {
+      service.send({
+        type: 'FOCUS_TILES',
+        tileCoordinates: [
+          [5, 5],
+          [6, 6],
+          [8, 8],
+        ],
+      });
+    }, [service]);
+
+    return (
+      <>
+        <Controls />
         <Shadows />
         <BoundingBox box={box3} />
         <ambientLight />
@@ -129,73 +161,78 @@ function BoundingBox({ box }: { box: Box3 }) {
     };
   }, [box, scene]);
 
-  useFrame(() => {
-    // Update your LineSegments if necessary
-  });
-
   return null; // Render nothing as we've directly added the LineSegments to the scene.
 }
 
+function Controls() {
+  return (
+    <>
+      <ZoomControl />
+      <HeadingControl />
+      <TiltControl />
+    </>
+  );
+}
+
 function ZoomControl() {
-  // const cameraStore = useContext(CameraRigContext);
-  const { zoom } = useControls({
-    zoom: { value: 10, min: 2, max: 19, label: 'Zoom' },
+  const { service } = useContext(CameraRigContext);
+  useControls('zoom', {
+    closest: button(() => {
+      service.send({
+        type: 'ZOOM',
+        zoom: 'CLOSEST',
+      });
+    }),
+    close: button(() => {
+      service.send({
+        type: 'ZOOM',
+        zoom: 'CLOSER',
+      });
+    }),
+    mid: button(() => {
+      service.send({
+        type: 'ZOOM',
+        zoom: 'MID',
+      });
+    }),
+    far: button(() => {
+      service.send({
+        type: 'ZOOM',
+        zoom: 'FAR',
+      });
+    }),
+    farther: button(() => {
+      service.send({
+        type: 'ZOOM',
+        zoom: 'FARTHER',
+      });
+    }),
+    farthest: button(() => {
+      service.send({
+        type: 'ZOOM',
+        zoom: 'FARTHEST',
+      });
+    }),
   });
 
-  // Normalize zoom to a value between 0 and 1
-  const normalizedZoom = zoom / 19;
-
-  // Calculate tilt based on zoom
-  const maxTiltDeg = 85;
-  const tilt = lerp(maxTiltDeg, 0, normalizedZoom);
-
-  // useEffect(() => {
-  //   cameraStore.setKey('zoom', zoom);
-  //   cameraStore.setKey('tilt', tilt);
-  // }, [zoom, cameraStore]);
-
-  // Render nothing as this component only updates the store
   return null;
 }
 
 function TiltControl() {
-  const cameraStore = useContext(CameraRigContext);
+  const { service } = useContext(CameraRigContext);
   const { tilt } = useControls({
     tilt: { value: 45, min: 0, max: 180, label: 'Tilt' },
   });
 
-  // useEffect(() => {
-  //   cameraStore.setKey('tilt', tilt);
-  // }, [tilt, cameraStore]);
-
-  // Render nothing as this component only updates the store
   return null;
 }
+
 function HeadingControl() {
-  const cameraStore = useContext(CameraRigContext);
+  const { service } = useContext(CameraRigContext);
   const { heading } = useControls({
     heading: { value: 0, min: 0, max: 360, label: 'Heading' },
   });
 
-  // useEffect(() => {
-  //   cameraStore.setKey('heading', heading);
-  // }, [heading, cameraStore]);
-
-  // Render nothing as this component only updates the store
-  return null;
-}
-
-function ScaleFactorControl() {
-  const cameraStore = useContext(CameraRigContext);
-  const { scaleFactor } = useControls({
-    scaleFactor: { value: 3, min: 1, max: 10, label: 'Scale Factor' },
-  });
-
-  // useEffect(() => {
-  //   cameraStore.setKey('scaleFactor', scaleFactor);
-  // }, [scaleFactor, cameraStore]);
-
-  // Render nothing as this component only updates the store
   return null;
 }
 

@@ -21,20 +21,24 @@ import { GridContext } from '../context/grid.context';
 const Vector3Schema = z.custom<Vector3>();
 const SheetSchema = z.custom<ISheet>();
 const TraverserSchema = z.custom<Traverser<Hex>>();
-const SphereSchema = z.custom<THREE.Sphere>();
 const Box3Schema = z.custom<Box3>();
 const HexCoordinatesSchema = z.custom<HexCoordinates>();
 
 const CameraZoomSchema = z.union([
   z.literal('CLOSEST'),
   z.literal('CLOSER'),
-  z.literal('MODERATE'),
+  z.literal('MID'),
   z.literal('FAR'),
   z.literal('FARTHER'),
   z.literal('FARTHEST'),
 ]);
 
 export type CameraZoom = z.infer<typeof CameraZoomSchema>;
+
+const ZoomEventSchema = z.object({
+  type: z.literal('ZOOM'),
+  zoom: CameraZoomSchema,
+});
 
 const FocusTileEventSchema = z.object({
   type: z.literal('FOCUS_TILE'),
@@ -67,6 +71,7 @@ const StartSheetEventSchema = z.object({
 
 const CameraRigEventSchema = z.discriminatedUnion('type', [
   FocusTileEventSchema,
+  ZoomEventSchema,
   FocusTilesEventSchema,
   FocusTraverserEventSchema,
   StartSheetEventSchema,
@@ -196,6 +201,10 @@ const CameraRigProviderImpl: FC<{
           //     'assignTilt',
           //   ],
           // },
+          ZOOM: {
+            target: 'Focused',
+            actions: ['assignZoom'],
+          },
           FOCUS_TILE: {
             target: 'Focused',
             actions: [
@@ -303,7 +312,7 @@ const CameraRigProviderImpl: FC<{
           }),
 
           assignZoom: assign((context, event) => {
-            if ('zoom' in event && typeof event['zoom'] === 'number') {
+            if ('zoom' in event && typeof event['zoom'] === 'string') {
               context.zoom = event.zoom;
             }
           }),
@@ -379,22 +388,22 @@ const getPaddingForZoom = (
   let basePadding: number;
   switch (zoom) {
     case 'CLOSEST':
-      basePadding = 0;
-      break;
-    case 'CLOSER':
       basePadding = 1;
       break;
-    case 'MODERATE':
+    case 'CLOSER':
       basePadding = 2;
       break;
-    case 'FAR':
+    case 'MID':
       basePadding = 4;
       break;
-    case 'FARTHER':
+    case 'FAR':
       basePadding = 8;
       break;
-    case 'FARTHEST':
+    case 'FARTHER':
       basePadding = 16;
+      break;
+    case 'FARTHEST':
+      basePadding = 32;
       break;
     default:
       throw new Error(`Unimplemented zoom level: ${zoom}`);
