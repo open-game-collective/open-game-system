@@ -1,41 +1,56 @@
 import { SunsetSky } from '@3d/sky';
 import { AccumulativeShadows, RandomizedLight } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
+import { useSelector } from '@xstate/react';
 
 import { StoryObj } from '@storybook/react';
 import { useControls } from 'leva';
 import { atom } from 'nanostores';
-import { memo, useContext, useEffect } from 'react';
-import { Vector3 } from 'three';
+import { memo, useContext, useEffect, useMemo, useRef } from 'react';
+import {
+  Box3,
+  BoxGeometry,
+  BufferGeometry,
+  EdgesGeometry,
+  LineBasicMaterial,
+  LineSegments,
+  Mesh,
+  Vector3,
+} from 'three';
 import { CameraRigContext, CameraRigProvider } from './camera-rig.context';
 import { Field } from './field';
+import { GridContext } from '../context/grid.context';
+import { DecoratorFn, Unarray } from '@explorers-club/utils';
 
 export default {
   component: CameraRigProvider,
 };
 type Story = StoryObj<typeof CameraRigProvider>;
+type Dectorator = DecoratorFn<typeof CameraRigProvider>;
 
 const gridStore = atom(
   new Grid(defineHex(), rectangle({ width: 26, height: 20 }))
 );
 
+const decorator: Dectorator = (StoryComponent) => {
+  return (
+    <Canvas
+      shadows
+      style={{ background: '#eee', aspectRatio: '1' }}
+      camera={{ position: new Vector3(0, 1000, 1000) }}
+    >
+      <GridContext.Provider value={gridStore.get()}>
+        <CameraRigProvider>
+          <StoryComponent />
+        </CameraRigProvider>
+      </GridContext.Provider>
+    </Canvas>
+  );
+};
+
 export const Default: Story = {
-  decorators: [
-    (StoryComponent) => {
-      return (
-        <Canvas
-          shadows
-          style={{ background: '#eee', aspectRatio: '1' }}
-          camera={{ position: new Vector3(0, 1000, 1000) }}
-        >
-          <CameraRigProvider grid={gridStore.get()}>
-            <StoryComponent />
-          </CameraRigProvider>
-        </Canvas>
-      );
-    },
-  ],
+  decorators: [decorator],
   render: () => {
     const { cameraControls } = useContext(CameraRigContext);
 
@@ -50,55 +65,76 @@ export const Default: Story = {
         <gridHelper />
         <axesHelper />
         <SunsetSky />
-        <Field grid={gridStore.get()} />
+        <GridContext.Provider value={gridStore.get()}>
+          <Field />
+        </GridContext.Provider>
       </>
     );
   },
 };
 
-// export const Rotate45 = {
-//   ...Default,
-//   play: (props) => {
-//     console.log(props.parameters);
-//     // const cameraControls = props.parameters['cameraControls'] as
-//     //   | CameraControls
-//     //   | undefined;
-//     // assert(
-//     //   cameraControls,
-//     //   "expected 'cameraControls' from parameters but not found"
-//     // );
+export const FocusTile: Story = {
+  decorators: [decorator],
+  render: () => {
+    const { service } = useContext(CameraRigContext);
+    const box3 = useSelector(service, (state) => state.context.targetBox);
 
-//     // console.log({ cameraControls });
-//     // todo control camera from ehre, need to get
-//   },
-// } as Story;
+    useEffect(() => {
+      // cameraControls.setLookAt(0, 10, 120, 0, 0, -20, true);
+      console.log('send');
+      service.send({
+        type: 'FOCUS_TILE',
+        tileCoordinate: [5, 5],
+      });
+    }, [service]);
 
-// const withCameraRigContext: DecoratorFunction<
-//   ReactFramework,
-//   Args
-// > = (Story, context) => {
-//   const { state, myUserId } = context.args as unknown as {
-//     myUserId: string;
-//     state: LittleVigilanteStateSerialized;
-//   };
+    return (
+      <>
+        <Shadows />
+        <BoundingBox box={box3} />
+        <ambientLight />
+        <gridHelper />
+        <axesHelper />
+        <SunsetSky />
+        <GridContext.Provider value={gridStore.get()}>
+          <Field />
+        </GridContext.Provider>
+      </>
+    );
+  },
+};
 
-//   const event$ = new Subject<LittleVigilanteServerEvent>();
+function BoundingBox({ box }: { box: Box3 }) {
+  const { scene } = useThree();
+  const lineSegments = useMemo(() => {
+    // Create a box geometry from the Box3 dimensions
+    const size = box.getSize(new Vector3());
+    const center = box.getCenter(new Vector3());
+    const geometry = new BoxGeometry(size.x, size.y, size.z);
+    geometry.translate(center.x, center.y, center.z);
 
-//   context.parameters['event$'] = event$;
+    // Generate edges from the geometry
+    const edges = new EdgesGeometry(geometry);
+    const material = new LineBasicMaterial({ color: 'red' });
+    const segments = new LineSegments(edges, material);
 
-//   const store = createMockStore<
-//     LittleVigilanteStateSerialized,
-//     LittleVigilanteCommand
-//   >({ state });
+    scene.add(segments);
 
-//   return (
-//     <LittleVigilanteContext.Provider value={{ store, myUserId, event$ }}>
-//       <ChatServiceProvider>
-//         <Story />
-//       </ChatServiceProvider>
-//     </LittleVigilanteContext.Provider>
-//   );
-// };
+    // Cleanup on unmount
+    return () => {
+      scene.remove(segments);
+      material.dispose();
+      edges.dispose();
+      geometry.dispose();
+    };
+  }, [box, scene]);
+
+  useFrame(() => {
+    // Update your LineSegments if necessary
+  });
+
+  return null; // Render nothing as we've directly added the LineSegments to the scene.
+}
 
 function ZoomControl() {
   // const cameraStore = useContext(CameraRigContext);

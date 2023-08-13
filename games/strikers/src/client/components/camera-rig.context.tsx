@@ -36,14 +36,6 @@ const CameraZoomSchema = z.union([
 
 export type CameraZoom = z.infer<typeof CameraZoomSchema>;
 
-// const FocusPointEventSchema = z.object({
-//   type: z.literal('FOCUS_POINT'),
-//   center: Vector3Schema,
-//   position: Vector3Schema.optional(),
-//   transition: z.boolean().optional(),
-//   zoom: CameraZoomSchema.optional(),
-// });
-
 const FocusTileEventSchema = z.object({
   type: z.literal('FOCUS_TILE'),
   tileCoordinate: HexCoordinatesSchema,
@@ -74,7 +66,6 @@ const StartSheetEventSchema = z.object({
 });
 
 const CameraRigEventSchema = z.discriminatedUnion('type', [
-  // FocusPointEventSchema,
   FocusTileEventSchema,
   FocusTilesEventSchema,
   FocusTraverserEventSchema,
@@ -152,7 +143,7 @@ export const CameraRigContext = createContext(
   }
 );
 
-export const CaemraRigProvider: FC<{ children: ReactNode }> = ({
+export const CameraRigProvider: FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const cameraControlsRef = useRef<CameraControls | null>(null);
@@ -178,7 +169,7 @@ export const CaemraRigProvider: FC<{ children: ReactNode }> = ({
   );
 };
 
-export const CameraRigProviderImpl: FC<{
+const CameraRigProviderImpl: FC<{
   children: ReactNode;
   cameraControls: CameraControls;
 }> = ({ children, cameraControls }) => {
@@ -191,7 +182,7 @@ export const CameraRigProviderImpl: FC<{
         context: {
           targetBox: new Box3(new Vector3(0, 0, 0), new Vector3(1, 1, 1)),
           tilt: 0,
-          zoom: 'GROUND_LEVEL',
+          zoom: 'CLOSEST',
           heading: 0,
           transition: false,
         },
@@ -239,10 +230,13 @@ export const CameraRigProviderImpl: FC<{
         },
         states: {
           Focused: {
-            initial: 'Idle',
+            initial: 'Starting',
             states: {
-              Idle: {
-                entry: 'fitToBox',
+              Starting: {
+                always: {
+                  target: 'Active',
+                  actions: 'fitToBox',
+                },
               },
               Active: {
                 invoke: {
@@ -250,6 +244,7 @@ export const CameraRigProviderImpl: FC<{
                   onDone: 'Idle',
                 },
               },
+              Idle: {},
             },
           },
           Cinematic: {
@@ -270,6 +265,7 @@ export const CameraRigProviderImpl: FC<{
 
             const padding = getPaddingForZoom(context.zoom);
 
+            console.log({ context });
             cameraControls.fitToBox(context.targetBox, transition, padding);
           },
 
@@ -423,24 +419,27 @@ const getBoundingBoxForHexes: (hexes: Hex[]) => Box3 = (hexes) => {
     throw new Error('No hexes provided.');
   }
 
-  // Initialize the bounding box with the first hex's center coordinates.
-  let minX = hexes[0].center.x;
-  let minY = hexes[0].center.y;
-  let maxX = hexes[0].center.x;
-  let maxY = hexes[0].center.y;
+  // Initialize the bounding box with the first hex's corner coordinates.
+  let firstHexCorners = hexes[0].corners;
+  let minX = firstHexCorners[0].x;
+  let minZ = firstHexCorners[0].y; // Using Z as it's in 3D space now
+  let maxX = firstHexCorners[0].x;
+  let maxZ = firstHexCorners[0].y; // Using Z as it's in 3D space now
 
-  // Go through each hex and update the bounding box values.
+  // Go through each hex and update the bounding box values using its corners.
   hexes.forEach((hex) => {
-    const { center } = hex;
-    minX = Math.min(minX, center.x);
-    minY = Math.min(minY, center.y);
-    maxX = Math.max(maxX, center.x);
-    maxY = Math.max(maxY, center.y);
+    const corners = hex.corners;
+    corners.forEach((corner) => {
+      minX = Math.min(minX, corner.x);
+      minZ = Math.min(minZ, corner.y); // Using Z as it's in 3D space now
+      maxX = Math.max(maxX, corner.x);
+      maxZ = Math.max(maxZ, corner.y); // Using Z as it's in 3D space now
+    });
   });
 
-  // Z-values are constant for all hexes since we've decided on an arbitrary height of 1 unit.
-  const minZ = 0;
-  const maxZ = 1;
+  // Y-values are constant for all hexes since we've decided on an arbitrary height of 1 unit.
+  const minY = 0;
+  const maxY = 1;
 
   return new Box3(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
 };
