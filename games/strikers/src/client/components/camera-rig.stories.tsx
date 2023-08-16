@@ -8,7 +8,7 @@ import { StoryObj } from '@storybook/react';
 import { button, buttonGroup, folder, useControls } from 'leva';
 import { atom } from 'nanostores';
 import { memo, useContext, useEffect } from 'react';
-import { Vector3 } from 'three';
+import { MathUtils, Vector3 } from 'three';
 import { GridContext } from '../context/grid.context';
 import { Grid as GridHelper } from '@react-three/drei';
 import { CameraRigContext, CameraRigProvider } from './camera-rig.context';
@@ -170,65 +170,94 @@ function Controls() {
   const grid = useContext(GridContext);
 
   useControls({
-    thetaGrp: buttonGroup({
-      label: 'rotate theta',
+    headingGrp: buttonGroup({
+      label: 'heading',
       opts: {
-        '+45º': () => cameraControls.rotate(45 * DEG2RAD, 0, true),
-        '-90º': () => cameraControls.rotate(-90 * DEG2RAD, 0, true),
-        '+360º': () => cameraControls.rotate(360 * DEG2RAD, 0, true),
+        '-45º': () => {
+          cameraControls.rotate(-45 * DEG2RAD, 0, true);
+        },
+        '-15º': () => {
+          cameraControls.rotate(-15 * DEG2RAD, 0, true);
+        },
+        '+15º': () => {
+          cameraControls.rotate(15 * DEG2RAD, 0, true);
+        },
+        '+45º': () => {
+          cameraControls.rotate(45 * DEG2RAD, 0, true);
+        },
       },
     }),
-    phiGrp: buttonGroup({
-      label: 'rotate phi',
+    tiltGrp: buttonGroup({
+      label: 'tilt',
       opts: {
-        '+20º': () => cameraControls.rotate(0, 20 * DEG2RAD, true),
-        '-40º': () => cameraControls.rotate(0, -40 * DEG2RAD, true),
+        '-20º': () => {
+          cameraControls.rotate(0, -20 * DEG2RAD, true);
+        },
+        '-5º': () => {
+          cameraControls.rotate(0, -5 * DEG2RAD, true);
+        },
+        '+5º': () => {
+          cameraControls.rotate(0, 5 * DEG2RAD, true);
+        },
+        '+20º': () => {
+          cameraControls.rotate(0, 20 * DEG2RAD, true);
+        },
       },
     }),
     truckGrp: buttonGroup({
       label: 'truck',
       opts: {
-        '(1,0)': () => cameraControls.truck(1, 0, true),
-        '(0,1)': () => cameraControls.truck(0, 1, true),
-        '(-1,-1)': () => cameraControls.truck(-1, -1, true),
+        left: () => cameraControls.truck(-1, 0, true),
+        right: () => cameraControls.truck(1, 0, true),
+        down: () => cameraControls.truck(0, 1, true),
+        up: () => cameraControls.truck(0, -1, true),
       },
     }),
     dollyGrp: buttonGroup({
       label: 'dolly',
       opts: {
-        '1': () => cameraControls.dolly(1, true),
-        '-1': () => cameraControls.dolly(-1, true),
+        forward: () => cameraControls.dolly(1, true),
+        back: () => cameraControls.dolly(-1, true),
       },
     }),
     zoomGrp: buttonGroup({
       label: 'zoom',
       opts: {
-        '/2': () => cameraControls.zoom(camera.zoom / 2, true),
-        '/-2': () => cameraControls.zoom(-camera.zoom / 2, true),
+        '-1': () => cameraControls.zoomTo(camera.zoom - 1, true),
+        '+1': () => cameraControls.zoomTo(camera.zoom + 1, true),
+        // '/2': () => cameraControls.zoom(camera.zoom / 2, true),
+        // '/-2': () => cameraControls.zoom(-camera.zoom / 2, true),
       },
     }),
-    minDistance: { value: 0 },
-    moveTo: folder(
-      {
-        vec1: { value: [3, 5, 2], label: 'vec' },
-        'moveTo(…vec)': button((get) =>
-          cameraControls.moveTo(
-            ...(get('moveTo.vec1') as [number, number, number]),
-            true
-          )
-        ),
-      },
-      { collapsed: true }
-    ),
+    // moveTo: folder(
+    //   {
+    //     vec1: { value: [3, 5, 2], label: 'vec' },
+    //     'moveTo(…vec)': button((get) =>
+    //       cameraControls.moveTo(
+    //         ...(get('moveTo.vec1') as [number, number, number]),
+    //         true
+    //       )
+    //     ),
+    //   },
+    //   { collapsed: true }
+    // ),
     // 'fitToBox(mesh)': button(() =>
     //   cameraControls.fitToBox(meshRef.current, true)
     // ),
     grid: folder(
       {
-        tile1: { value: 'A1', label: 'tile' },
-        radius: { value: 1, label: 'radius' },
-        spiral: button((get) => {
-          const val = get('grid.tile1');
+        centerCoord: {
+          value: 'A1',
+          label: 'center',
+          hint: 'Format: [ROW][COL], ROW=A-Z, COL=1-36',
+        },
+        radius: {
+          value: 1,
+          label: 'radius',
+          hint: 'sets radius of spiral out of center coordinate',
+        },
+        'focusSphere(coord, radius)': button((get) => {
+          const val = get('grid.centerCoord');
 
           service.send({
             type: 'POSITION',
@@ -260,47 +289,73 @@ function Controls() {
           // cameraControls.set
           // console.log({ val });
         }),
+        'focusGrid()': button((get) => {
+          service.send({
+            type: 'POSITION',
+            target: grid,
+          });
+
+          // cameraControls.setTarget(
+          //   x - grid.pixelWidth / 2,
+          //   y,
+          //   z - grid.pixelHeight / 2,
+          //   false
+          // );
+
+          // cameraControls.setLookAt(
+
+          // )
+
+          // console.log(
+          //   { sphere, val },
+          //   cameraControls.azimuthAngle,
+          //   cameraControls.polarAngle
+          // );
+
+          // cameraControls.set
+          // console.log({ val });
+        }),
       },
       { collapsed: true }
     ),
-    setPosition: folder(
-      {
-        vec2: { value: [-5, 2, 1], label: 'vec' },
-        'setPosition(…vec)': button((get) =>
-          cameraControls.setPosition(
-            ...(get('setPosition.vec2') as [number, number, number]),
-            true
-          )
-        ),
-      },
-      { collapsed: true }
-    ),
-    setTarget: folder(
-      {
-        vec3: { value: [3, 0, -3], label: 'vec' },
-        'setTarget(…vec)': button((get) =>
-          cameraControls.setTarget(
-            ...(get('setTarget.vec3') as [number, number, number]),
-            true
-          )
-        ),
-      },
-      { collapsed: true }
-    ),
-    setLookAt: folder(
-      {
-        vec4: { value: [1, 2, 3], label: 'position' },
-        vec5: { value: [1, 1, 0], label: 'target' },
-        'setLookAt(…position, …target)': button((get) =>
-          cameraControls.setLookAt(
-            ...(get('setLookAt.vec4') as [number, number, number]),
-            ...(get('setLookAt.vec5') as [number, number, number]),
-            true
-          )
-        ),
-      },
-      { collapsed: true }
-    ),
+    // setPosition: folder(
+    //   {
+    //     vec2: { value: [-5, 2, 1], label: 'vec' },
+    //     'setPosition(…vec)': button((get) =>
+    //       cameraControls.setPosition(
+    //         ...(get('setPosition.vec2') as [number, number, number]),
+    //         true
+    //       )
+    //     ),
+    //   },
+    //   { collapsed: true }
+    // ),
+    // setTarget: folder(
+    //   {
+    //     vec3: { value: [3, 0, -3], label: 'vec' },
+    //     'setTarget(…vec)': button((get) =>
+    //       cameraControls.setTarget(
+    //         ...(get('setTarget.vec3') as [number, number, number]),
+    //         true
+    //       )
+    //     ),
+    //   },
+    //   { collapsed: true }
+    // ),
+    // setLookAt: folder(
+    //   {
+    //     vec4: { value: [1, 2, 3], label: 'position' },
+    //     vec5: { value: [1, 1, 0], label: 'target' },
+    //     'setLookAt(…position, …target)': button((get) =>
+    //       cameraControls.setLookAt(
+    //         ...(get('setLookAt.vec4') as [number, number, number]),
+    //         ...(get('setLookAt.vec5') as [number, number, number]),
+    //         true
+    //       )
+    //     ),
+    //   },
+    //   { collapsed: true }
+    // ),
     lerpLookAt: folder(
       {
         vec6: { value: [-2, 0, 0], label: 'posA' },
@@ -323,13 +378,13 @@ function Controls() {
     ),
     saveState: button(() => cameraControls.saveState()),
     reset: button(() => cameraControls.reset(true)),
-    enabled: { value: true, label: 'controls on' },
-    verticalDragToForward: {
-      value: false,
-      label: 'vert. drag to move forward',
-    },
-    dollyToCursor: { value: false, label: 'dolly to cursor' },
-    infinityDolly: { value: false, label: 'infinity dolly' },
+    // enabled: { value: true, label: 'controls on' },
+    // verticalDragToForward: {
+    //   value: false,
+    //   label: 'vert. drag to move forward',
+    // },
+    // dollyToCursor: { value: false, label: 'dolly to cursor' },
+    // infinityDolly: { value: false, label: 'infinity dolly' },
   });
 
   return null;
