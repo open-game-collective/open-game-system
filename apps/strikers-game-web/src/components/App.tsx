@@ -16,12 +16,8 @@ import { Menu } from './Menu';
 import { Modal } from './Modal';
 import { ScenePanel } from './ScenePanel';
 import { ApplicationProvider } from '@context/ApplicationProvider';
-
-interface Props {
-  initialRouteProps: RouteProps;
-  connectionId: SnowflakeId;
-  trpcUrl: string;
-}
+import { PushServiceWorker } from './PushServiceWorker';
+import type { MiddlewareProps } from '../middleware';
 
 const AppContainer = styled('div', {
   position: 'absolute',
@@ -34,7 +30,7 @@ const AppContainer = styled('div', {
   flexDirection: 'column',
 });
 
-export const App: FC<Props> = ({
+export const App: FC<MiddlewareProps> = ({
   initialRouteProps,
   connectionId,
   trpcUrl,
@@ -46,6 +42,7 @@ export const App: FC<Props> = ({
       <ApplicationContext.Provider value={{ routeStore }}>
         <AppContainer>
           <LayoutProvider>
+            <PushServiceWorker />
             <ScenePanel />
             <Menu />
             <ChannelListDialog />

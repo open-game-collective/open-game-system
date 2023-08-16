@@ -1,6 +1,6 @@
 import { generateSnowflakeId } from '@api/ids';
 import * as jose from 'jose';
-import type { RouteProps } from '@schema/types';
+import type { RouteProps, SnowflakeId } from '@schema/types';
 import type { AstroCookies, MiddlewareResponseHandler } from 'astro';
 import { defineMiddleware, sequence } from 'astro/middleware';
 import { getRouteProps } from './routing';
@@ -9,6 +9,11 @@ import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { transformer } from '@api/transformer';
 
 const alg = 'HS256';
+export interface MiddlewareProps {
+  initialRouteProps: RouteProps;
+  connectionId: SnowflakeId;
+  trpcUrl: string;
+}
 
 const authHandler: MiddlewareResponseHandler = defineMiddleware(
   async (context, next) => {

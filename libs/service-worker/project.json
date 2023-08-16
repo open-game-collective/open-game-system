@@ -1,0 +1,40 @@
+{
+  "name": "service-worker",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/service-worker/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/service-worker",
+        "main": "libs/service-worker/src/index.ts",
+        "tsConfig": "libs/service-worker/tsconfig.lib.json",
+        "assets": ["libs/service-worker/*.md"],
+        "js": true
+      }
+    },
+    "publish": {
+      "command": "node tools/scripts/publish.mjs service-worker {args.ver} {args.tag}",
+      "dependsOn": ["build"]
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["libs/service-worker/**/*.ts"]
+      }
+    },
+    "serve-bundle": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "host": "0.0.0.0",
+        "buildTarget": "service-worker:build",
+        "parallel": false,
+        "staticFilePath": "dist/libs/service-worker/src"
+      }
+    }
+  },
+  "tags": []
+}

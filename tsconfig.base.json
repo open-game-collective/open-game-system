@@ -87,6 +87,7 @@
       "@ogc/astro": ["libs/astro/src/index.ts"],
       "@organisms/*": ["libs/components/src/organisms/*"],
       "@schema/*": ["libs/schema/src/*"],
+      "@service-worker": ["libs/service-worker/src/index.ts"],
       "@state/*": ["libs/components/src/state/*"],
       "@storybook-decorators/*": ["libs/components/src/decorators/*"],
       "@strikers/*": ["games/strikers/src/*"],

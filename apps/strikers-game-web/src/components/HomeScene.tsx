@@ -1,4 +1,6 @@
 import { SunsetSky } from '@3d/sky';
+import { ApplicationContext } from '@context/ApplicationContext';
+import { ApplicationProvider } from '@context/ApplicationProvider';
 import { Button } from '@atoms/Button';
 import { useStore } from '@nanostores/react';
 import { Canvas } from '@react-three/fiber';
@@ -16,8 +18,10 @@ import extension from '@theatre/r3f/dist/extension';
 import studio from '@theatre/studio';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { atom } from 'nanostores';
-import { useCallback, useContext, useEffect } from 'react';
+import { FC, useCallback, useContext, useEffect, useState } from 'react';
 import { Vector3 } from 'three';
+import { PushServiceWorker } from './PushServiceWorker';
+import type { MiddlewareProps } from '../middleware';
 
 studio.initialize();
 studio.extend(extension);
@@ -28,7 +32,12 @@ const gridStore = atom(
   new Grid(defineHex(), rectangle({ width: 36, height: 26 }))
 );
 
-export const HomeScene = () => {
+export const HomeScene: FC<MiddlewareProps> = ({
+  initialRouteProps,
+  connectionId,
+  trpcUrl,
+}) => {
+  const [routeStore] = useState(atom(initialRouteProps));
   const grid = useStore(gridStore);
 
   const handlePlay = useCallback(() => {
@@ -41,49 +50,54 @@ export const HomeScene = () => {
 
   return (
     <>
-      <Button
-        onClick={handlePlay}
-        css={{
-          position: 'absolute',
-          bottom: '$2',
-          zIndex: 10,
-          left: '50%',
-          marginRight: '-50%',
-        }}
-      >
-        Play
-      </Button>
-      <Canvas
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          right: 0,
-          zIndex: 1,
-        }}
-        camera={{ position: new Vector3(0, 1000, 1000) }}
-      >
-        <GridContext.Provider value={grid}>
-          <SheetProvider sheet={sheet}>
-            <CameraRigProvider>
-              {/* <PerspectiveCamera
+      <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
+        <ApplicationContext.Provider value={{ routeStore }}>
+          <Button
+            onClick={handlePlay}
+            css={{
+              position: 'absolute',
+              bottom: '$2',
+              zIndex: 10,
+              left: '50%',
+              marginRight: '-50%',
+            }}
+          >
+            Play
+          </Button>
+          <PushServiceWorker />
+          <Canvas
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              right: 0,
+              zIndex: 1,
+            }}
+            camera={{ position: new Vector3(0, 1000, 1000) }}
+          >
+            <GridContext.Provider value={grid}>
+              <SheetProvider sheet={sheet}>
+                <CameraRigProvider>
+                  {/* <PerspectiveCamera
           attachArray={undefined}
           attachObject={undefined}
           attachFns={undefined}
           theatreKey={'Camera'}
         /> */}
-              <AnimationSequence />
-              <SunsetSky />
-              <CameraRigControls />
-              <Field>
-                <Goal side="home" />
-                <Goal side="away" />
-              </Field>
-            </CameraRigProvider>
-          </SheetProvider>
-        </GridContext.Provider>
-      </Canvas>
+                  <AnimationSequence />
+                  <SunsetSky />
+                  <CameraRigControls />
+                  <Field>
+                    <Goal side="home" />
+                    <Goal side="away" />
+                  </Field>
+                </CameraRigProvider>
+              </SheetProvider>
+            </GridContext.Provider>
+          </Canvas>
+        </ApplicationContext.Provider>
+      </ApplicationProvider>
     </>
   );
 };
