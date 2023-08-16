@@ -65,5 +65,3 @@ export type FromSubject<T extends Subject<any>> = T extends Subject<infer U>
 
 export type FromArchetype<T extends ArchetypeBucket<any>> =
   T extends ArchetypeBucket<infer U> ? U : never;
-
-export type DecoratorFn<T> = Unarray<StoryObj<T>['decorators']>;

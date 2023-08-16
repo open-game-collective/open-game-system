@@ -7,7 +7,9 @@ import {
   CameraRigProvider,
 } from '@strikers/client/components/camera-rig.context';
 import { Field } from '@strikers/client/components/field';
+import { CameraRigControls } from '@strikers/client/components/camera-rig-controls';
 import { Goal } from '@strikers/client/components/goal';
+import { GridContext } from '@strikers/client/context/grid.context';
 import { getProject } from '@theatre/core';
 import { SheetProvider } from '@theatre/r3f';
 import extension from '@theatre/r3f/dist/extension';
@@ -23,7 +25,7 @@ studio.extend(extension);
 const sheet = getProject('Demo Project').sheet('Demo Sheet');
 
 const gridStore = atom(
-  new Grid(defineHex(), rectangle({ width: 26, height: 20 }))
+  new Grid(defineHex(), rectangle({ width: 36, height: 26 }))
 );
 
 export const HomeScene = () => {
@@ -62,22 +64,25 @@ export const HomeScene = () => {
         }}
         camera={{ position: new Vector3(0, 1000, 1000) }}
       >
-        <SheetProvider sheet={sheet}>
-          <CameraRigProvider grid={grid}>
-            {/* <PerspectiveCamera
+        <GridContext.Provider value={grid}>
+          <SheetProvider sheet={sheet}>
+            <CameraRigProvider>
+              {/* <PerspectiveCamera
           attachArray={undefined}
           attachObject={undefined}
           attachFns={undefined}
           theatreKey={'Camera'}
         /> */}
-            <AnimationSequence />
-            <SunsetSky />
-            <Field grid={grid}>
-              <Goal side="home" />
-              <Goal side="away" />
-            </Field>
-          </CameraRigProvider>
-        </SheetProvider>
+              <AnimationSequence />
+              <SunsetSky />
+              <CameraRigControls />
+              <Field>
+                <Goal side="home" />
+                <Goal side="away" />
+              </Field>
+            </CameraRigProvider>
+          </SheetProvider>
+        </GridContext.Provider>
       </Canvas>
     </>
   );

@@ -67,7 +67,7 @@ export const StrikersSceneManager: FC<{
 
   assertEntitySchema(gameEntity, 'strikers_game');
   const [grid] = useState(
-    new Grid(HexTile, rectangle({ width: 26, height: 20 }))
+    new Grid(HexTile, rectangle({ width: 36, height: 26 }))
   );
 
   return (
