@@ -246,6 +246,7 @@ export const createCameraRigMachine = (
         }),
 
         focusTarget: (context) => {
+          cameraControls.fitToSphere(context.targetSphere, true);
           // todo what should I do here?
         },
       },
