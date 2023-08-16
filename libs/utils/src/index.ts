@@ -235,3 +235,7 @@ export function isMobileDevice(userAgent: string): boolean {
   // Check if the user agent contains any mobile device keywords
   return mobileKeywords.some((keyword) => userAgent.includes(keyword));
 }
+
+export function lerp(a: number, b: number, t: number): number {
+  return (1 - t) * a + t * b;
+}

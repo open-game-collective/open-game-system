@@ -1,28 +1,32 @@
 import { SunsetSky } from '@3d/sky';
 import { AccumulativeShadows, RandomizedLight } from '@react-three/drei';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Grid, defineHex, rectangle } from 'honeycomb-grid';
-import { useSelector } from '@xstate/react';
+import { Canvas, Color } from '@react-three/fiber';
+import { Grid, defineHex, rectangle, spiral } from 'honeycomb-grid';
 
+import { DecoratorFn } from '@explorers-club/utils';
 import { StoryObj } from '@storybook/react';
-import { button, useControls } from 'leva';
+import { button, buttonGroup, folder, useControls } from 'leva';
 import { atom } from 'nanostores';
-import { memo, useContext, useEffect, useMemo, useRef } from 'react';
-import {
-  Box3,
-  BoxGeometry,
-  BufferGeometry,
-  EdgesGeometry,
-  LineBasicMaterial,
-  LineSegments,
-  Mesh,
-  Vector3,
-} from 'three';
+import { memo, useContext, useEffect } from 'react';
+import { Vector3 } from 'three';
+import { GridContext } from '../context/grid.context';
+import { Grid as GridHelper } from '@react-three/drei';
 import { CameraRigContext, CameraRigProvider } from './camera-rig.context';
 import { Field } from './field';
-import { GridContext } from '../context/grid.context';
-import { DecoratorFn, Unarray } from '@explorers-club/utils';
 import { FieldCell } from './field-cell';
+import { Goal } from './goal';
+import { SheetProvider } from '@theatre/r3f';
+import { getProject } from '@theatre/core';
+import { useSelector } from '@xstate/react';
+import { DEG2RAD } from 'three/src/math/MathUtils';
+// import { StrikersTileCoordinate } from '@schema/games/strikers';
+import { getSphereForHexes } from './camera-rig.utils';
+import {
+  convertStrikersTileCoordinateToRowCol,
+  gridHexToWorldPosition,
+  gridPointToWorldPosition,
+} from '@strikers/lib/utils';
+import { StrikersTileCoordinate } from '@schema/games/strikers';
 
 export default {
   component: CameraRigProvider,
@@ -31,8 +35,15 @@ type Story = StoryObj<typeof CameraRigProvider>;
 type Dectorator = DecoratorFn<typeof CameraRigProvider>;
 
 const gridStore = atom(
-  new Grid(defineHex(), rectangle({ width: 26, height: 20 }))
+  new Grid(defineHex(), rectangle({ width: 36, height: 26 }))
 );
+
+// const res = Array.from(gridStore.get()).map((hex) => {
+//   return [hex.row, hex.col, hex.x, hex.y, hex.center.x, hex.center.y] as const;
+// });
+// console.log({ res });
+
+const sheetStore = atom(getProject('Demo Project').sheet('Demo Sheet'));
 
 const decorator: Dectorator = (StoryComponent) => {
   return (
@@ -41,11 +52,25 @@ const decorator: Dectorator = (StoryComponent) => {
       style={{ background: '#eee', aspectRatio: '1' }}
       camera={{ position: new Vector3(0, 1000, 1000) }}
     >
-      <GridContext.Provider value={gridStore.get()}>
-        <CameraRigProvider>
-          <StoryComponent />
-        </CameraRigProvider>
-      </GridContext.Provider>
+      <axesHelper scale={20} />
+      <GridHelper
+        infiniteGrid
+        matrixWorldAutoUpdate={undefined}
+        getObjectsByProperty={undefined}
+        getVertexPosition={undefined}
+      />
+      <SheetProvider sheet={sheetStore.get()}>
+        <GridContext.Provider value={gridStore.get()}>
+          <CameraRigProvider>
+            <TargetSphere />
+            <StoryComponent />
+            <Controls />
+            <DummyBox coordinate="A1" color="blue" />
+            <DummyBox coordinate="Z26" color="red" />
+            <DummyBox coordinate="Z36" color="orange" />
+          </CameraRigProvider>
+        </GridContext.Provider>
+      </SheetProvider>
     </Canvas>
   );
 };
@@ -63,11 +88,13 @@ export const Default: Story = {
       <>
         <Shadows />
         <ambientLight />
-        <gridHelper />
         <axesHelper />
         <SunsetSky />
         <GridContext.Provider value={gridStore.get()}>
-          <Field />
+          <Field>
+            <Goal side="away" />
+            <Goal side="home" />
+          </Field>
         </GridContext.Provider>
       </>
     );
@@ -78,23 +105,18 @@ export const FocusTile: Story = {
   decorators: [decorator],
   render: () => {
     const { service } = useContext(CameraRigContext);
-    const box3 = useSelector(service, (state) => state.context.targetBox);
 
-    useEffect(() => {
-      service.send({
-        type: 'FOCUS_TILE',
-        tileCoordinate: [5, 5],
-      });
-    }, [service]);
+    // useEffect(() => {
+    //   service.send({
+    //     type: 'FOCUS_TILE',
+    //     tileCoordinate: [5, 5],
+    //   });
+    // }, [service]);
 
     return (
       <>
-        <Controls />
         <Shadows />
-        <BoundingBox box={box3} />
         <ambientLight />
-        <gridHelper />
-        <axesHelper />
         <SunsetSky />
         <GridContext.Provider value={gridStore.get()}>
           <Field />
@@ -107,30 +129,16 @@ export const FocusTile: Story = {
 export const FocusTiles: Story = {
   decorators: [decorator],
   render: () => {
-    const { service } = useContext(CameraRigContext);
-    const box3 = useSelector(service, (state) => state.context.targetBox);
-
-    useEffect(() => {
-      service.send({
-        type: 'FOCUS_TILES',
-        tileCoordinates: [
-          [5, 5],
-          [6, 6],
-          [8, 8],
-        ],
-      });
-    }, [service]);
-
     return (
       <>
-        <Controls />
         <Shadows />
-        <BoundingBox box={box3} />
         <ambientLight />
         <gridHelper />
         <SunsetSky />
         <GridContext.Provider value={gridStore.get()}>
           <Field>
+            <Goal side="away" />
+            <Goal side="home" />
             <FieldCell tilePosition={[5, 5]}>
               <PlayerBox />
             </FieldCell>
@@ -156,148 +164,323 @@ function PlayerBox() {
   );
 }
 
-function BoundingBox({ box }: { box: Box3 }) {
-  const { scene } = useThree();
-  const lineSegments = useMemo(() => {
-    // Create a box geometry from the Box3 dimensions
-    const size = box.getSize(new Vector3());
-    const center = box.getCenter(new Vector3());
-    const geometry = new BoxGeometry(size.x, size.y, size.z);
-    geometry.translate(center.x, center.y, center.z);
-
-    // Generate edges from the geometry
-    const edges = new EdgesGeometry(geometry);
-    const material = new LineBasicMaterial({ color: 'red' });
-    const segments = new LineSegments(edges, material);
-
-    scene.add(segments);
-
-    // Cleanup on unmount
-    return () => {
-      scene.remove(segments);
-      material.dispose();
-      edges.dispose();
-      geometry.dispose();
-    };
-  }, [box, scene]);
-
-  return null; // Render nothing as we've directly added the LineSegments to the scene.
-}
-
 function Controls() {
-  return (
-    <>
-      <ZoomControl />
-      <HeadingControl />
-      <TiltControl />
-    </>
-  );
+  const { cameraControls, service } = useContext(CameraRigContext);
+  const camera = cameraControls.camera;
+  const grid = useContext(GridContext);
+
+  useControls({
+    thetaGrp: buttonGroup({
+      label: 'rotate theta',
+      opts: {
+        '+45º': () => cameraControls.rotate(45 * DEG2RAD, 0, true),
+        '-90º': () => cameraControls.rotate(-90 * DEG2RAD, 0, true),
+        '+360º': () => cameraControls.rotate(360 * DEG2RAD, 0, true),
+      },
+    }),
+    phiGrp: buttonGroup({
+      label: 'rotate phi',
+      opts: {
+        '+20º': () => cameraControls.rotate(0, 20 * DEG2RAD, true),
+        '-40º': () => cameraControls.rotate(0, -40 * DEG2RAD, true),
+      },
+    }),
+    truckGrp: buttonGroup({
+      label: 'truck',
+      opts: {
+        '(1,0)': () => cameraControls.truck(1, 0, true),
+        '(0,1)': () => cameraControls.truck(0, 1, true),
+        '(-1,-1)': () => cameraControls.truck(-1, -1, true),
+      },
+    }),
+    dollyGrp: buttonGroup({
+      label: 'dolly',
+      opts: {
+        '1': () => cameraControls.dolly(1, true),
+        '-1': () => cameraControls.dolly(-1, true),
+      },
+    }),
+    zoomGrp: buttonGroup({
+      label: 'zoom',
+      opts: {
+        '/2': () => cameraControls.zoom(camera.zoom / 2, true),
+        '/-2': () => cameraControls.zoom(-camera.zoom / 2, true),
+      },
+    }),
+    minDistance: { value: 0 },
+    moveTo: folder(
+      {
+        vec1: { value: [3, 5, 2], label: 'vec' },
+        'moveTo(…vec)': button((get) =>
+          cameraControls.moveTo(
+            ...(get('moveTo.vec1') as [number, number, number]),
+            true
+          )
+        ),
+      },
+      { collapsed: true }
+    ),
+    // 'fitToBox(mesh)': button(() =>
+    //   cameraControls.fitToBox(meshRef.current, true)
+    // ),
+    grid: folder(
+      {
+        tile1: { value: 'A1', label: 'tile' },
+        radius: { value: 1, label: 'radius' },
+        spiral: button((get) => {
+          const val = get('grid.tile1');
+
+          service.send({
+            type: 'POSITION',
+            target: grid.traverse(
+              spiral({
+                start: convertStrikersTileCoordinateToRowCol(val),
+                radius: get('grid.radius'),
+              })
+            ),
+          });
+
+          // cameraControls.setTarget(
+          //   x - grid.pixelWidth / 2,
+          //   y,
+          //   z - grid.pixelHeight / 2,
+          //   false
+          // );
+
+          // cameraControls.setLookAt(
+
+          // )
+
+          // console.log(
+          //   { sphere, val },
+          //   cameraControls.azimuthAngle,
+          //   cameraControls.polarAngle
+          // );
+
+          // cameraControls.set
+          // console.log({ val });
+        }),
+      },
+      { collapsed: true }
+    ),
+    setPosition: folder(
+      {
+        vec2: { value: [-5, 2, 1], label: 'vec' },
+        'setPosition(…vec)': button((get) =>
+          cameraControls.setPosition(
+            ...(get('setPosition.vec2') as [number, number, number]),
+            true
+          )
+        ),
+      },
+      { collapsed: true }
+    ),
+    setTarget: folder(
+      {
+        vec3: { value: [3, 0, -3], label: 'vec' },
+        'setTarget(…vec)': button((get) =>
+          cameraControls.setTarget(
+            ...(get('setTarget.vec3') as [number, number, number]),
+            true
+          )
+        ),
+      },
+      { collapsed: true }
+    ),
+    setLookAt: folder(
+      {
+        vec4: { value: [1, 2, 3], label: 'position' },
+        vec5: { value: [1, 1, 0], label: 'target' },
+        'setLookAt(…position, …target)': button((get) =>
+          cameraControls.setLookAt(
+            ...(get('setLookAt.vec4') as [number, number, number]),
+            ...(get('setLookAt.vec5') as [number, number, number]),
+            true
+          )
+        ),
+      },
+      { collapsed: true }
+    ),
+    lerpLookAt: folder(
+      {
+        vec6: { value: [-2, 0, 0], label: 'posA' },
+        vec7: { value: [1, 1, 0], label: 'tgtA' },
+        vec8: { value: [0, 2, 5], label: 'posB' },
+        vec9: { value: [-1, 0, 0], label: 'tgtB' },
+        t: { value: Math.random(), label: 't', min: 0, max: 1 },
+        'f(…posA,…tgtA,…posB,…tgtB,t)': button((get) => {
+          return cameraControls.lerpLookAt(
+            ...(get('lerpLookAt.vec6') as [number, number, number]),
+            ...(get('lerpLookAt.vec7') as [number, number, number]),
+            ...(get('lerpLookAt.vec8') as [number, number, number]),
+            ...(get('lerpLookAt.vec9') as [number, number, number]),
+            get('lerpLookAt.t'),
+            true
+          );
+        }),
+      },
+      { collapsed: true }
+    ),
+    saveState: button(() => cameraControls.saveState()),
+    reset: button(() => cameraControls.reset(true)),
+    enabled: { value: true, label: 'controls on' },
+    verticalDragToForward: {
+      value: false,
+      label: 'vert. drag to move forward',
+    },
+    dollyToCursor: { value: false, label: 'dolly to cursor' },
+    infinityDolly: { value: false, label: 'infinity dolly' },
+  });
+
+  return null;
 }
 
-function ZoomControl() {
+function ClearanceControl() {
   const { service } = useContext(CameraRigContext);
-  useControls('zoom', {
-    closest: button(() => {
+
+  useControls('clearance', {
+    NONE: button(() => {
       service.send({
-        type: 'ZOOM',
-        zoom: 'CLOSEST',
+        type: 'POSITION',
+        clearance: 'NONE',
       });
     }),
-    close: button(() => {
-      service.send({
-        type: 'ZOOM',
-        zoom: 'CLOSER',
-      });
+    AMOUNT: buttonGroup({
+      MINIMAL: () => {
+        service.send({
+          type: 'POSITION',
+          clearance: 'MINIMAL',
+        });
+      },
+      MODERATE: () => {
+        service.send({
+          type: 'POSITION',
+          clearance: 'MODERATE',
+        });
+      },
+      AMPLE: () => {
+        service.send({
+          type: 'POSITION',
+          clearance: 'AMPLE',
+        });
+      },
     }),
-    mid: button(() => {
-      service.send({
-        type: 'ZOOM',
-        zoom: 'MID',
-      });
+  });
+  return null;
+}
+
+function FitTargetControl() {
+  const { service } = useContext(CameraRigContext);
+
+  useControls('targets', {
+    FULL_GRID: button(() =>
+      service.send({ type: 'POSITION', target: gridStore.get() })
+    ),
+    A: buttonGroup({
+      1: () => service.send({ type: 'POSITION', target: [{ col: 0, row: 0 }] }),
+      5: () => service.send({ type: 'POSITION', target: [{ col: 0, row: 5 }] }),
+      10: () =>
+        service.send({ type: 'POSITION', target: [{ col: 0, row: 10 }] }),
+      15: () =>
+        service.send({ type: 'POSITION', target: [{ col: 0, row: 15 }] }),
+      20: () =>
+        service.send({ type: 'POSITION', target: [{ col: 0, row: 19 }] }),
     }),
-    far: button(() => {
-      service.send({
-        type: 'ZOOM',
-        zoom: 'FAR',
-      });
+    M: buttonGroup({
+      1: () =>
+        service.send({ type: 'POSITION', target: [{ col: 13, row: 0 }] }),
+      5: () =>
+        service.send({ type: 'POSITION', target: [{ col: 13, row: 5 }] }),
+      10: () =>
+        service.send({ type: 'POSITION', target: [{ col: 13, row: 10 }] }),
+      15: () =>
+        service.send({ type: 'POSITION', target: [{ col: 13, row: 15 }] }),
+      20: () =>
+        service.send({ type: 'POSITION', target: [{ col: 13, row: 19 }] }),
     }),
-    farther: button(() => {
-      service.send({
-        type: 'ZOOM',
-        zoom: 'FARTHER',
-      });
-    }),
-    farthest: button(() => {
-      service.send({
-        type: 'ZOOM',
-        zoom: 'FARTHEST',
-      });
+    Z: buttonGroup({
+      1: () =>
+        service.send({ type: 'POSITION', target: [{ col: 25, row: 0 }] }),
+      5: () =>
+        service.send({ type: 'POSITION', target: [{ col: 25, row: 5 }] }),
+      10: () =>
+        service.send({ type: 'POSITION', target: [{ col: 25, row: 10 }] }),
+      15: () =>
+        service.send({ type: 'POSITION', target: [{ col: 25, row: 15 }] }),
+      20: () =>
+        service.send({ type: 'POSITION', target: [{ col: 25, row: 19 }] }),
     }),
   });
 
   return null;
+}
+
+function AnchorControl() {
+  const { service } = useContext(CameraRigContext);
+
+  useControls('Anchor', {
+    BOT: buttonGroup({
+      LEFT: () => service.send({ type: 'POSITION', anchor: 'BOTTOM_LEFT' }),
+      CENTER: () => service.send({ type: 'POSITION', anchor: 'BOTTOM_CENTER' }),
+      RIGHT: () => service.send({ type: 'POSITION', anchor: 'BOTTOM_RIGHT' }),
+    }),
+    MID: buttonGroup({
+      LEFT: () => service.send({ type: 'POSITION', anchor: 'MIDDLE_LEFT' }),
+      CENTER: () => service.send({ type: 'POSITION', anchor: 'MIDDLE_CENTER' }),
+      RIGHT: () => service.send({ type: 'POSITION', anchor: 'MIDDLE_RIGHT' }),
+    }),
+    TOP: buttonGroup({
+      LEFT: () => service.send({ type: 'POSITION', anchor: 'TOP_LEFT' }),
+      CENTER: () => service.send({ type: 'POSITION', anchor: 'TOP_CENTER' }),
+      RIGHT: () => service.send({ type: 'POSITION', anchor: 'TOP_RIGHT' }),
+    }),
+  });
+
+  return null;
+}
+
+function TargetSphere() {
+  const { service } = useContext(CameraRigContext);
+
+  const sphere = useSelector(service, (state) => state.context.targetSphere);
+  const { showTarget } = useControls('grid', {
+    showTarget: true,
+  });
+
+  if (!showTarget) {
+    return null;
+  }
+
+  return (
+    <mesh position={sphere.center}>
+      <sphereGeometry args={[sphere.radius, 32, 32]} />
+      <meshStandardMaterial wireframe color="royalblue" />
+    </mesh>
+  );
 }
 
 function TiltControl() {
   const { service } = useContext(CameraRigContext);
-  const { tilt } = useControls({
-    tilt: { value: 90, min: 0, max: 180, label: 'Tilt' },
-  });
-  // useControls('tilt', {
-  //   'rotate +45': button(() => {
-  //     service.send({
-  //       type: 'ROTATE',
-  //       tilt: (5 + service.getSnapshot().context.tilt) % 90,
-  //     });
-  //   }),
-  //   'rotate -45': button(() => {
-  //     service.send({
-  //       type: 'ROTATE',
-  //       tilt: (-5 + service.getSnapshot().context.tilt) % 90,
-  //     });
-  //   }),
-  //   // value: { value: 45, min: 0, max: 180, label: 'Tilt' },
-  // });
-  service.send({
-    type: 'ROTATE',
-    tilt,
+
+  useControls('Tilt', {
+    DOWN: buttonGroup({
+      FLOOR: () => service.send({ type: 'POSITION', tilt: 'FLOOR' }),
+      SLIGHT: () => service.send({ type: 'POSITION', tilt: 'SLIGHT_TILT' }),
+      LOW_DIAG: () => service.send({ type: 'POSITION', tilt: 'LOW_DIAGONAL' }),
+    }),
+    HORIZONTAL: button(() =>
+      service.send({ type: 'POSITION', tilt: 'HORIZONTAL' })
+    ),
+    UP: buttonGroup({
+      SKY: () => service.send({ type: 'POSITION', tilt: 'SKY' }),
+      STEEP: () => service.send({ type: 'POSITION', tilt: 'STEEP_TILT' }),
+      HIGH_DIAG: () =>
+        service.send({ type: 'POSITION', tilt: 'HIGH_DIAGONAL' }),
+    }),
   });
 
   return null;
 }
-
-function HeadingControl() {
-  const { service } = useContext(CameraRigContext);
-  const { heading } = useControls({
-    heading: { value: 0, min: -180, max: 180, label: 'Heading' },
-  });
-
-  service.send({
-    type: 'ROTATE',
-    heading,
-  });
-
-  return null;
-}
-
-// function CenterControls() {
-//   const cameraStore = useContext(CameraRigContext);
-//   const { centerRow, centerColumn } = useControls({
-//     centerRow: { value: 10, min: 1, max: 20, label: 'Hex Row' },
-//     centerColumn: { value: 13, min: 1, max: 26, label: 'Hex Column' },
-//   });
-
-//   // useEffect(() => {
-//   //   cameraStore.setKey('center', [centerRow, centerColumn]);
-//   // }, [centerRow, centerColumn, cameraStore]);
-
-//   // Render nothing as this component only updates the store
-//   return null;
-// }
-
-// function lerp(start: number, end: number, t: number) {
-//   return start * (1 - t) + end * t;
-// }
 
 const Shadows = memo(() => (
   <AccumulativeShadows
@@ -319,3 +502,21 @@ const Shadows = memo(() => (
     />
   </AccumulativeShadows>
 ));
+
+function DummyBox({
+  coordinate,
+  color,
+}: {
+  coordinate: StrikersTileCoordinate;
+  color?: Color;
+}) {
+  const gridCoordinate = convertStrikersTileCoordinateToRowCol(coordinate);
+  const worldPosition = gridHexToWorldPosition(gridCoordinate, gridStore.get());
+
+  return (
+    <mesh position={worldPosition}>
+      <boxBufferGeometry />
+      <meshBasicMaterial color={color} />
+    </mesh>
+  );
+}
