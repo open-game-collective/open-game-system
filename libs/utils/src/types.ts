@@ -1,5 +1,6 @@
 import { ArchetypeBucket } from 'miniplex';
-import { Context } from 'react';
+import { StoryObj } from '@storybook/react';
+import { Context, ReactNode } from 'react';
 import { Observable, Subject } from 'rxjs';
 import { AnyStateMachine, StateMachine } from 'xstate';
 import type { Atom } from 'nanostores';
@@ -8,7 +9,9 @@ export type FunctionReturningProperties<T> = {
   [K in keyof T]: () => T[K];
 };
 
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [P in K]?: T[P] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [P in K]?: T[P];
+};
 
 export type MakeRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
@@ -40,6 +43,10 @@ export type IndexByType<T extends { type: string }> = {
   [K in T['type']]: T extends any ? (K extends T['type'] ? T : never) : never;
 };
 
+export type IndexByValue<T extends { value: string }> = {
+  [K in T['value']]: T extends any ? (K extends T['value'] ? T : never) : never;
+};
+
 export type GetComponentProps<T> = T extends
   | React.ComponentType<infer P>
   | React.Component<infer P>
@@ -58,3 +65,5 @@ export type FromSubject<T extends Subject<any>> = T extends Subject<infer U>
 
 export type FromArchetype<T extends ArchetypeBucket<any>> =
   T extends ArchetypeBucket<infer U> ? U : never;
+
+export type DecoratorFn<T> = Unarray<StoryObj<T>['decorators']>;

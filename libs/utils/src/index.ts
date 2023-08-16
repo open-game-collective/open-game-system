@@ -1,7 +1,7 @@
 import { Entity, RouteProps } from '@explorers-club/schema';
 import { World } from 'miniplex';
 import { Observable, Subject } from 'rxjs';
-import { EventObject } from 'xstate';
+import { AnyEventObject, EventObject } from 'xstate';
 export * from './forms';
 export * from './hooks';
 export * from './types';
@@ -40,11 +40,14 @@ export function assertRouteName<
   );
 }
 
-// assert(
-//   routeProps.name === 'Room',
-//   'expected routeProps for room but route was',
-//   routeProps.name
-// );
+export function assertProp<T extends keyof AnyEventObject>(
+  event: AnyEventObject,
+  key: T
+): asserts event is AnyEventObject & Record<T, any> {
+  if (!(key in event)) {
+    throw new Error(`Key '${key}' is missing in object ` + event);
+  }
+}
 
 export function assertEntitySchema<
   TEntity extends Entity,
@@ -231,4 +234,8 @@ export function isMobileDevice(userAgent: string): boolean {
 
   // Check if the user agent contains any mobile device keywords
   return mobileKeywords.some((keyword) => userAgent.includes(keyword));
+}
+
+export function lerp(a: number, b: number, t: number): number {
+  return (1 - t) * a + t * b;
 }

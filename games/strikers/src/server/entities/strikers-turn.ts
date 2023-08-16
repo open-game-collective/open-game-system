@@ -44,6 +44,7 @@ import { Observable, ReplaySubject } from 'rxjs';
 import { createMachine } from 'xstate';
 import { z } from 'zod';
 import * as effects from '../effects';
+import { convertStrikersTileCoordinateToRowCol } from '@strikers/lib/utils';
 
 export const createStrikersTurnMachine = ({
   world,
@@ -797,21 +798,3 @@ const SendTargetSelectMessageMetaSchema = z.object({
 type SendTargetSelectMessageMeta = z.infer<
   typeof SendTargetSelectMessageMetaSchema
 >;
-
-function convertStrikersTileCoordinateToRowCol(
-  coordinate: StrikersTileCoordinate
-) {
-  // As per the zod schema, we know at this point that the format is correct.
-
-  // Extract the letter and number parts
-  const letter = coordinate[0];
-  const number = parseInt(coordinate.substring(1));
-
-  // Convert the letter to a row number (0-based)
-  const row = letter.charCodeAt(0) - 'A'.charCodeAt(0);
-
-  // Adjust the number to be 0-based column
-  const col = number - 1;
-
-  return { row, col };
-}
