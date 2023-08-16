@@ -40,13 +40,6 @@ export const getSphereForHexes: (
     parent.pixelWidth,
     parent.pixelHeight
   );
-  console.log(
-    centerX,
-    centerZ,
-    worldCenter,
-    parent.pixelWidth,
-    parent.pixelHeight
-  );
 
   return new Sphere(worldCenter, halfDiagonal);
 };

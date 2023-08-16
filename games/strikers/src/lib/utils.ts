@@ -36,7 +36,6 @@ export const gridPointToWorldPosition = (
   gridWidth: number,
   gridHeight: number
 ) => {
-  console.log({ point, gridWidth, gridHeight });
   const worldX = point.x - gridWidth * 0.5;
   const worldZ = point.y - gridHeight * 0.5;
 

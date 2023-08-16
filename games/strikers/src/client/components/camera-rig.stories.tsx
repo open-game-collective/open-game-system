@@ -101,59 +101,59 @@ export const Default: Story = {
   },
 };
 
-export const FocusTile: Story = {
-  decorators: [decorator],
-  render: () => {
-    const { service } = useContext(CameraRigContext);
+// export const FocusTile: Story = {
+//   decorators: [decorator],
+//   render: () => {
+//     const { service } = useContext(CameraRigContext);
 
-    // useEffect(() => {
-    //   service.send({
-    //     type: 'FOCUS_TILE',
-    //     tileCoordinate: [5, 5],
-    //   });
-    // }, [service]);
+//     // useEffect(() => {
+//     //   service.send({
+//     //     type: 'FOCUS_TILE',
+//     //     tileCoordinate: [5, 5],
+//     //   });
+//     // }, [service]);
 
-    return (
-      <>
-        <Shadows />
-        <ambientLight />
-        <SunsetSky />
-        <GridContext.Provider value={gridStore.get()}>
-          <Field />
-        </GridContext.Provider>
-      </>
-    );
-  },
-};
+//     return (
+//       <>
+//         <Shadows />
+//         <ambientLight />
+//         <SunsetSky />
+//         <GridContext.Provider value={gridStore.get()}>
+//           <Field />
+//         </GridContext.Provider>
+//       </>
+//     );
+//   },
+// };
 
-export const FocusTiles: Story = {
-  decorators: [decorator],
-  render: () => {
-    return (
-      <>
-        <Shadows />
-        <ambientLight />
-        <gridHelper />
-        <SunsetSky />
-        <GridContext.Provider value={gridStore.get()}>
-          <Field>
-            <Goal side="away" />
-            <Goal side="home" />
-            <FieldCell tilePosition={[5, 5]}>
-              <PlayerBox />
-            </FieldCell>
-            <FieldCell tilePosition={[6, 6]}>
-              <PlayerBox />
-            </FieldCell>
-            <FieldCell tilePosition={[8, 8]}>
-              <PlayerBox />
-            </FieldCell>
-          </Field>
-        </GridContext.Provider>
-      </>
-    );
-  },
-};
+// export const FocusTiles: Story = {
+//   decorators: [decorator],
+//   render: () => {
+//     return (
+//       <>
+//         <Shadows />
+//         <ambientLight />
+//         <gridHelper />
+//         <SunsetSky />
+//         <GridContext.Provider value={gridStore.get()}>
+//           <Field>
+//             <Goal side="away" />
+//             <Goal side="home" />
+//             <FieldCell tilePosition={[5, 5]}>
+//               <PlayerBox />
+//             </FieldCell>
+//             <FieldCell tilePosition={[6, 6]}>
+//               <PlayerBox />
+//             </FieldCell>
+//             <FieldCell tilePosition={[8, 8]}>
+//               <PlayerBox />
+//             </FieldCell>
+//           </Field>
+//         </GridContext.Provider>
+//       </>
+//     );
+//   },
+// };
 
 function PlayerBox() {
   return (
@@ -425,76 +425,6 @@ function ClearanceControl() {
   return null;
 }
 
-function FitTargetControl() {
-  const { service } = useContext(CameraRigContext);
-
-  useControls('targets', {
-    FULL_GRID: button(() =>
-      service.send({ type: 'POSITION', target: gridStore.get() })
-    ),
-    A: buttonGroup({
-      1: () => service.send({ type: 'POSITION', target: [{ col: 0, row: 0 }] }),
-      5: () => service.send({ type: 'POSITION', target: [{ col: 0, row: 5 }] }),
-      10: () =>
-        service.send({ type: 'POSITION', target: [{ col: 0, row: 10 }] }),
-      15: () =>
-        service.send({ type: 'POSITION', target: [{ col: 0, row: 15 }] }),
-      20: () =>
-        service.send({ type: 'POSITION', target: [{ col: 0, row: 19 }] }),
-    }),
-    M: buttonGroup({
-      1: () =>
-        service.send({ type: 'POSITION', target: [{ col: 13, row: 0 }] }),
-      5: () =>
-        service.send({ type: 'POSITION', target: [{ col: 13, row: 5 }] }),
-      10: () =>
-        service.send({ type: 'POSITION', target: [{ col: 13, row: 10 }] }),
-      15: () =>
-        service.send({ type: 'POSITION', target: [{ col: 13, row: 15 }] }),
-      20: () =>
-        service.send({ type: 'POSITION', target: [{ col: 13, row: 19 }] }),
-    }),
-    Z: buttonGroup({
-      1: () =>
-        service.send({ type: 'POSITION', target: [{ col: 25, row: 0 }] }),
-      5: () =>
-        service.send({ type: 'POSITION', target: [{ col: 25, row: 5 }] }),
-      10: () =>
-        service.send({ type: 'POSITION', target: [{ col: 25, row: 10 }] }),
-      15: () =>
-        service.send({ type: 'POSITION', target: [{ col: 25, row: 15 }] }),
-      20: () =>
-        service.send({ type: 'POSITION', target: [{ col: 25, row: 19 }] }),
-    }),
-  });
-
-  return null;
-}
-
-function AnchorControl() {
-  const { service } = useContext(CameraRigContext);
-
-  useControls('Anchor', {
-    BOT: buttonGroup({
-      LEFT: () => service.send({ type: 'POSITION', anchor: 'BOTTOM_LEFT' }),
-      CENTER: () => service.send({ type: 'POSITION', anchor: 'BOTTOM_CENTER' }),
-      RIGHT: () => service.send({ type: 'POSITION', anchor: 'BOTTOM_RIGHT' }),
-    }),
-    MID: buttonGroup({
-      LEFT: () => service.send({ type: 'POSITION', anchor: 'MIDDLE_LEFT' }),
-      CENTER: () => service.send({ type: 'POSITION', anchor: 'MIDDLE_CENTER' }),
-      RIGHT: () => service.send({ type: 'POSITION', anchor: 'MIDDLE_RIGHT' }),
-    }),
-    TOP: buttonGroup({
-      LEFT: () => service.send({ type: 'POSITION', anchor: 'TOP_LEFT' }),
-      CENTER: () => service.send({ type: 'POSITION', anchor: 'TOP_CENTER' }),
-      RIGHT: () => service.send({ type: 'POSITION', anchor: 'TOP_RIGHT' }),
-    }),
-  });
-
-  return null;
-}
-
 function TargetSphere() {
   const { service } = useContext(CameraRigContext);
 
@@ -513,29 +443,6 @@ function TargetSphere() {
       <meshStandardMaterial wireframe color="royalblue" />
     </mesh>
   );
-}
-
-function TiltControl() {
-  const { service } = useContext(CameraRigContext);
-
-  useControls('Tilt', {
-    DOWN: buttonGroup({
-      FLOOR: () => service.send({ type: 'POSITION', tilt: 'FLOOR' }),
-      SLIGHT: () => service.send({ type: 'POSITION', tilt: 'SLIGHT_TILT' }),
-      LOW_DIAG: () => service.send({ type: 'POSITION', tilt: 'LOW_DIAGONAL' }),
-    }),
-    HORIZONTAL: button(() =>
-      service.send({ type: 'POSITION', tilt: 'HORIZONTAL' })
-    ),
-    UP: buttonGroup({
-      SKY: () => service.send({ type: 'POSITION', tilt: 'SKY' }),
-      STEEP: () => service.send({ type: 'POSITION', tilt: 'STEEP_TILT' }),
-      HIGH_DIAG: () =>
-        service.send({ type: 'POSITION', tilt: 'HIGH_DIAGONAL' }),
-    }),
-  });
-
-  return null;
 }
 
 const Shadows = memo(() => (
