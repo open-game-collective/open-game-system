@@ -223,8 +223,9 @@ function Controls() {
     zoomGrp: buttonGroup({
       label: 'zoom',
       opts: {
-        '-1': () => cameraControls.zoomTo(camera.zoom - 1, true),
+        '/2': () => cameraControls.zoomTo(camera.zoom / 2, true),
         '+1': () => cameraControls.zoomTo(camera.zoom + 1, true),
+        '1.0': () => cameraControls.zoomTo(1, true),
         // '/2': () => cameraControls.zoom(camera.zoom / 2, true),
         // '/-2': () => cameraControls.zoom(-camera.zoom / 2, true),
       },
