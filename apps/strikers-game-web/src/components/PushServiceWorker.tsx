@@ -4,20 +4,27 @@ import { useStore } from '@nanostores/react';
 import type { ConnectionEntity } from '@explorers-club/schema';
 import { noop } from '@explorers-club/utils';
 import { useEntityStoreSelector } from '@hooks/useEntityStoreSelector';
-import { FC, useContext, useEffect } from 'react';
+import { FC, useCallback, useContext, useEffect } from 'react';
+import { Box } from '@atoms/Box';
+import { Button } from '@atoms/Button';
 
 export const PushServiceWorker = () => {
   const { entityStoreRegistry } = useContext(WorldContext);
   const connectionEntity = useStore(entityStoreRegistry.myConnectionEntity);
-  console.log({ connectionEntity });
 
-  useEffect(() => {
+  const handlePress = useCallback(() => {
     if (connectionEntity && supportsPushNofications()) {
       subscribeToPushNofications(connectionEntity).then(noop);
     }
   }, [connectionEntity]);
 
-  return null;
+  useEffect(() => {}, [connectionEntity]);
+
+  return (
+    <Box css={{ zIndex: '100', position: 'fixed', right: '$3', bottom: '$3' }}>
+      <Button onClick={handlePress}>Enable Push</Button>
+    </Box>
+  );
 };
 
 // Check if the browser supports push notifications.
@@ -27,6 +34,7 @@ const supportsPushNofications = () => {
 
 const subscribeToPushNofications = async (entity: ConnectionEntity) => {
   navigator.serviceWorker.ready.then(async (swReg) => {
+    console.log('subscribe');
     const pushSubscription = await swReg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey:
