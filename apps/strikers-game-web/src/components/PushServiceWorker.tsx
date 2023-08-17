@@ -32,15 +32,14 @@ const supportsPushNofications = () => {
   return 'serviceWorker' in navigator && 'PushManager' in window;
 };
 
+const applicationServerKey = import.meta.env.PUBLIC_VAPID_PUBLIC_KEY;
+
 const subscribeToPushNofications = async (entity: ConnectionEntity) => {
   navigator.serviceWorker.ready.then(async (swReg) => {
-    console.log('subscribe');
     const pushSubscription = await swReg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey:
-        'BDf_JKlIbZCDRNB4MoXxdz8BoRF7AC93M79KPJ6wfIjFR59lVYFPeT-ozuaijg4BTAo_AqP30iNJyRuC-IN3YdA',
+      applicationServerKey,
     });
-    console.log(pushSubscription.toJSON());
 
     entity.send({
       type: 'REGISTER_PUSH_SUBSCRIPTION',

@@ -31,6 +31,13 @@ import { roomsBySlug } from '../server/indexes';
 import { entitiesById } from '../server/state';
 import { newRoomMachine } from '../services';
 
+const configurationSchema = z.object({
+  PUBLIC_VAPID_PUBLIC_KEY: z.string(),
+  VAPID_PRIVATE_KEY: z.string(),
+});
+
+export const configuration = configurationSchema.parse(process.env);
+
 const getSerialNumber = (() => {
   let count = 0;
   return () => {
@@ -266,11 +273,9 @@ export const createConnectionMachine = ({
 
                     const options = {
                       vapidDetails: {
-                        subject: 'mailto:hello@strikers.game',
-                        publicKey:
-                          'BDf_JKlIbZCDRNB4MoXxdz8BoRF7AC93M79KPJ6wfIjFR59lVYFPeT-ozuaijg4BTAo_AqP30iNJyRuC-IN3YdA',
-                        privateKey:
-                          'UpB1CcUpSUq39kiKwHVJDFTmDPbeDrWGetxsIXJ67R4',
+                        subject: 'mailto:push@strikers.game',
+                        publicKey: configuration.PUBLIC_VAPID_PUBLIC_KEY,
+                        privateKey: configuration.VAPID_PRIVATE_KEY,
                       },
                       // timeout: <Number>
                       // TTL: <Number>,
