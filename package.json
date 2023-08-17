@@ -13,6 +13,7 @@
   "dependencies": {
     "@astrojs/netlify": "^2.2.2",
     "@astrojs/node": "^5.1.2",
+    "@astrojs/partytown": "^1.2.3",
     "@colyseus/arena": "^0.14.24",
     "@colyseus/monitor": "^0.14.22",
     "@dicebear/collection": "^5.3.0",
