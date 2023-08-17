@@ -90,7 +90,8 @@
       "@state/*": ["libs/components/src/state/*"],
       "@storybook-decorators/*": ["libs/components/src/decorators/*"],
       "@strikers/*": ["games/strikers/src/*"],
-      "@templates/*": ["libs/components/src/templates/*"]
+      "@templates/*": ["libs/components/src/templates/*"],
+      "@utilities/*": ["libs/components/src/utilities/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]
