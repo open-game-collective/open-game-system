@@ -3,15 +3,14 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/strikers-game-web/src",
+  "namedInputs": {
+    "sw.js": ["{workspaceRoot}/dist/service-worker/src/sw.js"]
+  },
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "executor": "@ogc/astro:build",
       "dependsOn": [
-        {
-          "projects": "service-worker",
-          "target": "build"
-        },
         {
           "target": "copy-sw-bundle"
         }
@@ -64,8 +63,15 @@
     "copy-sw-bundle": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "cp dist/libs/service-worker/src/ apps/strikers-game-web/public/"
-      }
+        "command": "cp -r dist/libs/service-worker/src/* apps/strikers-game-web/public/"
+      },
+      "inputs": ["sw.js"],
+      "dependsOn": [
+        {
+          "projects": "service-worker",
+          "target": "build"
+        }
+      ]
     },
     "build-storybook": {
       "executor": "@nx/storybook:build",

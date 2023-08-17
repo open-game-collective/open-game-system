@@ -1,1 +1,1 @@
-{"version":3,"file":"sw.js","sourceRoot":"","sources":["../../../../libs/service-worker/src/sw.ts"],"names":[],"mappings":";AAAA,OAAO,CAAC,GAAG,CAAC,cAAc,CAAC,CAAC"}
+{"version":3,"file":"sw.js","sourceRoot":"","sources":["../../../../libs/service-worker/src/sw.ts"],"names":[],"mappings":";AAAA,OAAO,CAAC,GAAG,CAAC,cAAc,CAAC,CAAC;AAE5B,IAAI,CAAC,gBAAgB,CAAC,MAAM,EAAE,CAAC,KAAK,EAAE,EAAE;IACtC,OAAO,CAAC,GAAG,CAAC,oBAAoB,EAAE,KAAK,CAAC,CAAC;AAC3C,CAAC,CAAC,CAAC"}
