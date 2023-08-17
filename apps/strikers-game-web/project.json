@@ -7,6 +7,15 @@
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "executor": "@ogc/astro:build",
+      "dependsOn": [
+        {
+          "projects": "service-worker",
+          "target": "build"
+        },
+        {
+          "target": "copy-sw-bundle"
+        }
+      ],
       "options": {
         "outputPath": "dist/apps/strikers-game-web/dist/server",
         "outputFileName": "entry.mjs"
@@ -50,6 +59,12 @@
         "ci": {
           "quiet": true
         }
+      }
+    },
+    "copy-sw-bundle": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cp dist/libs/service-worker/src/ apps/strikers-game-web/public/"
       }
     },
     "build-storybook": {

@@ -9,7 +9,8 @@ import {
   UserEntity,
   WithSenderId,
 } from '@explorers-club/schema';
-import { assert, assertEntitySchema } from '@explorers-club/utils';
+import * as webpush from 'web-push';
+import { assert, assertEntitySchema, assertProp } from '@explorers-club/utils';
 import {
   HomeRoutePropsSchema,
   LoginRoutePropsSchema,
@@ -82,17 +83,6 @@ export const createConnectionMachine = ({
     });
     world.add(sessionEntity);
   }
-
-  // todo put db client init here
-  // const supabaseClient = createClient<Database>(
-  //   supabaseUrl,
-  //   supabaseAnonKey,
-  //   {
-  //     auth: {
-  //       persistSession: false,
-  //     },
-  //   }
-  // );
 
   const connectionMachine = createMachine(
     {
@@ -244,6 +234,81 @@ export const createConnectionMachine = ({
             Denied: {},
           },
         },
+        Push: {
+          initial: 'Uninitialized',
+          states: {
+            Uninitialized: {
+              on: {
+                REGISTER_PUSH_SUBSCRIPTION: {
+                  actions: (context, event) => {
+                    const { endpoint, keys } = event.json;
+                    assert(
+                      endpoint,
+                      'expected endpoint in push subscription payload'
+                    );
+                    assert(keys, 'expected keys in push subscription payload');
+                    assert('auth' in keys, "expetcted 'auth' in keys");
+                    assert('p256dh' in keys, "expected 'p256dh' in keys");
+                    const { auth, p256dh } = keys;
+                    // const pushSubscription: PushSubscription = event.json as PushSubscription;
+
+                    // keys.p256dh
+
+                    // const pushSubscription = {
+                    //   endpoint: '< Push Subscription URL >',
+                    //   keys: {
+                    //     p256dh: '< User Public Encryption Key >',
+                    //     auth: '< User Auth Secret >'
+                    //   }
+                    // };
+
+                    const payload = '< Push Payload String >';
+
+                    const options = {
+                      vapidDetails: {
+                        subject: 'mailto:hello@strikers.game',
+                        publicKey:
+                          'BDf_JKlIbZCDRNB4MoXxdz8BoRF7AC93M79KPJ6wfIjFR59lVYFPeT-ozuaijg4BTAo_AqP30iNJyRuC-IN3YdA',
+                        privateKey:
+                          'UpB1CcUpSUq39kiKwHVJDFTmDPbeDrWGetxsIXJ67R4',
+                      },
+                      // timeout: <Number>
+                      // TTL: <Number>,
+                      // headers: {
+                      //   '< header name >': '< header value >'
+                      // },
+                      // contentEncoding: '< Encoding type, e.g.: aesgcm or aes128gcm >',
+                      // urgency:'< Default is "normal" >',
+                      // topic:'< Use a maximum of 32 characters from the URL or filename-safe Base64 characters sets. >',
+                      // proxy: '< proxy server options >',
+                      // agent: '< https.Agent instance >'
+                    };
+
+                    webpush
+                      .sendNotification(
+                        {
+                          endpoint,
+                          keys: {
+                            auth,
+                            p256dh,
+                          },
+                        },
+                        payload,
+                        options
+                      )
+                      .then(() => {
+                        console.log('SENT!');
+                      });
+                    console.log('PUSH SUB', event.json);
+                  },
+                },
+              },
+            },
+            Subscribed: {},
+            NoSupport: {},
+            Off: {},
+          },
+        },
       },
       predictableActionArguments: true,
     },
@@ -279,49 +344,6 @@ export const createConnectionMachine = ({
         },
       },
       actions: {
-        // joinCurrentChannel: async (context) => {
-        //   const { createEntity } = await import('../ecs');
-        //   assert(
-        //     context.chatServiceRef,
-        //     'expected chat service to be initialized'
-        //   );
-        //   assert(
-        //     connectionEntity.currentChannelId,
-        //     'expected current channel id but not found'
-        //   );
-
-        //   let roomEntity = entitiesById.get(
-        //     connectionEntity.currentChannelId
-        //   ) as RoomEntity;
-
-        //   console.log('CREATRINGROOOM!', connectionEntity.currentLocation);
-
-        //   // Create the room if one doesnt already exist
-
-        //   // Connect to it
-        //   roomEntity.send({
-        //     type: 'CONNECT',
-        //     senderId: connectionEntity.id,
-        //   } as any);
-
-        //   // todo fix types on senderId, it doesnt konw it exists, only in machine
-        //   // problem for sending commands outside entity router send mutation
-
-        //   // Join the chat room
-        //   // todo: is this still used? or just use message_channel entity now
-        //   context.chatServiceRef.send({
-        //     type: 'JOIN_CHANNEL',
-        //     channelId: roomEntity.id,
-        //   });
-
-        //   // Join the game room if there is one
-        //   // if (roomEntity.gameId) {
-        //   //   context.chatServiceRef.send({
-        //   //     type: 'JOIN_CHANNEL',
-        //   //     channelId: roomEntity.gameId,
-        //   //   });
-        //   // }
-
         setCurrentLocation: (_, event) => {
           const parsedEvent = SetCurrentLocationEventSchema.parse(event);
           const route =

@@ -9,7 +9,7 @@
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/libs/service-worker",
-        "main": "libs/service-worker/src/index.ts",
+        "main": "libs/service-worker/src/sw.ts",
         "tsConfig": "libs/service-worker/tsconfig.lib.json",
         "assets": ["libs/service-worker/*.md"],
         "js": true
@@ -24,15 +24,6 @@
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["libs/service-worker/**/*.ts"]
-      }
-    },
-    "serve-bundle": {
-      "executor": "@nx/web:file-server",
-      "options": {
-        "host": "0.0.0.0",
-        "buildTarget": "service-worker:build",
-        "parallel": false,
-        "staticFilePath": "dist/libs/service-worker/src"
       }
     }
   },
