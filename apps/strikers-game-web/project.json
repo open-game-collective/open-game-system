@@ -22,7 +22,8 @@
     },
     "dev": {
       "executor": "@nxtensions/astro:dev",
-      "options": {}
+      "options": {},
+      "dependsOn": ["copy-sw-bundle"]
     },
     "start": {
       "executor": "@nx/js:node",

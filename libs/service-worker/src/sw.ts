@@ -1,20 +1,43 @@
-console.log('HELLO WORLD!');
+// /// <reference lib="webworker" />
+// //@ts-ignore
+// sw = self;
+// declare var sw: ServiceWorkerGlobalScope;
+/// <reference no-default-lib="true"/>
+/// <reference lib="es2020" />
+/// <reference lib="WebWorker" />
 
-self.addEventListener('push', (event) => {
-  console.log('PUSH EVENT RECEVE!', event);
+const sw = self as ServiceWorkerGlobalScope & typeof globalThis;
 
-  const nofication = new Notification('Hello world!!');
-  nofication.addEventListener('click', () => {
-    console.log('click');
+self.addEventListener('push', async (event) => {
+  console.log('PUSH EVENT RECEVE!', self);
+  console.log(sw.registration);
+  await sw.registration.showNotification('Hello world!', {
+    actions: [
+      {
+        action: 'YES!',
+        title: 'Ma1',
+      },
+      {
+        action: 'NO',
+        title: 'Ma2',
+      },
+    ],
+    badge: 1,
+    body: 'MY BODY!!!',
   });
-  nofication.addEventListener('error', () => {
-    console.log('error');
-  });
-  nofication.addEventListener('close', () => {
-    console.log('close');
-  });
-  nofication.addEventListener('show', () => {
-    console.log('show');
-  });
+
+  //   const nofication = new Notification('Hello world!!');
+  //   nofication.addEventListener('click', () => {
+  //     console.log('click');
+  //   });
+  //   nofication.addEventListener('error', () => {
+  //     console.log('error');
+  //   });
+  //   nofication.addEventListener('close', () => {
+  //     console.log('close');
+  //   });
+  //   nofication.addEventListener('show', () => {
+  //     console.log('show');
+  //   });
   //   event.
 });

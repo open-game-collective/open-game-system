@@ -4,7 +4,7 @@
     "module": "esnext",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "lib": ["webworker"],
+    "lib": ["dom", "webworker"],
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
