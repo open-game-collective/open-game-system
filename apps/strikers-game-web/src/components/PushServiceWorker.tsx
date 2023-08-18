@@ -13,7 +13,7 @@ export const PushServiceWorker = () => {
   const connectionEntity = useStore(entityStoreRegistry.myConnectionEntity);
 
   const handlePress = useCallback(() => {
-    if (connectionEntity && supportsPushNofications()) {
+    if (connectionEntity) {
       subscribeToPushNofications(connectionEntity).then(noop);
     }
   }, [connectionEntity]);
@@ -21,11 +21,20 @@ export const PushServiceWorker = () => {
   useEffect(() => {}, [connectionEntity]);
 
   return (
-    <Box css={{ zIndex: '100', position: 'fixed', right: '$3', bottom: '$3' }}>
-      <Button onClick={handlePress}>Enable Push</Button>
-    </Box>
+    iOSIsInstalled() &&
+    supportsPushNofications() && (
+      <Box
+        css={{ zIndex: '100', position: 'fixed', right: '$3', bottom: '$3' }}
+      >
+        <Button onClick={handlePress}>Enable Push</Button>
+      </Box>
+    )
   );
 };
+
+const iOSCanInstall = () => 'standalone' in window.navigator;
+const iOSIsInstalled = () =>
+  'standalone' in window.navigator && window.navigator.standalone === true;
 
 // Check if the browser supports push notifications.
 const supportsPushNofications = () => {
