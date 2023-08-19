@@ -81,8 +81,8 @@ export const PWAProvider: FC<{ children: ReactNode }> = ({ children }) => {
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         pwaStore.setKey('install', () => {
-          const { prompt } = e as BeforeInstallPromptEvent;
-          prompt();
+          const event = e as BeforeInstallPromptEvent;
+          event.prompt();
         });
       });
     } else {
