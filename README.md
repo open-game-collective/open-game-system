@@ -1,4 +1,4 @@
-# Open.Game.System
+# O.G.S. - The Open Game System
 
 For more about us see our website at [opengame.org](https://opengame.org).
 
