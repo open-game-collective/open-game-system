@@ -6,6 +6,7 @@ import {
   CameraRigContext,
   CameraRigProvider,
 } from '@strikers/client/components/camera-rig.context';
+import { BodyScrollLock } from '@utilities/BodyScrollLock';
 import { Field } from '@strikers/client/components/field';
 import { CameraRigControls } from '@strikers/client/components/camera-rig-controls';
 import { Goal } from '@strikers/client/components/goal';
@@ -53,6 +54,7 @@ export const HomeScene = () => {
       >
         Play
       </Button>
+      <BodyScrollLock />
       <Canvas
         style={{
           position: 'absolute',
