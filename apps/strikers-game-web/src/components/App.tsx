@@ -47,24 +47,6 @@ export const App: FC<MiddlewareProps> = ({
 
   return (
     <PWAProvider>
-      <PWAInstallNotice>
-        <TakeoverContents
-          css={{
-            display: 'flex',
-            padding: '$4',
-            paddingTop: '$8',
-            alignItems: 'top',
-            justifyContent: 'center',
-            background: '#fefefe',
-          }}
-        >
-          <Text>1. Press the 'Share' buttonon the menu bar below</Text>
-          <Text>2. Press the 'Add to Home Screen'</Text>
-          <TakeoverFooter>
-            <PWAInstallTrigger>Install</PWAInstallTrigger>
-          </TakeoverFooter>
-        </TakeoverContents>
-      </PWAInstallNotice>
       <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
         <ApplicationContext.Provider value={{ routeStore }}>
           <AppContainer>

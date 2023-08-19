@@ -1,9 +1,9 @@
 import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
-import { keyframes } from '@explorers-club/styles';
 import { Heading } from '@atoms/Heading';
 import { IconButton } from '@atoms/IconButton';
 import { Text } from '@atoms/Text';
+import { keyframes } from '@explorers-club/styles';
 import { getPlatformInfo } from '@explorers-club/utils';
 import { TakeoverContents } from '@molecules/Takeover';
 import { useStore } from '@nanostores/react';
@@ -18,7 +18,6 @@ import {
   FC,
   ReactNode,
   createContext,
-  useCallback,
   useContext,
   useLayoutEffect,
 } from 'react';

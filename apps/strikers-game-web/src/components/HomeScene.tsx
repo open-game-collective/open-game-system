@@ -1,5 +1,4 @@
 import { SunsetSky } from '@3d/sky';
-import { Button } from '@atoms/Button';
 import { ApplicationContext } from '@context/ApplicationContext';
 import { ApplicationProvider } from '@context/ApplicationProvider';
 import {
@@ -24,7 +23,7 @@ import { SheetProvider } from '@theatre/r3f';
 // import studio from '@theatre/studio';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { atom } from 'nanostores';
-import { FC, useCallback, useContext, useEffect, useState } from 'react';
+import { FC, useContext, useEffect, useState } from 'react';
 import { Vector3 } from 'three';
 import type { MiddlewareProps } from '../middleware';
 import { PushService } from './PushServiceWorker';
