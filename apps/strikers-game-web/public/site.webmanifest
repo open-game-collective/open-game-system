@@ -1,6 +1,7 @@
 {
   "name": "Strikers: The Beautiful Trading Card Game™",
   "short_name": "Strikers",
+  "description": "This is what my app does",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -11,9 +12,16 @@
       "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "theme_color": "#07B144",
   "background_color": "#ffffff",
-  "display": "standalone"
+  "display": "standalone",
+  "start_url": "/"
 }
