@@ -1,6 +1,6 @@
 # The Open Game System
 
-For more about us see our website at [opengame.org](https://opengame.org).
+The Open Game System is a system for making open web games made by [The Open Game Collective](https://opengame.org).
 
 ## Strikers TCG
 
