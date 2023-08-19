@@ -30,6 +30,13 @@ export const getPlatformInfo = () => {
     isOpera ||
     isIDevice;
 
+  // const iosVersion = getIOSVersion(_ua);
+
+  const hasPushManager =
+    'serviceWorker' in navigator && 'PushManager' in window;
+
+  const hasPush = hasPushManager && ((isMobileSafari && isInPWA) || isChromium);
+
   return {
     isChromium,
     isMobileSafari,
@@ -42,5 +49,11 @@ export const getPlatformInfo = () => {
     isOpera,
     isIDevice,
     isInPWA,
+    hasPush,
   };
 };
+
+// function getIOSVersion(userAgent: string): string | null {
+//   const match = /OS (\d+(?:_\d+)*) like Mac OS X/i.exec(userAgent);
+//   return match ? match[1].replace(/_/g, '.') : null;
+// }

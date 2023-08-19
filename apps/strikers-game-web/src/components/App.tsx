@@ -4,7 +4,7 @@ import { ApplicationProvider } from '@context/ApplicationProvider';
 import { LayoutContext } from '@context/LayoutContext';
 import { LayoutProvider } from '@context/LayoutProvider';
 import {
-  PWAInstallTakeover,
+  PWAInstallNotice,
   PWAProvider,
   PWAInstallTrigger,
 } from '@context/PWAContext';
@@ -47,7 +47,7 @@ export const App: FC<MiddlewareProps> = ({
 
   return (
     <PWAProvider>
-      <PWAInstallTakeover>
+      <PWAInstallNotice>
         <TakeoverContents
           css={{
             display: 'flex',
@@ -64,7 +64,7 @@ export const App: FC<MiddlewareProps> = ({
             <PWAInstallTrigger>Install</PWAInstallTrigger>
           </TakeoverFooter>
         </TakeoverContents>
-      </PWAInstallTakeover>
+      </PWAInstallNotice>
       <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
         <ApplicationContext.Provider value={{ routeStore }}>
           <AppContainer>

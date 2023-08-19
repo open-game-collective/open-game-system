@@ -30,7 +30,7 @@ export const TakeoverContents: FC<{ children: ReactNode; css?: CSS }> = ({
       css={{
         position: 'absolute',
         inset: 0,
-        zIndex: 200,
+        zIndex: 700,
         ...css,
       }}
     >

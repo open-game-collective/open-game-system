@@ -1,7 +1,7 @@
 {
   "name": "Strikers: The Beautiful Trading Card Game™",
   "short_name": "Strikers",
-  "description": "This is what my app does",
+  "description": "A two-player soccer card game you can play any time of day.",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -20,8 +20,8 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#07B144",
-  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "background_color": "#000000",
   "display": "standalone",
   "start_url": "/"
 }

@@ -1,22 +1,16 @@
 import { SunsetSky } from '@3d/sky';
-import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
-import { Heading } from '@atoms/Heading';
-import { IconButton } from '@atoms/IconButton';
-import { Text } from '@atoms/Text';
 import { ApplicationContext } from '@context/ApplicationContext';
 import { ApplicationProvider } from '@context/ApplicationProvider';
 import {
   PWAContext,
   PWAInstallTakeover,
-  PWAInstallTrigger,
+  PWANotInstallable,
   PWAProvider,
+  PWATakeoverContents,
 } from '@context/PWAContext';
-import { TakeoverContents } from '@molecules/Takeover';
 import { useStore } from '@nanostores/react';
-import { PlusIcon, Share2Icon } from '@radix-ui/react-icons';
 import { Canvas } from '@react-three/fiber';
-import { CameraRigControls } from '@strikers/client/components/camera-rig-controls';
 import {
   CameraRigContext,
   CameraRigProvider,
@@ -26,8 +20,8 @@ import { Goal } from '@strikers/client/components/goal';
 import { GridContext } from '@strikers/client/context/grid.context';
 import { getProject } from '@theatre/core';
 import { SheetProvider } from '@theatre/r3f';
-import extension from '@theatre/r3f/dist/extension';
-import studio from '@theatre/studio';
+// import extension from '@theatre/r3f/dist/extension';
+// import studio from '@theatre/studio';
 import { Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { atom } from 'nanostores';
 import { FC, useCallback, useContext, useEffect, useState } from 'react';
@@ -36,8 +30,8 @@ import type { MiddlewareProps } from '../middleware';
 import { PushService } from './PushServiceWorker';
 import { ServiceWorkerProvider } from './ServiceWorker';
 
-studio.initialize();
-studio.extend(extension);
+// studio.initialize();
+// studio.extend(extension);
 
 const sheet = getProject('Demo Project').sheet('Demo Sheet');
 
@@ -53,13 +47,13 @@ export const HomeScene: FC<MiddlewareProps> = ({
   const [routeStore] = useState(atom(initialRouteProps));
   const grid = useStore(gridStore);
 
-  const handlePlay = useCallback(() => {
-    sheet.sequence.position = 0;
-    sheet.sequence.attachAudio({ source: '/strikers_intro.mp3' }).then(() => {
-      sheet.sequence.play();
-      // console.log("audio context loaded")
-    });
-  }, [sheet]);
+  // const handlePlay = useCallback(() => {
+  //   sheet.sequence.position = 0;
+  //   sheet.sequence.attachAudio({ source: '/strikers_intro.mp3' }).then(() => {
+  //     sheet.sequence.play();
+  //     // console.log("audio context loaded")
+  //   });
+  // }, [sheet]);
 
   return (
     <ServiceWorkerProvider>
@@ -67,7 +61,7 @@ export const HomeScene: FC<MiddlewareProps> = ({
         <HomePWATakeover />
         <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
           <ApplicationContext.Provider value={{ routeStore }}>
-            <Button
+            {/* <Button
               onClick={handlePlay}
               css={{
                 position: 'absolute',
@@ -78,7 +72,7 @@ export const HomeScene: FC<MiddlewareProps> = ({
               }}
             >
               Play
-            </Button>
+            </Button> */}
             <PushService />
             <Canvas
               style={{
@@ -94,15 +88,8 @@ export const HomeScene: FC<MiddlewareProps> = ({
               <GridContext.Provider value={grid}>
                 <SheetProvider sheet={sheet}>
                   <CameraRigProvider>
-                    {/* <PerspectiveCamera
-          attachArray={undefined}
-          attachObject={undefined}
-          attachFns={undefined}
-          theatreKey={'Camera'}
-        /> */}
                     <AnimationSequence />
                     <SunsetSky />
-                    <CameraRigControls />
                     <Field>
                       <Goal side="home" />
                       <Goal side="away" />
@@ -131,89 +118,24 @@ const AnimationSequence = () => {
 
 const HomePWATakeover = () => {
   const store = useContext(PWAContext);
-  const { displayMode, installable } = useStore(store, {
-    keys: ['displayMode', 'installable'],
+  const { installable } = useStore(store, {
+    keys: ['installable'],
   });
-  console.log({ installable });
 
   useEffect(() => {
     setTimeout(() => {
-      if (displayMode !== 'standalone') {
+      if (installable) {
         store.setKey('forceInstall', true);
       }
     }, 3000);
   }, []);
 
-  return installable ? (
+  return (
     <PWAInstallTakeover>
       <PWATakeoverContents />
+      <PWANotInstallable>
+        You can't install strikers on this device.
+      </PWANotInstallable>
     </PWAInstallTakeover>
-  ) : null;
-};
-
-const PWATakeoverContents = () => {
-  const store = useContext(PWAContext);
-  const { installable } = useStore(store, { keys: ['installable'] });
-
-  return (
-    <TakeoverContents
-      css={{
-        display: 'flex',
-        padding: '$4',
-        paddingTop: '$8',
-        flexDirection: 'column',
-        alignItems: 'top',
-        justifyContent: 'center',
-        background: '#fefefe',
-      }}
-    >
-      <Heading>Get Notified</Heading>
-      <Text>
-        This website has notifications. Add it to your home screen to enable.
-      </Text>
-      <Box css={{ display: 'flex', flexDirection: 'row' }}>
-        <Text>
-          1. Press the{' '}
-          <pre
-            style={{
-              display: 'inline-flex',
-              border: '1px solid blue',
-              alignItems: 'center',
-              borderRadius: '4px',
-              padding: '5x',
-              paddingRight: '12px',
-            }}
-          >
-            <IconButton>
-              <Share2Icon />
-            </IconButton>
-            Share
-          </pre>{' '}
-          button on the menu bar below.
-        </Text>
-      </Box>
-      <Box css={{ display: 'flex', flexDirection: 'row' }}>
-        <Text>
-          2. Press the{' '}
-          <pre
-            style={{
-              border: '1px solid blue',
-              display: 'inline-flex',
-              alignItems: 'center',
-              borderRadius: '4px',
-              padding: '5x',
-              paddingRight: '12px',
-            }}
-          >
-            <IconButton>
-              <PlusIcon />
-            </IconButton>
-            Add to Home Screen
-          </pre>{' '}
-          button
-        </Text>
-      </Box>
-      {installable && <PWAInstallTrigger>Install</PWAInstallTrigger>}
-    </TakeoverContents>
   );
 };
