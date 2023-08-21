@@ -89,6 +89,7 @@
       "@schema/*": ["libs/schema/src/*"],
       "@service-worker": ["libs/service-worker/src/index.ts"],
       "@state/*": ["libs/components/src/state/*"],
+      "@screens/*": ["libs/components/src/screens/*"],
       "@storybook-decorators/*": ["libs/components/src/decorators/*"],
       "@strikers/*": ["games/strikers/src/*"],
       "@templates/*": ["libs/components/src/templates/*"]

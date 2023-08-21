@@ -3,12 +3,7 @@ import { ApplicationContext } from '@context/ApplicationContext';
 import { ApplicationProvider } from '@context/ApplicationProvider';
 import { LayoutContext } from '@context/LayoutContext';
 import { LayoutProvider } from '@context/LayoutProvider';
-import {
-  PWAInstallNotice,
-  PWAProvider,
-  PWAInstallTrigger,
-} from '@context/PWAContext';
-import { TakeoverContents, TakeoverFooter } from '@molecules/Takeover';
+import { PWAProvider } from '@context/PWAContext';
 import { WorldContext } from '@context/WorldProvider';
 import { styled } from '@explorers-club/styles';
 import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
@@ -21,11 +16,7 @@ import type { MiddlewareProps } from '../middleware';
 import { ChannelListDialog } from './ChannelListDialog';
 import { Menu } from './Menu';
 import { Modal } from './Modal';
-import { PushService } from './PushServiceWorker';
 import { ScenePanel } from './ScenePanel';
-import { Button } from '@atoms/Button';
-import { Text } from '@atoms/Text';
-import { Box } from '@atoms/Box';
 
 const AppContainer = styled('div', {
   position: 'absolute',
@@ -51,7 +42,6 @@ export const App: FC<MiddlewareProps> = ({
         <ApplicationContext.Provider value={{ routeStore }}>
           <AppContainer>
             <LayoutProvider>
-              <PushService />
               <ScenePanel />
               <Menu />
               <ChannelListDialog />

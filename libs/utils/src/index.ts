@@ -4,7 +4,6 @@ import { Observable, Subject } from 'rxjs';
 import { AnyEventObject, EventObject } from 'xstate';
 export * from './forms';
 export * from './hooks';
-export * from './platform';
 export * from './types';
 
 export function assert<T>(

@@ -1,40 +1,13 @@
-import { Box } from '@atoms/Box';
-import { FC, ReactNode } from 'react';
-import type { CSS } from '../stitches.config';
+// Takeover.tsx
+import React from 'react';
 
-export const TakeoverFooter: FC<{ children: ReactNode; css?: CSS }> = ({
-  children,
-  css,
-}) => {
-  return (
-    <Box
-      css={{
-        ...css,
-        position: 'absolute',
-        bottom: 0,
-        width: '100%',
-        zIndex: '200',
-      }}
-    >
-      {children}
-    </Box>
-  );
-};
+export type TakeoverId = 'PushNotification' | 'Unsupported' | 'PWAInstall';
 
-export const TakeoverContents: FC<{ children: ReactNode; css?: CSS }> = ({
-  children,
-  css,
-}) => {
-  return (
-    <Box
-      css={{
-        position: 'absolute',
-        inset: 0,
-        zIndex: 700,
-        ...css,
-      }}
-    >
-      {children}
-    </Box>
-  );
+interface TakeoverProps {
+  id: TakeoverId;
+  children: React.ReactNode;
+}
+
+export const Takeover: React.FC<TakeoverProps> = ({ children }) => {
+  return <>{children}</>;
 };
