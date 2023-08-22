@@ -390,12 +390,18 @@ const PWAInstallA2HSSafari = () => (
           button
         </Text>
       </Box>
-      <img
-        style={{ width: '100%', border: "1px solid #ccc", borderRadius: "6px" }}
-        src="/static/a2hs_safari.jpg"
-        alt="Add to Home Screen Example"
-      />
-      <Text>
+      <Box css={{ my: '$3' }}>
+        <img
+          style={{
+            width: '100%',
+            border: '1px solid #ccc',
+            borderRadius: '6px',
+          }}
+          src="/static/a2hs_safari.jpg"
+          alt="Add to Home Screen Example"
+        />
+      </Box>
+      <Text size={2}>
         Tip: if "Add To Home Screen" is not an option, try opening this page in
         Safari.
       </Text>
