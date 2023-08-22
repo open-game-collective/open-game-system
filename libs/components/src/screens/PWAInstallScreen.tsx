@@ -391,7 +391,7 @@ const PWAInstallA2HSSafari = () => (
         </Text>
       </Box>
       <img
-        style={{ width: '100%' }}
+        style={{ width: '100%', border: "1px solid #ccc", borderRadius: "6px" }}
         src="/static/a2hs_safari.jpg"
         alt="Add to Home Screen Example"
       />
