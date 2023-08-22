@@ -195,7 +195,7 @@ const PWAInstallA2HSFirefox = () => (
       </Text>
       <Box css={{ display: 'flex', flexDirection: 'row' }}>
         <Text>
-          1. Press the{' '}
+          1. Press
           <pre
             style={{
               display: 'inline-flex',
@@ -209,7 +209,6 @@ const PWAInstallA2HSFirefox = () => (
               <HamburgerMenuIcon />
             </IconButton>
           </pre>{' '}
-          button on the menu bar below.
         </Text>
       </Box>
       <Box css={{ display: 'flex', flexDirection: 'row' }}>
@@ -302,7 +301,7 @@ const PWAInstallA2HSChrome = () => (
               <Share2Icon />
             </IconButton>
           </pre>{' '}
-          button on the menu bar below.
+          button.
         </Text>
       </Box>
       <Box css={{ display: 'flex', flexDirection: 'row' }}>
@@ -367,7 +366,7 @@ const PWAInstallA2HSSafari = () => (
               <Share2Icon />
             </IconButton>
           </pre>{' '}
-          button on the menu bar below.
+          button.
         </Text>
       </Box>
       <Box css={{ display: 'flex', flexDirection: 'row' }}>
@@ -396,6 +395,10 @@ const PWAInstallA2HSSafari = () => (
         src="/static/a2hs_safari.jpg"
         alt="Add to Home Screen Example"
       />
+      <Text>
+        Tip: if "Add To Home Screen" is not an option, try opening this page in
+        Safari.
+      </Text>
     </Box>
   </>
 );
