@@ -1,5 +1,6 @@
 import { Entity, RouteProps } from '@explorers-club/schema';
 import { World } from 'miniplex';
+import type { Atom } from 'nanostores';
 import { Observable, Subject } from 'rxjs';
 import { AnyEventObject, EventObject } from 'xstate';
 export * from './forms';
@@ -239,3 +240,58 @@ export function isMobileDevice(userAgent: string): boolean {
 export function lerp(a: number, b: number, t: number): number {
   return (1 - t) * a + t * b;
 }
+
+// todo clarify diff between this and MakeRequire in utils/types.ts
+
+type AllRequired<T> = {
+  [P in keyof T]-?: T[P];
+};
+
+/**
+ * Wait for a truthy value from the nanostore. If the value is falsy, it waits for the specified duration.
+ * If the value remains falsy after the duration, it throws an exception.
+ * @param {Object} store - The nanostore object.
+ * @param {Number} timeout - The number of milliseconds to wait for a truthy value.
+ * @return {Promise<Require<T>>} The store value.
+ */
+export function waitForStoreValue<T>(
+  store: Atom<T | null>,
+  timeout = 1000
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    // If the value is already truthy, resolve immediately.
+    const currentValue = store.get();
+    if (currentValue !== null) {
+      resolve(currentValue);
+      return;
+    }
+
+    // Otherwise, subscribe to the store and wait for changes.
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const unbind = store.subscribe((value) => {
+      if (value !== null) {
+        clearTimeout(timeoutId);
+        unbind(); // Unsubscribe to the store.
+        resolve(value as AllRequired<T>);
+      }
+    });
+
+    // If the value does not become truthy within the timeout, reject.
+    timeoutId = setTimeout(() => {
+      unbind(); // Unsubscribe to the store.
+      reject(
+        new Error(
+          `Timed out waiting for a truthy value from the store after ${timeout}ms.`
+        )
+      );
+    }, timeout);
+  });
+}
+
+// Usage example with type:
+// Assuming $loadingState is a nanostore with type LoadingStateValue, you can use the utility function as follows:
+/*
+waitForStoreValue<LoadingStateValue>($loadingState, 2000)
+  .then(value => console.log('Store value:', value))
+  .catch(err => console.error(err.message));
+*/

@@ -1,4 +1,4 @@
-import { MakeOptional, MakeRequired } from '@explorers-club/utils';
+import { SomeOptional, SomeRequired } from '@explorers-club/utils';
 import { Operation } from 'fast-json-patch';
 import { IndexByType, InterpreterFrom, StateMachine } from 'xstate';
 import { z } from 'zod';
@@ -177,7 +177,7 @@ export type ChatInterpreter = InterpreterFrom<ChatMachine>;
 export type ConnectionContext = z.infer<typeof ConnectionContextSchema>;
 export type ConnectionCommand = z.infer<typeof ConnectionCommandSchema>;
 export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
-export type InitializedConnectionEntity = MakeRequired<
+export type InitializedConnectionEntity = SomeRequired<
   ConnectionEntity,
   'sessionId' | 'deviceId' | 'currentUrl'
 >;
@@ -208,7 +208,7 @@ export type SessionContext = z.infer<typeof SessionContextSchema>;
 export type SessionStateValue = z.infer<typeof SessionStateValueSchema>;
 export type SessionTypeState = {
   value: 'Active';
-  context: MakeRequired<SessionContext, 'foo'>;
+  context: SomeRequired<SessionContext, 'foo'>;
 };
 export type SessionStateSchema = StateSchemaFromStateValue<SessionStateValue>;
 export type SessionMachine = StateMachine<
@@ -465,7 +465,7 @@ export type EntityListEvent =
     };
 
 export type InitialEntityProps<TEntity extends Entity> = Omit<
-  MakeOptional<TEntity, 'id'>,
+  SomeOptional<TEntity, 'id'>,
   | 'subscribe'
   | 'send'
   | 'states'
@@ -476,7 +476,7 @@ export type InitialEntityProps<TEntity extends Entity> = Omit<
 >;
 
 export type CreateEventProps<TEvent extends ChannelEvent> = Omit<
-  MakeOptional<TEvent, 'id' | 'senderId'>,
+  SomeOptional<TEvent, 'id' | 'senderId'>,
   'channelId'
 >;
 

@@ -1,4 +1,4 @@
-import { MakeRequired, assert, assertProp } from '@explorers-club/utils';
+import { SomeRequired, assert, assertProp } from '@explorers-club/utils';
 import { CameraControls } from '@react-three/drei';
 import { ISheet } from '@theatre/core';
 import { assign } from '@xstate/immer';

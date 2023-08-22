@@ -52,23 +52,25 @@ export const HomeScene: FC<MiddlewareProps> = ({
 
   return (
     <ServiceWorkerProvider>
-      <PWAProvider>
-        <PushNotificationProvider applicationServerKey={applicationServerKey}>
-          <PromptForPWAInstall />
-          <PromptForPushNotifications />
-          <Takeovers>
-            <Takeover id="PushNotification">
-              <PushNotificationScreen />
-            </Takeover>
-            <Takeover id="Unsupported">
-              <UnsupportedScreen />
-            </Takeover>
-            <Takeover id="PWAInstall">
-              <PWAInstallScreen />
-            </Takeover>
-          </Takeovers>
-          <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
-            <ApplicationContext.Provider value={{ routeStore }}>
+      <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
+        <ApplicationContext.Provider value={{ routeStore }}>
+          <PWAProvider>
+            <PushNotificationProvider
+              applicationServerKey={applicationServerKey}
+            >
+              <PromptForPWAInstall />
+              <PromptForPushNotifications />
+              <Takeovers>
+                <Takeover id="PushNotification">
+                  <PushNotificationScreen />
+                </Takeover>
+                <Takeover id="Unsupported">
+                  <UnsupportedScreen />
+                </Takeover>
+                <Takeover id="PWAInstall">
+                  <PWAInstallScreen />
+                </Takeover>
+              </Takeovers>
               {/* <Button
               onClick={handlePlay}
               css={{
@@ -105,10 +107,10 @@ export const HomeScene: FC<MiddlewareProps> = ({
                   </SheetProvider>
                 </GridContext.Provider>
               </Canvas>
-            </ApplicationContext.Provider>
-          </ApplicationProvider>
-        </PushNotificationProvider>
-      </PWAProvider>
+            </PushNotificationProvider>
+          </PWAProvider>
+        </ApplicationContext.Provider>
+      </ApplicationProvider>
     </ServiceWorkerProvider>
   );
 };

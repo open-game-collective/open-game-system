@@ -1,4 +1,4 @@
-import { MakeRequired } from '@explorers-club/utils';
+import { SomeRequired } from '@explorers-club/utils';
 import { CameraControls } from '@react-three/drei';
 import { ISheet } from '@theatre/core';
 import { assign } from '@xstate/immer';
@@ -135,7 +135,7 @@ export type CameraRigInterpreter = Interpreter<
 
 type CameraRigCinematicTypeState = {
   value: 'Cinematic';
-  context: MakeRequired<CameraRigBaseContext, 'sheet'>;
+  context: SomeRequired<CameraRigBaseContext, 'sheet'>;
 };
 
 type CameraRigFocusTypeState = {

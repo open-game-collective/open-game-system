@@ -60,6 +60,20 @@ const ConnectionDisconnectCommandSchema = z.object({
   type: z.literal('DISCONNECT'),
 });
 
+const NotificationPermissionSchema = z.object({
+  type: z.literal('NOTIFICATIONS'),
+  value: z.enum(['granted', 'prompt', 'denied']),
+});
+
+const PermissionValueSchema = z.discriminatedUnion('type', [
+  NotificationPermissionSchema,
+]);
+
+const ConnectionUpdatePermissionSchema = z.object({
+  type: z.literal('UPDATE_PERMISSION'),
+  permission: PermissionValueSchema,
+});
+
 const ConnectionRegisterPushSubscriptionCommandSchema = z.object({
   type: z.literal('REGISTER_PUSH_SUBSCRIPTION'),
   json: z.custom<PushSubscriptionJSON>(),
@@ -72,6 +86,7 @@ const BaseConnectionCommandSchema = z.union([
   UpdateGeolocationPositionCommandSchema,
   ConnectionConnectCommandSchema,
   ConnectionDisconnectCommandSchema,
+  ConnectionUpdatePermissionSchema,
   ConnectionRegisterPushSubscriptionCommandSchema,
 ]);
 
