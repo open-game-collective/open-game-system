@@ -18,7 +18,6 @@ export const Takeovers: React.FC<TakeoversProps> = ({ children }) => {
   if (currentTakeover && !childToRender) {
     console.warn(`trying to render '${currentTakeover}' but child not found`);
   }
-  console.log({ currentTakeover });
 
   return currentTakeover ? (
     <Flex

@@ -1,59 +1,63 @@
 import { Box } from '@atoms/Box';
-import { Button } from '@atoms/Button';
+import { Button, ButtonLink } from '@atoms/Button';
 import { Heading } from '@atoms/Heading';
 import { Text } from '@atoms/Text';
-import { PlatformContext } from '@context/PlatformContext';
 import { PushNotificationContext } from '@context/PushNotificationContext';
 import { assert } from '@explorers-club/utils';
 import { useStore } from '@nanostores/react';
 import { ThickArrowDownIcon } from '@radix-ui/react-icons';
 import { FC, useCallback, useContext } from 'react';
 import { keyframes, type CSS } from '../stitches.config';
+import { Flex } from '@atoms/Flex';
 
 export const PushNotificationScreen: FC<{ css?: CSS }> = ({ css }) => {
   const push$ = useContext(PushNotificationContext);
-  const platform$ = useContext(PlatformContext);
-  const { features } = useStore(platform$);
 
   const { permissionState } = useStore(push$);
-
-  if (!permissionState) {
-    // Initializing...
-    return null;
-  }
-
-  if (!features.hasPush) {
-    return null;
-  }
 
   if (permissionState === 'denied') {
     return <PushPermissionsDenied />;
   }
 
   if (permissionState === 'prompt') {
-    return <PushNotificationsTakeoverContents />;
+    return <PushNotificationPromptPrimer />;
   }
 
   return null;
 };
 
 const PushPermissionsDenied = () => {
-  const handlePressSkip = useCallback(() => {
-    console.log('skip');
+  const handlePressReload = useCallback(() => {
+    window.location.reload();
   }, []);
 
   return (
-    <Box>
-      <Heading>Notifications Not Enabled</Heading>
-      <Text>
-        Enable notifications to get alerts when it's your turn to play.
-      </Text>
-      <Button onClick={handlePressSkip}>Skip</Button>
-    </Box>
+    <Flex css={{ p: '$4', width: '100%' }}>
+      <Flex
+        css={{
+          backgroundColor: '#fff',
+          p: '$4',
+          width: '100%',
+        }}
+        direction="column"
+        gap={'3'}
+      >
+        <Heading>Notifications Disabled</Heading>
+        <Text>
+          To get alerts when it's your turn, enable notifications in your
+          browser, then{' '}
+          <ButtonLink onClick={handlePressReload}>reload the page</ButtonLink>.
+        </Text>
+        <img
+          alt="chrome notification permissions toggle"
+          src={'/static/chrome-notification-permissions.jpg'}
+        />
+      </Flex>
+    </Flex>
   );
 };
 
-const PushNotificationsTakeoverContents = () => {
+const PushNotificationPromptPrimer = () => {
   const store$ = useContext(PushNotificationContext);
   const { showOSPrompt: showPrompt } = useStore(store$);
 
@@ -63,10 +67,21 @@ const PushNotificationsTakeoverContents = () => {
   }, [showPrompt]);
 
   return (
-    <Box>
-      <Text>Enable push notifications to proceed</Text>
-      <Button onClick={handleOnClick}>Continue</Button>
-    </Box>
+    <Flex css={{ p: '$4', width: '100%' }}>
+      <Flex
+        css={{
+          backgroundColor: '#fff',
+          p: '$4',
+          width: '100%',
+        }}
+        direction="column"
+        gap={'3'}
+      >
+        <Heading>Enable Turn Notifications</Heading>
+        <Text>Get alerts when it's your turn to play</Text>
+        <Button onClick={handleOnClick}>Continue</Button>
+      </Flex>
+    </Flex>
   );
 };
 
@@ -75,24 +90,24 @@ const bounce = keyframes({
   '50%': { transform: 'translateY(-15px)' },
 });
 
-const SafariButtonAttentionPulse = () => {
-  return (
-    <Box
-      css={{
-        position: 'absolute',
-        bottom: '$2',
-        display: 'flex',
-        justifyContent: 'center',
-        right: '$3',
-      }}
-    >
-      <Box
-        css={{
-          animation: `${bounce} 2s ease-in-out infinite`,
-        }}
-      >
-        <ThickArrowDownIcon color="white" />
-      </Box>
-    </Box>
-  );
-};
+// const SafariButtonAttentionPulse = () => {
+//   return (
+//     <Box
+//       css={{
+//         position: 'absolute',
+//         bottom: '$2',
+//         display: 'flex',
+//         justifyContent: 'center',
+//         right: '$3',
+//       }}
+//     >
+//       <Box
+//         css={{
+//           animation: `${bounce} 2s ease-in-out infinite`,
+//         }}
+//       >
+//         <ThickArrowDownIcon color="white" />
+//       </Box>
+//     </Box>
+//   );
+// };

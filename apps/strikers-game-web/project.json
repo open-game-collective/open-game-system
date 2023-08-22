@@ -4,7 +4,7 @@
   "projectType": "application",
   "sourceRoot": "apps/strikers-game-web/src",
   "namedInputs": {
-    "sw.js": ["{workspaceRoot}/dist/service-worker/src/sw.js"]
+    "sw.js": ["{workspaceRoot}/static/service-worker/src/sw.js"]
   },
   "targets": {
     "build": {
@@ -12,7 +12,7 @@
       "executor": "@ogc/astro:build",
       "dependsOn": [
         {
-          "target": "copy-sw-bundle"
+          "target": "copy-static"
         }
       ],
       "options": {
@@ -23,7 +23,7 @@
     "dev": {
       "executor": "@nxtensions/astro:dev",
       "options": {},
-      "dependsOn": ["copy-sw-bundle"]
+      "dependsOn": ["copy-static"]
     },
     "start": {
       "executor": "@nx/js:node",
@@ -61,10 +61,13 @@
         }
       }
     },
-    "copy-sw-bundle": {
+    "copy-static": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "cp -r dist/libs/service-worker/src/* apps/strikers-game-web/public/"
+        "commands": [
+          "cp -r static/ apps/strikers-game-web/public/static",
+          "cp -r dist/libs/service-worker/src/* apps/strikers-game-web/public"
+        ]
       },
       "inputs": ["sw.js"],
       "dependsOn": [

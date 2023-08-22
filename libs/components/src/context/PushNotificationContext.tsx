@@ -56,8 +56,10 @@ export const PushNotificationProvider: FC<{
               json: pushSubscription.toJSON(),
             });
           } catch (ex) {
-            console.warn('couldnt subscribe');
-            // todo ahndle better
+            const permissionState = await swReg.pushManager.permissionState({
+              userVisibleOnly: true,
+            });
+            $.setKey('permissionState', permissionState);
           }
         };
 
