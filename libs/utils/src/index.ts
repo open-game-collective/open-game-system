@@ -1,6 +1,6 @@
 import { Entity, RouteProps } from '@explorers-club/schema';
 import { World } from 'miniplex';
-import type { Atom } from 'nanostores';
+import { atom, type Atom } from 'nanostores';
 import { Observable, Subject } from 'rxjs';
 import { AnyEventObject, EventObject } from 'xstate';
 export * from './forms';

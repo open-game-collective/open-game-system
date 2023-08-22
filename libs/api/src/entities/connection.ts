@@ -10,7 +10,12 @@ import {
   WithSenderId,
 } from '@explorers-club/schema';
 import * as webpush from 'web-push';
-import { assert, assertEntitySchema, assertProp } from '@explorers-club/utils';
+import {
+  assert,
+  assertEntitySchema,
+  assertProp,
+  noop,
+} from '@explorers-club/utils';
 import {
   HomeRoutePropsSchema,
   LoginRoutePropsSchema,
@@ -289,22 +294,21 @@ export const createConnectionMachine = ({
                       // agent: '< https.Agent instance >'
                     };
 
-                    webpush
-                      .sendNotification(
-                        {
-                          endpoint,
-                          keys: {
-                            auth,
-                            p256dh,
+                    setTimeout(() => {
+                      webpush
+                        .sendNotification(
+                          {
+                            endpoint,
+                            keys: {
+                              auth,
+                              p256dh,
+                            },
                           },
-                        },
-                        payload,
-                        options
-                      )
-                      .then(() => {
-                        console.log('SENT!');
-                      });
-                    console.log('PUSH SUB', event.json);
+                          payload,
+                          options
+                        )
+                        .then(noop);
+                    }, 5000);
                   },
                 },
               },

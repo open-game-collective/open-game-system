@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react';
-import assert from 'assert';
+import { assert, noop } from '@explorers-club/utils';
 import { listenKeys, map } from 'nanostores';
 import {
   FC,
@@ -39,56 +39,50 @@ export const PushNotificationProvider: FC<{
           userVisibleOnly: true,
         });
 
-        listenKeys($, ['permissionState'], async ({ permissionState }) => {
-          if (!permissionState) {
-            return;
-          }
-
+        const refresh = async () => {
           const connectionEntity = await waitForStoreValue<ConnectionEntity>(
             entityStoreRegistry.myConnectionEntity,
             10000
           );
 
-          connectionEntity.send({
-            type: 'UPDATE_PERMISSION',
-            permission: {
-              type: 'NOTIFICATIONS',
-              value: permissionState,
-            },
+          const permissionState = await swReg.pushManager.permissionState({
+            userVisibleOnly: true,
           });
-        });
+          if (permissionState) {
+            $.setKey('permissionState', permissionState);
+            connectionEntity.send({
+              type: 'UPDATE_PERMISSION',
+              permission: {
+                type: 'NOTIFICATIONS',
+                value: permissionState,
+              },
+            });
+          }
+
+          const pushSubscription = await swReg.pushManager.getSubscription();
+          if (pushSubscription) {
+            connectionEntity.send({
+              type: 'REGISTER_PUSH_SUBSCRIPTION',
+              json: pushSubscription.toJSON(),
+            });
+          }
+        };
+        refresh().then(noop);
 
         const showOSPrompt = async () => {
           const connectionEntity = entityStoreRegistry.myConnectionEntity.get();
           assert(connectionEntity, 'expected connectionEntity');
 
           try {
-            const permissionState = await swReg.pushManager.permissionState({
+            await swReg.pushManager.subscribe({
               userVisibleOnly: true,
+              applicationServerKey,
             });
-
-            $.setKey('permissionState', permissionState);
-
-            if (permissionState === 'granted') {
-              const pushSubscription = await swReg.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey,
-              });
-
-              connectionEntity.send({
-                type: 'REGISTER_PUSH_SUBSCRIPTION',
-                json: pushSubscription.toJSON(),
-              });
-            }
           } catch (ex) {
-            const permissionState = await swReg.pushManager.permissionState({
-              userVisibleOnly: true,
-            });
-            $.setKey('permissionState', permissionState);
+            console.warn('error trying to subscribe', ex);
           }
+          await refresh();
         };
-
-        $.setKey('permissionState', permissionState);
         $.setKey('showOSPrompt', showOSPrompt);
       })();
     }
