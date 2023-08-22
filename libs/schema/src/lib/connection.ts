@@ -60,6 +60,11 @@ const ConnectionDisconnectCommandSchema = z.object({
   type: z.literal('DISCONNECT'),
 });
 
+const ConnectionRegisterPushSubscriptionCommandSchema = z.object({
+  type: z.literal('REGISTER_PUSH_SUBSCRIPTION'),
+  json: z.custom<PushSubscriptionJSON>(),
+});
+
 const BaseConnectionCommandSchema = z.union([
   ConnectionInitializeCommandSchema,
   ConnectionHeartbeatCommandSchema,
@@ -67,6 +72,7 @@ const BaseConnectionCommandSchema = z.union([
   UpdateGeolocationPositionCommandSchema,
   ConnectionConnectCommandSchema,
   ConnectionDisconnectCommandSchema,
+  ConnectionRegisterPushSubscriptionCommandSchema,
 ]);
 
 const ConfigureCommandSchema = z.object({

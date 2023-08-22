@@ -1,4 +1,5 @@
 import { SunsetSky } from '@3d/sky';
+import { PWAContext } from '@context/PWAContext';
 import type {
   SnowflakeId,
   StrikersGameEntity,
@@ -43,6 +44,13 @@ const HexTile = defineHex();
 export const StrikersSceneManager: FC<{
   gameInstanceId: SnowflakeId;
 }> = ({ gameInstanceId }) => {
+  const pwaStore = useContext(PWAContext);
+  // pwaStore.
+
+  useEffect(() => {
+    pwaStore.setKey('forceInstall', true);
+  }, [pwaStore]);
+
   const currentUserId = useMyUserId();
   const gameEntityStore = useCreateEntityStore<StrikersGameEntity>(
     (entity) => {

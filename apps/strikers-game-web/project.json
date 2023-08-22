@@ -3,10 +3,18 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/strikers-game-web/src",
+  "namedInputs": {
+    "sw.js": ["{workspaceRoot}/static/service-worker/src/sw.js"]
+  },
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "executor": "@ogc/astro:build",
+      "dependsOn": [
+        {
+          "target": "copy-static"
+        }
+      ],
       "options": {
         "outputPath": "dist/apps/strikers-game-web/dist/server",
         "outputFileName": "entry.mjs"
@@ -14,7 +22,8 @@
     },
     "dev": {
       "executor": "@nxtensions/astro:dev",
-      "options": {}
+      "options": {},
+      "dependsOn": ["copy-static"]
     },
     "start": {
       "executor": "@nx/js:node",
@@ -51,6 +60,22 @@
           "quiet": true
         }
       }
+    },
+    "copy-static": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "cp -r static/ apps/strikers-game-web/public/static",
+          "cp -r dist/libs/service-worker/src/* apps/strikers-game-web/public"
+        ]
+      },
+      "inputs": ["sw.js"],
+      "dependsOn": [
+        {
+          "projects": "service-worker",
+          "target": "build"
+        }
+      ]
     },
     "build-storybook": {
       "executor": "@nx/storybook:build",

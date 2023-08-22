@@ -6,8 +6,17 @@ import { getRouteProps } from '../routing';
 
 const routeProps = getRouteProps(Astro.url);
 assertRouteName(routeProps, 'Home');
+
+const { accessToken, connectionId } = Astro.locals;
 ---
 
 <Layout title="Strikers: The Beautiful Trading Card Game™️">
-  <HomeScene client:only />
+  <HomeScene
+    client:only
+    trpcUrl={`${
+      import.meta.env.PUBLIC_API_WS_SERVER_URL
+    }/?accessToken=${accessToken}`}
+    connectionId={connectionId}
+    initialRouteProps={routeProps}
+  />
 </Layout>

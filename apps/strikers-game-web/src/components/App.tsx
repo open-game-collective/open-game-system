@@ -1,9 +1,10 @@
 import { Flex } from '@atoms/Flex';
 import { ApplicationContext } from '@context/ApplicationContext';
+import { ApplicationProvider } from '@context/ApplicationProvider';
 import { LayoutContext } from '@context/LayoutContext';
 import { LayoutProvider } from '@context/LayoutProvider';
+import { PWAProvider } from '@context/PWAContext';
 import { WorldContext } from '@context/WorldProvider';
-import type { RouteProps, SnowflakeId } from '@explorers-club/schema';
 import { styled } from '@explorers-club/styles';
 import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
 import { useMyUserEntityStore } from '@hooks/useMyUserEntityStore';
@@ -11,17 +12,11 @@ import { useStore } from '@nanostores/react';
 import { Chat, ChatContext } from '@organisms/chat';
 import { atom } from 'nanostores';
 import { FC, useContext, useState } from 'react';
+import type { MiddlewareProps } from '../middleware';
 import { ChannelListDialog } from './ChannelListDialog';
 import { Menu } from './Menu';
 import { Modal } from './Modal';
 import { ScenePanel } from './ScenePanel';
-import { ApplicationProvider } from '@context/ApplicationProvider';
-
-interface Props {
-  initialRouteProps: RouteProps;
-  connectionId: SnowflakeId;
-  trpcUrl: string;
-}
 
 const AppContainer = styled('div', {
   position: 'absolute',
@@ -34,7 +29,7 @@ const AppContainer = styled('div', {
   flexDirection: 'column',
 });
 
-export const App: FC<Props> = ({
+export const App: FC<MiddlewareProps> = ({
   initialRouteProps,
   connectionId,
   trpcUrl,
@@ -42,19 +37,21 @@ export const App: FC<Props> = ({
   const [routeStore] = useState(atom(initialRouteProps));
 
   return (
-    <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
-      <ApplicationContext.Provider value={{ routeStore }}>
-        <AppContainer>
-          <LayoutProvider>
-            <ScenePanel />
-            <Menu />
-            <ChannelListDialog />
-            <MainPanel />
-            <Modal />
-          </LayoutProvider>
-        </AppContainer>
-      </ApplicationContext.Provider>
-    </ApplicationProvider>
+    <PWAProvider>
+      <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
+        <ApplicationContext.Provider value={{ routeStore }}>
+          <AppContainer>
+            <LayoutProvider>
+              <ScenePanel />
+              <Menu />
+              <ChannelListDialog />
+              <MainPanel />
+              <Modal />
+            </LayoutProvider>
+          </AppContainer>
+        </ApplicationContext.Provider>
+      </ApplicationProvider>
+    </PWAProvider>
   );
 };
 
