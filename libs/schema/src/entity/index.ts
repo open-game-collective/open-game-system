@@ -24,13 +24,17 @@ import { MessageChannelEntitySchema } from '@schema/lib/message-channel';
 import { RoomCommandSchema, RoomEntitySchema } from '@schema/lib/room';
 import { SessionCommandSchema, SessionEntitySchema } from '@schema/lib/session';
 import { TriggerEntitySchema } from '@schema/lib/trigger';
-import { UserEntitySchema } from '@schema/lib/user';
+import {
+  UserCommandSchema,
+  UserEntitySchema,
+} from '@schema/lib/user';
 import { z } from 'zod';
 
 export const EntityCommandSchema = z.union([
   ConnectionCommandSchema,
   SessionCommandSchema,
   RoomCommandSchema,
+  UserCommandSchema
   // StrikersGameCommandSchema,
 ]);
 

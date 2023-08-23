@@ -14,7 +14,7 @@ import { AnyFunction, assert } from '@explorers-club/utils';
 import { Operation, applyPatch } from 'fast-json-patch';
 import { createIndex } from 'libs/api/src/world';
 import { World } from 'miniplex';
-import { Atom, WritableAtom, atom } from 'nanostores';
+import { Atom, WritableAtom, atom, computed } from 'nanostores';
 import {
   FC,
   ReactNode,
@@ -288,13 +288,17 @@ export const WorldProvider: FC<{
     },
     []
   );
+
+  const myConnectionEntity = createEntityStore<ConnectionEntity>(
+    (entity) => entity.schema === 'connection'
+  );
+  const mySessionEntity = createEntityStore<SessionEntity>(
+    (entity) => entity.schema === 'session'
+  );
+
   const [entityStoreRegistry] = useState({
-    myConnectionEntity: createEntityStore<ConnectionEntity>(
-      (entity) => entity.schema === 'connection'
-    ),
-    mySessionEntity: createEntityStore<SessionEntity>(
-      (entity) => entity.schema === 'session'
-    ),
+    myConnectionEntity,
+    mySessionEntity,
   } satisfies EntityStoreRegistry);
 
   return (

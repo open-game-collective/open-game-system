@@ -5,8 +5,23 @@ import { UserSchemaTypeLiteral } from '../literals';
 import { ChatContextSchema, ChatStateValueSchema } from '../services/chat';
 import { ChatInterpreter } from '..';
 
+export const DevicePushSubscriptionSchema = z.object({
+  deviceId: SnowflakeIdSchema,
+  endpoint: z.string(),
+  expirationTime: z.number().nullable().optional(),
+  addedAt: z.number(),
+  keys: z.object({
+    p256dh: z.string(),
+    auth: z.string(),
+  }),
+});
+export type DevicePushSubscription = z.infer<
+  typeof DevicePushSubscriptionSchema
+>;
+
 export const UserContextSchema = z.object({
   chatServiceRef: z.custom<ChatInterpreter>().optional(),
+  pushSubscriptions: z.array(DevicePushSubscriptionSchema),
 });
 
 export const UserInitializePropsSchema = z.object({
@@ -27,6 +42,11 @@ const UserEntityPropsSchema = z.object({
     .optional(),
 });
 
+export const RegisterPushSubscriptionCommandSchema = z.object({
+  type: z.literal('REGISTER_PUSH_SUBSCRIPTION'),
+  json: z.custom<PushSubscriptionJSON>(),
+});
+
 const UpdateNameCommandSchema = z.object({
   type: z.literal('UPDATE_NAME'),
   name: SlugSchema,
@@ -45,7 +65,8 @@ export const EnterChannelCommandSchema = z.object({
 export const UserCommandSchema = z.union([
   UpdateNameCommandSchema,
   CreateProfileCommandSchema,
-  EnterChannelCommandSchema
+  EnterChannelCommandSchema,
+  RegisterPushSubscriptionCommandSchema,
 ]);
 
 export const UserStateValueSchema = z.object({

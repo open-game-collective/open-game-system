@@ -11,7 +11,7 @@ import {
 import { ServiceWorkerContext } from './ServiceWorkerContext';
 import { WorldContext } from './WorldProvider';
 import { waitForStoreValue } from '@explorers-club/utils';
-import { ConnectionEntity } from '@schema/types';
+import { ConnectionEntity, UserEntity } from '@schema/types';
 
 export const pushNotificationStore = map({
   permissionState: undefined as undefined | PermissionState,
@@ -29,16 +29,12 @@ export const PushNotificationProvider: FC<{
   const $ = store || pushNotificationStore;
 
   const serviceWorker$ = useContext(ServiceWorkerContext);
-  const { entityStoreRegistry } = useContext(WorldContext);
+  const { entityStoreRegistry, entitiesById } = useContext(WorldContext);
   const swReg = useStore(serviceWorker$);
 
   useLayoutEffect(() => {
     if (swReg) {
       (async () => {
-        const permissionState = await swReg.pushManager.permissionState({
-          userVisibleOnly: true,
-        });
-
         const refresh = async () => {
           const connectionEntity = await waitForStoreValue<ConnectionEntity>(
             entityStoreRegistry.myConnectionEntity,
@@ -61,7 +57,16 @@ export const PushNotificationProvider: FC<{
 
           const pushSubscription = await swReg.pushManager.getSubscription();
           if (pushSubscription) {
-            connectionEntity.send({
+            const sessionEntity = entityStoreRegistry.mySessionEntity.get();
+            assert(sessionEntity, 'expected sessionEntity');
+
+            const userEntity = entitiesById.get(sessionEntity.userId) as
+              | UserEntity
+              | undefined;
+            assert(userEntity, 'expected userEntity');
+            console.log({ pushSubscription });
+
+            userEntity.send({
               type: 'REGISTER_PUSH_SUBSCRIPTION',
               json: pushSubscription.toJSON(),
             });
@@ -74,7 +79,7 @@ export const PushNotificationProvider: FC<{
           assert(connectionEntity, 'expected connectionEntity');
 
           try {
-            await swReg.pushManager.subscribe({
+            const subscription = await swReg.pushManager.subscribe({
               userVisibleOnly: true,
               applicationServerKey,
             });

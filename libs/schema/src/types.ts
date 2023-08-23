@@ -197,7 +197,7 @@ export type UserContext = z.infer<typeof UserContextSchema>;
 export type UserMachine = StateMachine<
   UserContext,
   UserStateSchema,
-  UserCommand
+  WithSenderId<UserCommand>
 >;
 export type UserInterpreter = InterpreterFrom<UserMachine>;
 export type UserStateValue = z.infer<typeof UserStateValueSchema>;

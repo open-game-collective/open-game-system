@@ -17,10 +17,10 @@ const sw = self as ServiceWorkerGlobalScope & typeof globalThis;
 // const pushReceivedTracking;
 
 self.addEventListener('push', async (event) => {
-  // todo add tracking
+  const body = event.data!.text();
 
   const send = sw.registration.showNotification('Hello world!', {
-    body: 'MY BODY!!!',
+    body,
   });
 
   event.waitUntil(send);
