@@ -121,3 +121,33 @@ export const PointyDirectionSchema = z.union([
   z.literal('SE'),
   z.literal('SW'),
 ]);
+
+const NotificationActionSchema = z.object({
+  action: z.string().min(1).max(50),
+  title: z.string().min(1).max(100),
+  icon: z.string().url().optional(),
+});
+
+const NotificationOptionsSchema = z.object({
+  actions: z.array(NotificationActionSchema).max(10).optional(),
+  badge: z.string().url().optional(),
+  body: z.string().min(1).max(500).optional(),
+  data: z.record(z.any()).optional(),
+  dir: z
+    .union([z.literal('auto'), z.literal('ltr'), z.literal('rtl')])
+    .optional(),
+  icon: z.string().url().optional(),
+  image: z.string().url().optional(),
+  lang: z.string().optional(), // could be enhanced if you have a specific set of language tags you'll support
+  renotify: z.boolean().optional(),
+  requireInteraction: z.boolean().optional(),
+  silent: z.boolean().optional(),
+  tag: z.string().min(1).max(100).optional(),
+  timestamp: z.number().optional(),
+  vibrate: z.array(z.number()).optional(),
+});
+
+export const NotificationPayloadSchema = z.object({
+  title: z.string().min(1).max(100),
+  options: NotificationOptionsSchema.optional(),
+});

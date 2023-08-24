@@ -3,10 +3,12 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
+    "types": ["vite-plugin-pwa/react", "vite-plugin-pwa/client"],
     "jsx": "react-jsx",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "lib": ["es2017", "dom", "WebWorker"],
     "noEmit": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,

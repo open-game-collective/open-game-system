@@ -3,6 +3,7 @@ import * as webpush from 'web-push';
 import {
   ConnectionEntity,
   Entity,
+  NotificationPayload,
   UserCommand,
   UserContext,
   WithSenderId,
@@ -285,24 +286,15 @@ export const createUserMachine = ({
           const { deviceId } = connectionEntity;
           const { auth, p256dh } = keys;
 
-          const payload = 'Notifications Activated!';
+          const payload = JSON.stringify({
+            title: 'Notifications Activated',
+          } satisfies NotificationPayload);
           const options = {
             vapidDetails: {
               subject: 'mailto:push@strikers.game',
               publicKey: configuration.PUBLIC_VAPID_PUBLIC_KEY,
               privateKey: configuration.VAPID_PRIVATE_KEY,
             },
-
-            // timeout: <Number>
-            // TTL: <Number>,
-            // headers: {
-            //   '< header name >': '< header value >'
-            // },
-            // contentEncoding: '< Encoding type, e.g.: aesgcm or aes128gcm >',
-            // urgency:'< Default is "normal" >',
-            // topic:'< Use a maximum of 32 characters from the URL or filename-safe Base64 characters sets. >',
-            // proxy: '< proxy server options >',
-            // agent: '< https.Agent instance >'
           };
 
           const devicePushSubscription = {

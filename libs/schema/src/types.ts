@@ -6,6 +6,7 @@ import {
   BlockCommandSchema,
   ConnectionAccessTokenPropsSchema,
   LayoutPropsSchema,
+  NotificationPayloadSchema,
   PointyDirectionSchema,
   RouteNameSchema,
   RoutePropsSchema,
@@ -756,3 +757,5 @@ export type LayoutProps = z.infer<typeof LayoutPropsSchema>;
 export type BlockCommand = z.infer<typeof BlockCommandSchema>;
 
 export type PointyDirection = z.infer<typeof PointyDirectionSchema>;
+
+export type NotificationPayload = z.infer<typeof NotificationPayloadSchema>;
