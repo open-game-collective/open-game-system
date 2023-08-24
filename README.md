@@ -1,10 +1,4 @@
-# The Open Game System
-
-The Open Game System is a system for making open web games made by [The Open Game Collective](https://opengame.org).
-
-## Strikers TCG
-
-Strikers is the first title we are developing and will be available at https://strikers.game.
+![ogs](https://github.com/open-game-collective/OpenGameSystem/assets/718391/6ed93624-dfd2-40ec-b3c0-a80fa5576713)
 
 ### Dev Commands
 
