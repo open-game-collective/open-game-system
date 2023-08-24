@@ -3,9 +3,6 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/strikers-game-web/src",
-  "namedInputs": {
-    "sw.js": ["{workspaceRoot}/static/service-worker/src/sw.js"]
-  },
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
@@ -64,18 +61,8 @@
     "copy-static": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "cp -r static/ apps/strikers-game-web/public/static",
-          "cp -r dist/libs/service-worker/src/* apps/strikers-game-web/public"
-        ]
-      },
-      "inputs": ["sw.js"],
-      "dependsOn": [
-        {
-          "projects": "service-worker",
-          "target": "build"
-        }
-      ]
+        "commands": ["cp -r static/ apps/strikers-game-web/public/static"]
+      }
     },
     "build-storybook": {
       "executor": "@nx/storybook:build",

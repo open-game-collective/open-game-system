@@ -59,12 +59,12 @@ const PushPermissionsDenied = () => {
 
 const PushNotificationPromptPrimer = () => {
   const store$ = useContext(PushNotificationContext);
-  const { showOSPrompt: showPrompt } = useStore(store$);
+  const { showOSPrompt } = useStore(store$);
 
   const handleOnClick = useCallback(() => {
-    assert(showPrompt, 'expected showPrompt');
-    showPrompt();
-  }, [showPrompt]);
+    assert(showOSPrompt, 'expected showOSPrompt');
+    showOSPrompt();
+  }, [showOSPrompt]);
 
   return (
     <Flex css={{ p: '$4', width: '100%' }}>

@@ -25,6 +25,9 @@ export const ConnectionStateValueSchema = z.object({
   Initialized: z.enum(['True', 'False', 'Initializing', 'Error']),
   Route: RouteNameSchema,
   Geolocation: GeolocationStateSchema,
+  Push: z.object({
+    Subscription: z.enum(['Registered', 'Unregistered']),
+  }),
 });
 
 export const ConnectionInitializeInputSchema = z.object({
@@ -60,9 +63,18 @@ const ConnectionDisconnectCommandSchema = z.object({
   type: z.literal('DISCONNECT'),
 });
 
-const ConnectionRegisterPushSubscriptionCommandSchema = z.object({
-  type: z.literal('REGISTER_PUSH_SUBSCRIPTION'),
-  json: z.custom<PushSubscriptionJSON>(),
+const NotificationPermissionSchema = z.object({
+  type: z.literal('NOTIFICATIONS'),
+  value: z.enum(['granted', 'prompt', 'denied']),
+});
+
+const PermissionValueSchema = z.discriminatedUnion('type', [
+  NotificationPermissionSchema,
+]);
+
+export const ConnectionUpdatePermissionSchema = z.object({
+  type: z.literal('UPDATE_PERMISSION'),
+  permission: PermissionValueSchema,
 });
 
 const BaseConnectionCommandSchema = z.union([
@@ -72,7 +84,7 @@ const BaseConnectionCommandSchema = z.union([
   UpdateGeolocationPositionCommandSchema,
   ConnectionConnectCommandSchema,
   ConnectionDisconnectCommandSchema,
-  ConnectionRegisterPushSubscriptionCommandSchema,
+  ConnectionUpdatePermissionSchema,
 ]);
 
 const ConfigureCommandSchema = z.object({

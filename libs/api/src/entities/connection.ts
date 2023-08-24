@@ -9,8 +9,11 @@ import {
   UserEntity,
   WithSenderId,
 } from '@explorers-club/schema';
-import * as webpush from 'web-push';
-import { assert, assertEntitySchema, assertProp } from '@explorers-club/utils';
+import {
+  assert,
+  assertEntitySchema,
+  assertEventType,
+} from '@explorers-club/utils';
 import {
   HomeRoutePropsSchema,
   LoginRoutePropsSchema,
@@ -20,8 +23,10 @@ import {
 import {
   ConnectionInitializeCommandSchema,
   ConnectionNavigateCommandSchema,
+  ConnectionUpdatePermissionSchema,
 } from '@schema/lib/connection';
 import type { RoomCommand, SessionCommand } from '@schema/types';
+import { assign as assignImmer } from '@xstate/immer';
 import { World } from 'miniplex';
 import { DoneInvokeEvent, assign, createMachine } from 'xstate';
 // import { createEntity } from '../ecs';
@@ -30,13 +35,6 @@ import { createEntity } from '../ecs';
 import { roomsBySlug } from '../server/indexes';
 import { entitiesById } from '../server/state';
 import { newRoomMachine } from '../services';
-
-const configurationSchema = z.object({
-  PUBLIC_VAPID_PUBLIC_KEY: z.string(),
-  VAPID_PRIVATE_KEY: z.string(),
-});
-
-export const configuration = configurationSchema.parse(process.env);
 
 const getSerialNumber = (() => {
   let count = 0;
@@ -61,8 +59,8 @@ export const createConnectionMachine = ({
   );
   const connectionEntity = entity;
 
-  let sessionEntity = entitiesById.get(connectionEntity.sessionId);
-  let userEntity: UserEntity | undefined;
+  var sessionEntity = entitiesById.get(connectionEntity.sessionId);
+  var userEntity: UserEntity | undefined;
   if (sessionEntity) {
     assertEntitySchema(sessionEntity, 'session');
     userEntity = entitiesById.get(sessionEntity.userId) as
@@ -242,76 +240,143 @@ export const createConnectionMachine = ({
           },
         },
         Push: {
-          initial: 'Uninitialized',
+          type: 'parallel',
           states: {
-            Uninitialized: {
+            PermissionState: {
               on: {
-                REGISTER_PUSH_SUBSCRIPTION: {
-                  actions: (context, event) => {
-                    const { endpoint, keys } = event.json;
-                    assert(
-                      endpoint,
-                      'expected endpoint in push subscription payload'
-                    );
-                    assert(keys, 'expected keys in push subscription payload');
-                    assert('auth' in keys, "expetcted 'auth' in keys");
-                    assert('p256dh' in keys, "expected 'p256dh' in keys");
-                    const { auth, p256dh } = keys;
-                    // const pushSubscription: PushSubscription = event.json as PushSubscription;
-
-                    // keys.p256dh
-
-                    // const pushSubscription = {
-                    //   endpoint: '< Push Subscription URL >',
-                    //   keys: {
-                    //     p256dh: '< User Public Encryption Key >',
-                    //     auth: '< User Auth Secret >'
-                    //   }
-                    // };
-
-                    const payload = '< Push Payload String >';
-
-                    const options = {
-                      vapidDetails: {
-                        subject: 'mailto:push@strikers.game',
-                        publicKey: configuration.PUBLIC_VAPID_PUBLIC_KEY,
-                        privateKey: configuration.VAPID_PRIVATE_KEY,
-                      },
-                      // timeout: <Number>
-                      // TTL: <Number>,
-                      // headers: {
-                      //   '< header name >': '< header value >'
-                      // },
-                      // contentEncoding: '< Encoding type, e.g.: aesgcm or aes128gcm >',
-                      // urgency:'< Default is "normal" >',
-                      // topic:'< Use a maximum of 32 characters from the URL or filename-safe Base64 characters sets. >',
-                      // proxy: '< proxy server options >',
-                      // agent: '< https.Agent instance >'
-                    };
-
-                    webpush
-                      .sendNotification(
-                        {
-                          endpoint,
-                          keys: {
-                            auth,
-                            p256dh,
-                          },
-                        },
-                        payload,
-                        options
-                      )
-                      .then(() => {
-                        console.log('SENT!');
-                      });
-                    console.log('PUSH SUB', event.json);
+                UPDATE_PERMISSION: [
+                  {
+                    target: 'PermissionState.Prompt',
+                    cond: 'permissionStateIsPrompt',
                   },
-                },
+                  {
+                    target: 'PermissionState.Denied',
+                    cond: 'permissionStateIsDenied',
+                  },
+                  {
+                    target: 'PermissionState.Granted',
+                    cond: 'permissionStateIsGranted',
+                  },
+                ],
+              },
+              initial: 'Uninitialized',
+              states: {
+                Uninitialized: {},
+                Prompt: {},
+                Denied: {},
+                Granted: {},
+                // on: {
+                //   REGISTER_PUSH_SUBSCRIPTION: {
+                //     target: 'Registered',
+                //     actions: 'registerPushSubscriptions',
+                // actions: (context, event) => {
+                //   const { endpoint, keys } = event.json;
+                //   assert(
+                //     endpoint,
+                //     'expected endpoint in push subscription payload'
+                //   );
+                //   assert(
+                //     keys,
+                //     'expected keys in push subscription payload'
+                //   );
+                //   assert('auth' in keys, "expetcted 'auth' in keys");
+                //   assert('p256dh' in keys, "expected 'p256dh' in keys");
+                //   const { auth, p256dh } = keys;
+                //   const payload = '< Push Payload String >';
+                //   const options = {
+                //     vapidDetails: {
+                //       subject: 'mailto:push@strikers.game',
+                //       publicKey: configuration.PUBLIC_VAPID_PUBLIC_KEY,
+                //       privateKey: configuration.VAPID_PRIVATE_KEY,
+                //     },
+                //     // timeout: <Number>
+                //     // TTL: <Number>,
+                //     // headers: {
+                //     //   '< header name >': '< header value >'
+                //     // },
+                //     // contentEncoding: '< Encoding type, e.g.: aesgcm or aes128gcm >',
+                //     // urgency:'< Default is "normal" >',
+                //     // topic:'< Use a maximum of 32 characters from the URL or filename-safe Base64 characters sets. >',
+                //     // proxy: '< proxy server options >',
+                //     // agent: '< https.Agent instance >'
+                //   };
+                //   setTimeout(() => {
+                //     webpush
+                //       .sendNotification(
+                //         {
+                //           endpoint,
+                //           keys: {
+                //             auth,
+                //             p256dh,
+                //           },
+                //         },
+                //         payload,
+                //         options
+                //       )
+                //       .then(noop);
+                //   }, 5000);
+                // },
+                //   },
+                // },
               },
             },
-            Subscribed: {},
-            NoSupport: {},
-            Off: {},
+
+            // Uninitialized: {
+            //   on: {
+            //     REGISTER_PUSH_SUBSCRIPTION: {
+            //       actions: (context, event) => {
+            //         const { endpoint, keys } = event.json;
+            //         assert(
+            //           endpoint,
+            //           'expected endpoint in push subscription payload'
+            //         );
+            //         assert(keys, 'expected keys in push subscription payload');
+            //         assert('auth' in keys, "expetcted 'auth' in keys");
+            //         assert('p256dh' in keys, "expected 'p256dh' in keys");
+            //         const { auth, p256dh } = keys;
+
+            //         const payload = '< Push Payload String >';
+
+            //         const options = {
+            //           vapidDetails: {
+            //             subject: 'mailto:push@strikers.game',
+            //             publicKey: configuration.PUBLIC_VAPID_PUBLIC_KEY,
+            //             privateKey: configuration.VAPID_PRIVATE_KEY,
+            //           },
+            //           // timeout: <Number>
+            //           // TTL: <Number>,
+            //           // headers: {
+            //           //   '< header name >': '< header value >'
+            //           // },
+            //           // contentEncoding: '< Encoding type, e.g.: aesgcm or aes128gcm >',
+            //           // urgency:'< Default is "normal" >',
+            //           // topic:'< Use a maximum of 32 characters from the URL or filename-safe Base64 characters sets. >',
+            //           // proxy: '< proxy server options >',
+            //           // agent: '< https.Agent instance >'
+            //         };
+
+            //         setTimeout(() => {
+            //           webpush
+            //             .sendNotification(
+            //               {
+            //                 endpoint,
+            //                 keys: {
+            //                   auth,
+            //                   p256dh,
+            //                 },
+            //               },
+            //               payload,
+            //               options
+            //             )
+            //             .then(noop);
+            //         }, 5000);
+            //       },
+            //     },
+            //   },
+            // },
+            // Subscribed: {},
+            // NoSupport: {},
+            // Off: {},
           },
         },
       },
@@ -348,7 +413,44 @@ export const createConnectionMachine = ({
           connectionEntity.currentChannelId = currentChannelId;
         },
       },
+      guards: {
+        permissionStateIsPrompt: (context, event) => {
+          const { permission } = ConnectionUpdatePermissionSchema.parse(event);
+          assertEventType(permission, 'NOTIFICATIONS');
+          return permission.value === 'prompt';
+        },
+        permissionStateIsDenied: (context, event) => {
+          const { permission } = ConnectionUpdatePermissionSchema.parse(event);
+          assertEventType(permission, 'NOTIFICATIONS');
+          return permission.value === 'denied';
+        },
+        permissionStateIsGranted: (context, event) => {
+          const { permission } = ConnectionUpdatePermissionSchema.parse(event);
+          assertEventType(permission, 'NOTIFICATIONS');
+          return permission.value === 'granted';
+        },
+      },
       actions: {
+        // registerPushSubscriptions: (context, event) => {
+        //   const { json } =
+        //     ConnectionRegisterPushSubscriptionCommandSchema.parse(event);
+        //   const { endpoint, keys } = json;
+        //   assert(endpoint, 'expected endpoint in push subscription payload');
+        //   assert(keys, 'expected keys in push subscription payload');
+        //   assert('auth' in keys, "expetcted 'auth' in keys");
+        //   assert('p256dh' in keys, "expected 'p256dh' in keys");
+        //   const { auth, p256dh } = keys;
+
+        //   assert(userEntity, 'expected userEntity');
+
+        //   context.pushSubscription = {
+        //     keys: {
+        //       auth,
+        //       p256dh,
+        //     },
+        //     endpoint,
+        //   };
+        // },
         setCurrentLocation: (_, event) => {
           const parsedEvent = SetCurrentLocationEventSchema.parse(event);
           const route =

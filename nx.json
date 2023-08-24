@@ -38,6 +38,9 @@
         "{workspaceRoot}/.storybook/**/*",
         "!{projectRoot}/.storybook/**/*"
       ]
+    },
+    "test": {
+      "inputs": ["default", "^production"]
     }
   },
   "workspaceLayout": {
@@ -70,7 +73,9 @@
       "default",
       "!{projectRoot}/.eslintrc.json",
       "!{projectRoot}/.storybook/**/*",
-      "!{projectRoot}/**/*.stories.@(js|jsx|ts|tsx|mdx)"
+      "!{projectRoot}/**/*.stories.@(js|jsx|ts|tsx|mdx)",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/tsconfig.spec.json"
     ]
   }
 }

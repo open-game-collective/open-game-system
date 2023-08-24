@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { SnowflakeIdSchema, StateSchemaFromStateValue } from '../common';
 import { EntityBaseSchema } from '../entity/base';
 import { SessionSchemaTypeLiteral } from '../literals';
-import { MakeRequired } from '@explorers-club/utils';
+import { SomeRequired } from '@explorers-club/utils';
 import { StateMachine } from 'xstate';
 
 export const SessionContextSchema = z.object({

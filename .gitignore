@@ -44,4 +44,4 @@ Thumbs.db
 .astro
 .cloudflared
 
-apps/strikers-game-web/public/static
+apps/strikers-game-web/public/static*

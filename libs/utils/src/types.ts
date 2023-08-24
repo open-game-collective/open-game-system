@@ -9,11 +9,15 @@ export type FunctionReturningProperties<T> = {
   [K in keyof T]: () => T[K];
 };
 
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+export type SomeOptional<T, K extends keyof T> = Omit<T, K> & {
   [P in K]?: T[P];
 };
 
-export type MakeRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+export type AllRequired<T> = {
+  [P in keyof T]-?: T[P];
+};
+
+export type SomeRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
 export type AnyFunction = (...args: any[]) => any;
 
