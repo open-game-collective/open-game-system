@@ -1,4 +1,4 @@
-![ogs](https://github.com/open-game-collective/OpenGameSystem/assets/718391/c6a004b0-75cd-499f-b724-808d8efc5749)
+![ogs_dark](https://github.com/open-game-collective/OGS/assets/718391/e04f292e-a185-43d5-9a8e-7b9ec842b5a9)
 
 ### Dev Commands
 
