@@ -50,23 +50,28 @@ wss.on('connection', (ws, req) => {
       'expected entity to have schema connection but was: ' + entity.schema
     );
 
+    entity.send({
+      type: 'CONNECT',
+    });
+
     // Keep sending heartbeat as long as this connetion stays alive...
-    const HEARTBEAT_TIMEOUT = 5000; // 5s
-    const interval = setInterval(() => {
-      entity.send({
-        type: 'HEARTBEAT',
-      });
-    }, HEARTBEAT_TIMEOUT);
+    // const HEARTBEAT_TIMEOUT = 5000; // 5s
+    // const interval = setInterval(() => {
+    //   entity.send({
+    //     type: 'HEARTBEAT',
+    //   });
+    // }, HEARTBEAT_TIMEOUT);
 
     ws.once('close', () => {
       entity.send({
         type: 'DISCONNECT',
       });
-      clearInterval(interval);
+      // clearInterval(interval);
     });
   } catch (ex) {
-    console.warn('warning: when trying to initialize websocket: ' + ex);
-    console.warn('client commands will fail');
+    console.warn(
+      'warning: error when trying to initialize websocket. client commands will fail'
+    );
   }
 });
 

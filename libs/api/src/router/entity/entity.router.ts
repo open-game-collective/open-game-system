@@ -3,7 +3,9 @@ import {
   Entity,
   EntityEvent,
   EntityListEvent,
+  SessionEntity,
   SnowflakeId,
+  UserEntity,
 } from '@explorers-club/schema';
 import { EntityCommandSchema } from '@schema/entity';
 import { SnowflakeIdSchema } from '@schema/common';
@@ -39,11 +41,29 @@ export const entityRouter = router({
         });
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      entity.send({
+      const command = {
         senderId: ctx.connectionEntity.id,
         ...(input.command as any),
-      });
+      };
+
+      entity.send(command);
+
+      // if (entity.schema === 'connection') {
+      //   const sessionEntity = entitiesById.get(entity.sessionId) as
+      //     | SessionEntity
+      //     | undefined;
+      //   assertEntitySchema(sessionEntity, 'session');
+      //   sessionEntity.send(command);
+
+      //   const userEntity = entitiesById.get(sessionEntity.userId) as
+      //     | UserEntity
+      //     | undefined;
+      //   assertEntitySchema(userEntity, 'user');
+      //   userEntity.send(command);
+      // }
+
+      // If you send an event to the conneciton, have it send to...
+      // the sessionEntity, userEntity, and connectionEntity
     }),
   list: publicProcedure.subscription(({ ctx }) => {
     // Track if entities get removed

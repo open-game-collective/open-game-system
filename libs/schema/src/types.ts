@@ -215,7 +215,7 @@ export type SessionStateSchema = StateSchemaFromStateValue<SessionStateValue>;
 export type SessionMachine = StateMachine<
   SessionContext,
   SessionStateSchema,
-  SessionCommand
+  WithSenderId<SessionCommand>
 >;
 
 export type RoomEntity = z.infer<typeof RoomEntitySchema>;

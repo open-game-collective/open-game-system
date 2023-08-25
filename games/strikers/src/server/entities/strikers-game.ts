@@ -13,7 +13,6 @@ import { Formation } from '@schema/games/strikers';
 import type {
   SnowflakeId,
   StrikersGameEventInput,
-  StrikersGameStateValue,
   StrikersTurnEntity,
 } from '@schema/types';
 import { deepClone } from 'fast-json-patch';

@@ -10,3 +10,11 @@ export const ConfirmCommandSchema = z.object({
   type: z.literal('CONFIRM'),
   blockIndex: z.number(),
 });
+
+export const ConnectCommandSchema = z.object({
+  type: z.literal('CONNECT'),
+});
+
+export const DisconnectCommandSchema = z.object({
+  type: z.literal('DISCONNECT'),
+});

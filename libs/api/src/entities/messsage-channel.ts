@@ -93,6 +93,9 @@ export const createMessageChannelMachine = ({
                         ...messageChannelEntity.messages,
                         event,
                       ];
+
+                      // todo trigger the push notification send here
+                      // if appropriate
                     } else {
                       // if its an existing message, remove the old one from the list
                       // and put new one at the end
@@ -107,7 +110,9 @@ export const createMessageChannelMachine = ({
                 });
 
                 // Keep the machine invoked/listening
-                const parentChannel = channelObservablesById.get(channelEntity.id);
+                const parentChannel = channelObservablesById.get(
+                  channelEntity.id
+                );
                 assert(
                   parentChannel,
                   'expect parentChannel when subscribing to chanel'

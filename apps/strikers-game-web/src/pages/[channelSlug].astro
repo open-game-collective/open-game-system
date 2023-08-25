@@ -11,7 +11,6 @@ const routeProps = getRouteProps(Astro.url);
 assertRouteName(routeProps, 'Room');
 const title = `#${routeProps.roomSlug}`;
 const { accessToken, connectionId } = Astro.locals;
-console.log({ accessToken, connectionId });
 ---
 
 <Layout title={title}>

@@ -32,7 +32,7 @@ import { Vector3 } from 'three';
 import { useMyUserId } from '@hooks/userCurrentUserId';
 import { FieldCell } from './components/field-cell';
 import { Goal } from './components/goal';
-import { Environment } from '@react-three/drei';
+import { Box, Environment } from '@react-three/drei';
 
 const StrikersContext = createContext({
   gameEntity: {} as StrikersGameEntity,
@@ -190,11 +190,44 @@ const LineupSceneCamera: FC<{
 };
 
 const GameScene = () => {
+  const { gameEntity } = useContext(StrikersContext);
+  const tilePositionsByCardId = useEntitySelectorDeepEqual(
+    gameEntity,
+    (entity) => entity.gameState.tilePositionsByCardId
+  );
+  const homeSideCardIds = useEntitySelectorDeepEqual(
+    gameEntity,
+    (entity) => entity.gameState.homeSideCardIds
+  );
+  const awaySideCardIds = useEntitySelectorDeepEqual(
+    gameEntity,
+    (entity) => entity.gameState.awaySideCardIds
+  );
+
   return (
     <>
       <SunsetSky />
       <OpeningSequence />
-      <Field></Field>
+      <Field>
+        <Goal side="away" />
+        <Goal side="home" />
+        {homeSideCardIds.map((cardId) => (
+          <FieldCell key={cardId} tilePosition={tilePositionsByCardId[cardId]}>
+            <mesh>
+              <boxBufferGeometry />
+              <meshBasicMaterial color="blue" />
+            </mesh>
+          </FieldCell>
+        ))}
+        {awaySideCardIds.map((cardId) => (
+          <FieldCell key={cardId} tilePosition={tilePositionsByCardId[cardId]}>
+            <mesh>
+              <boxBufferGeometry />
+              <meshBasicMaterial color="red" />
+            </mesh>
+          </FieldCell>
+        ))}
+      </Field>
     </>
   );
 };

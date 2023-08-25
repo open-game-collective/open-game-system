@@ -4,6 +4,10 @@ import { EntityBaseSchema } from '../entity/base';
 import { SessionSchemaTypeLiteral } from '../literals';
 import { SomeRequired } from '@explorers-club/utils';
 import { StateMachine } from 'xstate';
+import {
+  ConnectCommandSchema,
+  DisconnectCommandSchema,
+} from '@schema/commands';
 
 export const SessionContextSchema = z.object({
   foo: z.string(),
@@ -21,12 +25,8 @@ export const SessionCommandSchema = z.discriminatedUnion('type', [
     type: z.literal('NEW_CONNECTION'),
     connectionId: z.string(),
   }),
-  z.object({
-    type: z.literal('RECONNECT'),
-  }),
-  z.object({
-    type: z.literal('DISCONNECT'),
-  }),
+  ConnectCommandSchema,
+  DisconnectCommandSchema,
 ]);
 
 export const SessionStateValueSchema = z.object({
