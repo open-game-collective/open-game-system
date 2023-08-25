@@ -192,12 +192,19 @@ export const createStrikersTurnMachine = ({
                                 Ready: {
                                   on: {
                                     CONFIRM: {
-                                      target: 'Complete',
+                                      target: 'Submitting',
                                     },
                                   },
                                 },
+                                Submitting: {
+                                  invoke: {
+                                    src: 'createMoveEffect',
+                                    onDone: 'Complete',
+                                    onError: 'Error',
+                                  },
+                                },
+                                Error: {},
                                 Complete: {
-                                  entry: 'createMoveEffect',
                                   type: 'final',
                                 },
                               },
@@ -256,7 +263,20 @@ export const createStrikersTurnMachine = ({
                           },
                         },
                         Complete: {
-                          entry: 'createPassEffect',
+                          initial: 'Submitting',
+                          states: {
+                            Submitting: {
+                              invoke: {
+                                src: 'createPassEffect',
+                                onDone: 'Complete',
+                                onError: 'Error',
+                              },
+                            },
+                            Error: {},
+                            Complete: {
+                              type: 'final',
+                            },
+                          },
                           type: 'final',
                         },
                       },
@@ -285,7 +305,20 @@ export const createStrikersTurnMachine = ({
                           },
                         },
                         Complete: {
-                          entry: 'createShotEffect',
+                          initial: 'Submitting',
+                          states: {
+                            Submitting: {
+                              invoke: {
+                                src: 'createShotEffect',
+                                onDone: 'Complete',
+                                onError: 'Error',
+                              },
+                            },
+                            Error: {},
+                            Complete: {
+                              type: 'final',
+                            },
+                          },
                           type: 'final',
                         },
                       },
@@ -332,7 +365,8 @@ export const createStrikersTurnMachine = ({
             contents: [message.contents[0]],
           });
         }),
-
+      },
+      services: {
         createMoveEffect: async ({ selectedCardId, selectedTarget }) => {
           assert(selectedCardId, 'expected selectedCardId');
           assert(selectedTarget, 'expected selectedTarget');
@@ -361,12 +395,43 @@ export const createStrikersTurnMachine = ({
             },
           });
           world.add(effectEntity);
-          entity.effects.push(effectEntity.id);
+          entity.effectsIds.push(effectEntity.id);
           gameEntity.gameState = nextGameState;
 
           return entity;
         },
 
+        createShotEffect: async () => {
+          const { gameState } = gameEntity;
+
+          const nextGameState = produce(gameState, (draft) => {
+            // draft.ballPosition = toPosition;
+            // todo how to handle changing ball position
+          });
+          const patches = compare(gameEntity.gameState, nextGameState);
+          const fromCardId = getCardIdWithPossession(gameState);
+          assert(fromCardId, 'expected fromCardid');
+
+          const fromPosition = gameState.tilePositionsByCardId[fromCardId];
+
+          const { createEntity } = await import('@api/ecs');
+          const effectEntity = createEntity<StrikersEffectEntity>({
+            schema: 'strikers_effect',
+            patches,
+            parentId: entity.id,
+            category: 'ACTION',
+            data: {
+              type: 'SHOOT',
+              fromCardId,
+              fromPosition,
+            },
+          });
+          world.add(effectEntity);
+          entity.effectsIds.push(effectEntity.id);
+          gameEntity.gameState = nextGameState;
+
+          return entity;
+        },
         createPassEffect: async ({ selectedTarget }) => {
           assert(selectedTarget, 'expected selectedTarget');
           const toPosition =
@@ -406,45 +471,12 @@ export const createStrikersTurnMachine = ({
             },
           });
           world.add(effectEntity);
-          entity.effects.push(effectEntity.id);
+          entity.effectsIds.push(effectEntity.id);
           gameEntity.gameState = nextGameState;
 
           return entity;
         },
 
-        createShotEffect: async () => {
-          const { gameState } = gameEntity;
-
-          const nextGameState = produce(gameState, (draft) => {
-            // draft.ballPosition = toPosition;
-            // todo how to handle changing ball position
-          });
-          const patches = compare(gameEntity.gameState, nextGameState);
-          const fromCardId = getCardIdWithPossession(gameState);
-          assert(fromCardId, 'expected fromCardid');
-
-          const fromPosition = gameState.tilePositionsByCardId[fromCardId];
-
-          const { createEntity } = await import('@api/ecs');
-          const effectEntity = createEntity<StrikersEffectEntity>({
-            schema: 'strikers_effect',
-            patches,
-            parentId: entity.id,
-            category: 'ACTION',
-            data: {
-              type: 'SHOOT',
-              fromCardId,
-              fromPosition,
-            },
-          });
-          world.add(effectEntity);
-          entity.effects.push(effectEntity.id);
-          gameEntity.gameState = nextGameState;
-
-          return entity;
-        },
-      },
-      services: {
         sendSelectActionMessage: async () => {
           const playerId =
             entity.side === 'home'
@@ -584,7 +616,7 @@ export const createStrikersTurnMachine = ({
             data,
           });
 
-          entity.effects.push(effectEntity.id);
+          entity.effectsIds.push(effectEntity.id);
 
           await new Promise((resolve) => {
             entity.subscribe((e) => {
@@ -608,21 +640,18 @@ export const createStrikersTurnMachine = ({
             : event.blockIndex == 2;
         },
         didSelectPassAction: (context, event, meta) => {
-          console.log({ meta });
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
           const action = getSelectedAction(event);
 
           return event.blockIndex === 0 && action === 'PASS';
         },
         didSelectMoveAction: (_, event, meta) => {
-          console.log({ meta });
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
           const action = getSelectedAction(event);
 
           return event.blockIndex === 0 && action === 'MOVE';
         },
         didSelectShootAction: (_, event, meta) => {
-          console.log({ meta });
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
           const action = getSelectedAction(event);
 
@@ -638,11 +667,11 @@ export const createStrikersTurnMachine = ({
 };
 
 const getStartedActionCount = (props: { entity: StrikersTurnEntity }) => {
-  const entities = props.entity.effects
-    .map(entitiesById.get)
+  const entities = props.entity.effectsIds
+    .map((id) => entitiesById.get(id))
     .filter((entity) => {
       assertEntitySchema(entity, 'strikers_effect');
-      return entity.category === 'ACTION' && entity.states.Status;
+      return entity.category === 'ACTION';
     });
   return entities.length;
 };

@@ -383,7 +383,7 @@ const StrikersTurnEntityPropsSchema = z.object({
   playerId: SnowflakeIdSchema,
   totalActionCount: z.number(),
   modifiers: z.array(ModifierSchema),
-  effects: z.array(SnowflakeIdSchema),
+  effectsIds: z.array(SnowflakeIdSchema),
 });
 
 const StrikersEffectEntityPropsSchema = z.object({

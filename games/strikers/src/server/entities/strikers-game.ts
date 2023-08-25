@@ -203,7 +203,7 @@ export const createStrikersGameMachine = ({
             totalActionCount: entity.config.gameplaySettings.actionsPerTurn,
             stagedGameState: deepClone(entity.gameState), // todo might need to deep cline?
             modifiers: [],
-            effects: [],
+            effectsIds: [],
           });
           world.add(turnEntity);
           entity.turnsIds.push(turnEntity.id);
