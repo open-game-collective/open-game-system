@@ -91,7 +91,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                     {
                       type: 'MultipleChoice',
                       showConfirm: true,
-                      text: 'Choose a formation',
+                      text: 'Choose starting formation',
                       options: ALL_FORMATIONS.map((formation) => ({
                         name: formation,
                         value: formation,
@@ -126,7 +126,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
 
                 context.formationsByPlayerId[strikersPlayer.id] = formation;
 
-                const isHomeTeam = gameEntity.config.homePlayerIds.includes(
+                const isHomeTeam = gameEntity.config.homeTeamCardIds.includes(
                   strikersPlayer.id
                 );
 
@@ -136,7 +136,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                     newTilePositions[id] = getTilePosition({
                       index,
                       formation,
-                      side: 'left',
+                      side: 'A',
                     });
                   });
                 } else {
@@ -144,7 +144,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                     newTilePositions[id] = getTilePosition({
                       index,
                       formation,
-                      side: 'right',
+                      side: 'B',
                     });
                   });
                 }
@@ -275,7 +275,7 @@ const initializeBoard = ({ cards }: { cards: StrikersCard[] }) => {
     tilePositionsByCardId[card.id] = getTilePosition({
       index,
       formation: defaultFormation,
-      side: 'left',
+      side: 'A',
     });
   });
   awayCards.forEach((card, index) => {
@@ -283,7 +283,7 @@ const initializeBoard = ({ cards }: { cards: StrikersCard[] }) => {
     tilePositionsByCardId[card.id] = getTilePosition({
       index,
       formation: defaultFormation,
-      side: 'right',
+      side: 'B',
     });
   });
 
@@ -307,165 +307,185 @@ const ALL_FORMATIONS: Formation[] = [
 ];
 
 /**
- * Given a players "index" in the roster, the further "north"
+ * For a given formation and side of the field, returns the
+ * tile position that that "slot" in the roster would be
+ * positioned on the field, given back in row/col coordinates.
+ *
+ * For field side A, players would be in rows [0-25], cols [0-17]
+ * For field side B, players would be in rows [0-25], cols [18-35]
+ *
+ * Given a player's "index" in the roster, the further "north"
  * on the field they are and the further closer they are to
- * the opponents goal. Typically you'll see indexes like...
+ * the opponent's goal. Typically you'll see indexes like...
  *
  * 0: GK
  * 1-5: DEF
  * 6-9: MID
- * 10-11; FWD
+ * 10-11: FWD
  *
  * depending on the formation.
  */
 const getTilePosition = (props: {
   index: number;
   formation: Formation;
-  side: 'left' | 'right';
+  side: StrikersFieldSide;
 }): { col: number; row: number } => {
   const { index, formation, side } = props;
 
-  // Define the positions for each formation (4-3-3 in this case)
+  // Define the positions for each formation
   const formations: Record<Formation, number[][]> = {
     '3-4-3': [
-      [2, 10],
-      [5, 8],
-      [5, 10],
-      [5, 12],
+      [0, 12], // Goalkeeper
+      [4, 10],
+      [4, 12],
+      [4, 14], // Defenders
       [10, 6],
-      [10, 8],
-      [10, 10],
-      [10, 12],
-      [15, 7],
-      [15, 9],
-      [15, 11],
-      [15, 13],
-    ],
-    '3-5-2': [
-      [2, 10],
-      [5, 8],
-      [5, 10],
-      [5, 12],
-      [10, 5],
-      [10, 7],
       [10, 9],
-      [10, 11],
-      [10, 13],
-      [15, 9],
-      [15, 11],
+      [10, 12],
+      [10, 15],
+      [10, 18], // Midfielders
+      [16, 7],
+      [16, 11],
+      [16, 15], // Forwards
     ],
-    '4-1-4-1': [
-      [2, 10],
-      [5, 6],
-      [5, 8],
-      [5, 10],
-      [5, 12],
-      [8, 10],
-      [11, 6],
-      [11, 8],
-      [11, 10],
-      [11, 12],
-      [15, 10],
-    ],
-    '4-2-3-1': [
-      [2, 10],
-      [5, 6],
-      [5, 8],
-      [5, 10],
-      [5, 12],
+
+    '3-5-2': [
+      [0, 12], // Goalkeeper
+      [4, 8],
+      [4, 12],
+      [4, 16], // Defenders
+      [8, 4],
       [8, 8],
       [8, 12],
-      [11, 7],
-      [11, 10],
-      [11, 13],
-      [15, 10],
+      [8, 16],
+      [8, 20], // Midfielders
+      [14, 9],
+      [14, 15], // Forwards
     ],
-    '4-3-2-1': [
-      [2, 10],
-      [5, 6],
-      [5, 8],
-      [5, 10],
-      [5, 12],
-      [8, 7],
-      [8, 10],
-      [8, 13],
-      [11, 9],
-      [11, 11],
-      [15, 10],
+
+    '4-1-4-1': [
+      [0, 12], // Goalkeeper
+      [4, 9],
+      [4, 11],
+      [4, 13],
+      [4, 15], // Defenders
+      [8, 12], // Defensive Mid
+      [12, 5],
+      [12, 8],
+      [12, 12],
+      [12, 16],
+      [12, 19], // Midfielders
+      [16, 12], // Forward
     ],
-    '4-3-3': [
-      [2, 10],
-      [5, 6],
-      [5, 8],
-      [5, 10],
-      [5, 12],
-      [8, 7],
-      [8, 10],
-      [8, 13],
-      [15, 8],
-      [15, 10],
-      [15, 12],
-    ],
+
+    // ... (the rest of the formations)
     '4-4-2': [
-      [2, 10],
-      [5, 6],
-      [5, 8],
-      [5, 10],
-      [5, 12],
-      [8, 5],
-      [8, 7],
-      [8, 13],
-      [8, 15],
-      [15, 9],
-      [15, 11],
-    ],
-    '4-5-1': [
-      [2, 10],
-      [5, 6],
-      [5, 8],
-      [5, 10],
-      [5, 12],
-      [8, 5],
-      [8, 7],
-      [8, 9],
-      [8, 11],
-      [8, 13],
-      [15, 10],
-    ],
-    '5-3-2': [
-      [2, 10],
-      [5, 5],
-      [5, 7],
-      [5, 9],
-      [5, 11],
-      [5, 13],
-      [8, 7],
-      [8, 10],
-      [8, 13],
-      [15, 9],
-      [15, 11],
-    ],
-    '5-4-1': [
-      [2, 10],
-      [5, 5],
-      [5, 7],
-      [5, 9],
-      [5, 11],
-      [5, 13],
+      [0, 12], // Goalkeeper
+      [4, 9],
+      [4, 11],
+      [4, 13],
+      [4, 15], // Defenders
       [8, 6],
       [8, 8],
-      [8, 10],
+      [8, 14],
+      [8, 16], // Midfielders
+      [12, 10],
+      [12, 14], // Forwards
+    ],
+
+    '4-3-3': [
+      [0, 12], // Goalkeeper
+      [4, 9],
+      [4, 11],
+      [4, 13],
+      [4, 15], // Defenders
+      [8, 7],
+      [8, 11],
+      [8, 15], // Midfielders
+      [12, 6],
+      [12, 12],
+      [12, 16], // Forwards
+    ],
+
+    '4-2-3-1': [
+      [0, 12], // Goalkeeper
+      [4, 9],
+      [4, 11],
+      [4, 13],
+      [4, 15], // Defenders
+      [8, 8],
+      [8, 14], // Defensive Mids
+      [12, 6],
+      [12, 10],
+      [12, 14], // Attacking Mids
+      [16, 12], // Forward
+    ],
+
+    '4-5-1': [
+      [0, 12], // Goalkeeper
+      [4, 9],
+      [4, 11],
+      [4, 13],
+      [4, 15], // Defenders
+      [8, 5],
+      [8, 8],
+      [8, 11],
+      [8, 14],
+      [8, 17], // Midfielders
+      [14, 12], // Forward
+    ],
+
+    '5-3-2': [
+      [0, 12], // Goalkeeper
+      [4, 7],
+      [4, 9],
+      [4, 11],
+      [4, 13],
+      [4, 15], // Defenders
+      [8, 7],
       [8, 12],
-      [15, 10],
+      [8, 17], // Midfielders
+      [14, 10],
+      [14, 14], // Forwards
+    ],
+
+    '5-4-1': [
+      [0, 12], // Goalkeeper
+      [4, 7],
+      [4, 9],
+      [4, 11],
+      [4, 13],
+      [4, 15], // Defenders
+      [8, 5],
+      [8, 8],
+      [8, 12],
+      [8, 16], // Midfielders
+      [14, 12], // Forward
+    ],
+
+    '4-3-2-1': [
+      [0, 12], // Goalkeeper
+      [4, 9],
+      [4, 11],
+      [4, 13],
+      [4, 15], // Defenders
+      [8, 7],
+      [8, 11],
+      [8, 15], // Midfielders
+      [12, 8],
+      [12, 14], // Attacking Mids
+      [16, 12], // Forward
     ],
   };
 
+  // Determine the column and row based on the formation and index
   let [col, row] = formations[formation][index];
 
-  // If the side is 'right', mirror the col-coordinate
-  if (side === 'right') {
-    col = 25 - col;
+  // Adjust column coordinates for field side B
+  if (side === 'B') {
+    col = 18 + (17 - col); // Mirroring across the center line
   }
+  console.log({ side, col, row });
 
   return { col, row };
 };

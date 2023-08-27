@@ -142,7 +142,7 @@ const MyCardsInFormation: FC<{ playerEntity: StrikersPlayerEntity }> = ({
 
   const playerId = useEntitySelector(playerEntity, (entity) => entity.id);
   const playerCardIds = useEntitySelectorDeepEqual(gameEntity, (gameEntity) =>
-    gameEntity.config.homePlayerIds.includes(playerId)
+    gameEntity.config.homeTeamCardIds.includes(playerId)
       ? gameEntity.gameState.sideACardIds
       : gameEntity.gameState.sideBCardIds
   );

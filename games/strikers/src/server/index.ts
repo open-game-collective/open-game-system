@@ -58,8 +58,8 @@ export const createStrikersGame = (
 
   const config = {
     lobbyConfig,
-    homePlayerIds: [p1PlayerEntity.id],
-    awayPlayerIds: [p2PlayerEntity.id],
+    homeTeamCardIds: [p1PlayerEntity.id],
+    awayTeamCardIds: [p2PlayerEntity.id],
     playerIds: [p1PlayerEntity.id, p2PlayerEntity.id], // for convenience, expect to never change
     gameplaySettings,
     cardSettings,

@@ -487,8 +487,8 @@ export const createStrikersTurnMachine = ({
           const { side } = entity;
           const playerId =
             entity.side === 'A'
-              ? gameEntity.config.homePlayerIds[0]
-              : gameEntity.config.awayPlayerIds[0];
+              ? gameEntity.config.homeTeamCardIds[0]
+              : gameEntity.config.awayTeamCardIds[0];
           const playerEntity = entitiesById.get(playerId);
           assertEntitySchema(playerEntity, 'strikers_player');
 
