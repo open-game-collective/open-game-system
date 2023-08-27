@@ -268,7 +268,7 @@ const initializeBoard = ({ cards }: { cards: StrikersCard[] }) => {
   const teamsByCardId: Record<CardId, StrikersTeamSide> = {};
   const tilePositionsByCardId: Record<CardId, HexCoordinates> = {};
 
-  const defaultFormation = '4-3-3';
+  const defaultFormation = '3-4-3';
 
   homeCards.forEach((card, index) => {
     teamsByCardId[card.id] = 'home';
@@ -336,31 +336,30 @@ const getTilePosition = (props: {
   const formations: Record<Formation, number[][]> = {
     '3-4-3': [
       [0, 12], // Goalkeeper
-      [4, 10],
+      [4, 10], // Defenders
       [4, 12],
-      [4, 14], // Defenders
-      [10, 6],
-      [10, 9],
+      [4, 14],
+      [10, 9], // Midfielders
       [10, 12],
       [10, 15],
-      [10, 18], // Midfielders
-      [16, 7],
-      [16, 11],
-      [16, 15], // Forwards
+      [10, 18],
+      [16, 7], // Forwards
+      [16, 12],
+      [16, 15],
     ],
 
     '3-5-2': [
       [0, 12], // Goalkeeper
-      [4, 8],
+      [4, 8], // Defenders
       [4, 12],
-      [4, 16], // Defenders
-      [8, 4],
+      [4, 16],
+      [8, 4], // Midfielders
       [8, 8],
       [8, 12],
       [8, 16],
-      [8, 20], // Midfielders
-      [14, 9],
-      [14, 15], // Forwards
+      [8, 20],
+      [14, 9], // Forwards
+      [14, 15],
     ],
 
     '4-1-4-1': [
@@ -485,7 +484,6 @@ const getTilePosition = (props: {
   if (side === 'B') {
     col = 18 + (17 - col); // Mirroring across the center line
   }
-  console.log({ side, col, row });
 
   return { col, row };
 };
