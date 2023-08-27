@@ -9,8 +9,10 @@ import {
   StrikersGameEntity,
   StrikersGameEvent,
   StrikersGameEventInput,
+  StrikersFieldSide,
   UpdateEventProps,
   WithSenderId,
+  StrikersTeamSide,
 } from '@explorers-club/schema';
 import { assertEntitySchema } from '@explorers-club/utils';
 import {
@@ -18,7 +20,6 @@ import {
   FormationLiteral,
   LineupCommand,
   LineupContext,
-  StrikersSide,
 } from '@schema/games/strikers';
 import { assign } from '@xstate/immer';
 import { Subject } from 'rxjs';
@@ -66,8 +67,8 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
               gameEntity.gameState = {
                 ...gameEntity.gameState,
                 tilePositionsByCardId,
-                homeSideCardIds: homeTeamCardIds,
-                awaySideCardIds: awayTeamCardIds,
+                sideACardIds: homeTeamCardIds,
+                sideBCardIds: awayTeamCardIds,
               };
             },
           },
@@ -131,7 +132,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
 
                 const newTilePositions: Record<CardId, HexCoordinates> = {};
                 if (isHomeTeam) {
-                  gameEntity.gameState.homeSideCardIds.map((id, index) => {
+                  gameEntity.gameState.sideACardIds.map((id, index) => {
                     newTilePositions[id] = getTilePosition({
                       index,
                       formation,
@@ -139,7 +140,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                     });
                   });
                 } else {
-                  gameEntity.gameState.awaySideCardIds.map((id, index) => {
+                  gameEntity.gameState.sideBCardIds.map((id, index) => {
                     newTilePositions[id] = getTilePosition({
                       index,
                       formation,
@@ -264,7 +265,7 @@ const initializeBoard = ({ cards }: { cards: StrikersCard[] }) => {
   const homeCards = Array.from({ length: 11 }).map(selectRandomCard);
   const awayCards = Array.from({ length: 11 }).map(selectRandomCard);
 
-  const teamsByCardId: Record<CardId, StrikersSide> = {};
+  const teamsByCardId: Record<CardId, StrikersTeamSide> = {};
   const tilePositionsByCardId: Record<CardId, HexCoordinates> = {};
 
   const defaultFormation = '4-3-3';

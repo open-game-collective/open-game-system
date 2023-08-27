@@ -12,6 +12,7 @@ import { assert, assertEntitySchema } from '@explorers-club/utils';
 import { Formation } from '@schema/games/strikers';
 import type {
   SnowflakeId,
+  StrikersFieldSide,
   StrikersGameEventInput,
   StrikersTurnEntity,
 } from '@schema/types';
@@ -30,6 +31,8 @@ export const createStrikersGameMachine = ({
   entity: Entity;
   channel: ReplaySubject<any>;
 }) => {
+  // create grid from game state
+
   assert(entity.schema === 'strikers_game', 'expected strikers_game entity');
   // const initialBoard = arrangeBoard(entity.config.cards);
 
@@ -191,6 +194,7 @@ export const createStrikersGameMachine = ({
           const { createEntity } = await import('@api/ecs');
 
           const index = entity.turnsIds.length % 2;
+          const side: StrikersFieldSide = index === 0 ? 'A' : 'B';
           const playerId = entity.config.playerIds[index];
           assert(playerId, 'expected playerId but not foudn');
 
@@ -198,7 +202,7 @@ export const createStrikersGameMachine = ({
             schema: 'strikers_turn',
             startedAt: new Date(),
             gameEntityId: entity.id,
-            side: 'home',
+            side,
             playerId,
             totalActionCount: entity.config.gameplaySettings.actionsPerTurn,
             stagedGameState: deepClone(entity.gameState), // todo might need to deep cline?

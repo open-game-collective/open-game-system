@@ -6,6 +6,7 @@ import {
 } from '@api/index';
 import {
   Entity,
+  GameEntity,
   StrikersEffectEntity,
   WithSenderId,
 } from '@explorers-club/schema';
@@ -20,7 +21,6 @@ import {
   StrikersAction,
   StrikersActionSchema,
   StrikersEffectDataSchema,
-  StrikersSide,
   StrikersTileCoordinate,
   StrikersTileCoordinateSchema,
 } from '@schema/games/strikers';
@@ -29,15 +29,16 @@ import {
   StrikersGameEntity,
   StrikersGameEvent,
   StrikersGameEventInput,
+  StrikersFieldSide,
+  StrikersTurnCommand,
   StrikersGameState,
   StrikersPlayerEntity,
-  StrikersTurnCommand,
   StrikersTurnContext,
   StrikersTurnEntity,
 } from '@schema/types';
 import { assign } from '@xstate/immer';
 import { compare } from 'fast-json-patch';
-import { HexCoordinates } from 'honeycomb-grid';
+import { HexCoordinates, Orientation, distance, spiral } from 'honeycomb-grid';
 import { produce } from 'immer';
 import { World } from 'miniplex';
 import { Observable, ReplaySubject } from 'rxjs';
@@ -445,7 +446,12 @@ export const createStrikersTurnMachine = ({
             fromPosition,
             'expected fromPosition when creating pass effect'
           );
-          const toCardId = getCardIdAtPosessionOnTeam(
+          assert(
+            gameEntity.gameState.possession,
+            'expected team to have possession when creating pass effect'
+          );
+
+          const toCardId = getCardIdAtPositionOnTeam(
             gameEntity.gameState,
             toPosition,
             gameEntity.gameState.possession
@@ -478,8 +484,9 @@ export const createStrikersTurnMachine = ({
         },
 
         sendSelectActionMessage: async () => {
+          const { side } = entity;
           const playerId =
-            entity.side === 'home'
+            entity.side === 'A'
               ? gameEntity.config.homePlayerIds[0]
               : gameEntity.config.awayPlayerIds[0];
           const playerEntity = entitiesById.get(playerId);
@@ -489,7 +496,7 @@ export const createStrikersTurnMachine = ({
 
           const availableActions = getAvailableActions({
             gameEntity,
-            playerEntity,
+            side,
           });
           const actionCount = getStartedActionCount({ entity });
 
@@ -523,10 +530,9 @@ export const createStrikersTurnMachine = ({
 
           const message = messagesById.get(messageId);
           const cardIds =
-            entity.side === 'home'
-              ? gameEntity.gameState.homeSideCardIds
-              : gameEntity.gameState.awaySideCardIds;
-          // entity.states.Status
+            entity.side === 'A'
+              ? gameEntity.gameState.sideACardIds
+              : gameEntity.gameState.sideBCardIds;
 
           const selectedAction = getCurrentSelectedAction(entity);
           const { cardsById } = gameEntity.config;
@@ -560,7 +566,7 @@ export const createStrikersTurnMachine = ({
           const message = messagesById.get(messageId);
 
           let text: string;
-          let targets: StrikersTileCoordinate[];
+          let targets: HexCoordinates[];
 
           if (action === 'PASS') {
             text = 'Select pass destination';
@@ -589,7 +595,7 @@ export const createStrikersTurnMachine = ({
             text,
             options: targets.map((target) => ({
               name: target,
-              value: target,
+              value: target, // todo map to StrikersTileCoordinates
             })),
           } as const;
 
@@ -601,44 +607,17 @@ export const createStrikersTurnMachine = ({
             contents,
           });
         },
-        runEffect: async (
-          context: StrikersTurnContext,
-          event: WithSenderId<StrikersTurnCommand>,
-          invokeMeta
-        ) => {
-          const data = StrikersEffectDataSchema.parse(invokeMeta.data);
-          const { createEntity } = await import('@api/ecs');
-          const effectEntity = createEntity<StrikersEffectEntity>({
-            schema: 'strikers_effect',
-            patches: [],
-            parentId: undefined,
-            category: 'ACTION',
-            data,
-          });
-
-          entity.effectsIds.push(effectEntity.id);
-
-          await new Promise((resolve) => {
-            entity.subscribe((e) => {
-              if (effectEntity.states.Status === 'Resolved') {
-                resolve(null);
-              }
-            });
-          });
-
-          return entity;
-        },
       },
       guards: {
-        didSelectTarget: (context, event, meta) => {
-          assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
+        // didSelectTarget: (context, event, meta) => {
+        //   assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
 
-          const currentAction = getCurrentSelectedAction(entity);
+        //   const currentAction = getCurrentSelectedAction(entity);
 
-          return currentAction === 'PASS'
-            ? event.blockIndex === 1
-            : event.blockIndex == 2;
-        },
+        //   return currentAction === 'PASS'
+        //     ? event.blockIndex === 1
+        //     : event.blockIndex == 2;
+        // },
         didSelectPassAction: (context, event, meta) => {
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
           const action = getSelectedAction(event);
@@ -692,12 +671,60 @@ function rollTwentySidedDie(): number {
  * @returns the list of actions that the player can take
  * one of {MOVE, PASS, SHOOT}
  */
-const getAvailableActions = (props: {
+const getAvailableActions = ({
+  gameEntity,
+  side,
+}: {
   gameEntity: StrikersGameEntity;
-  playerEntity: StrikersPlayerEntity;
+  side: StrikersFieldSide;
 }) => {
-  // todo: imlementation
-  return ['MOVE', 'PASS', 'SHOOT'] as StrikersAction[];
+  // moving and passing are always possible
+  const actions: StrikersAction[] = ['MOVE', 'PASS'];
+
+  // shooting is only possible if the player with the ball
+  // has a non-zero chance to store.
+  if (canShoot(gameEntity, side)) {
+    actions.push('SHOOT');
+  }
+
+  return actions;
+};
+
+const canShoot = (
+  gameEntity: StrikersGameEntity,
+  fieldSide: StrikersFieldSide
+) => {
+  const { gameState } = gameEntity;
+  const { possession } = gameState;
+
+  // if the specified side doesn't currently have possession
+  if (fieldSide !== possession) {
+    return false;
+  }
+
+  const shooter = getCardIdWithPossession(gameState);
+  if (!shooter) {
+    return;
+  }
+
+  const rollNeeded = getRollNeededToScore(gameState);
+  return !!rollNeeded;
+};
+
+/**
+ * Given a game state, returns the roll needed in order
+ * for the player with the he ball to be able to score
+ * on a shot
+ *
+ * Returns undefined if the player cannot score.
+ */
+const getRollNeededToScore: (
+  gameState: StrikersGameState
+) => number | undefined = (gameState) => {
+  const shooter = getCardIdWithPossession(gameState);
+
+  // todo calculate based on distance to goal
+  return undefined;
 };
 
 // /**
@@ -713,19 +740,6 @@ const getAvailableActions = (props: {
 //   return "NE"
 // };
 
-/**
- * Given the current game instance and the current players
- * turn, return a list of tile positions that the player
- * is allowed to pass to
- */
-// const getPassTargets = (props: {
-//   gameEntity: StrikersGameEntity;
-//   playerEntity: StrikersPlayerEntity;
-// }) => {
-//   // todo: imlementation
-//   return ['MOVE', 'PASS', 'SHOOT'] as StrikersAction[];
-// };
-
 const actionNames: Record<StrikersAction, string> = {
   MOVE: 'Move',
   PASS: 'Pass',
@@ -737,17 +751,6 @@ const getSelectedAction = (event: BlockCommand) => {
   assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
 
   return StrikersActionSchema.parse(event.value);
-};
-
-const getCurrentSelectedActionState = (entity: StrikersTurnEntity) => {
-  if (typeof entity.states.Status === 'object') {
-    if (typeof entity.states.Status.Actions === 'object') {
-      if (typeof entity.states.Status.Actions.InputtingAction === 'object') {
-        return entity.states.Status.Actions.InputtingAction;
-      }
-    }
-  }
-  return undefined;
 };
 
 const getCurrentSelectedAction = (entity: StrikersTurnEntity) => {
@@ -772,53 +775,120 @@ const getCurrentSelectedAction = (entity: StrikersTurnEntity) => {
 const getMoveTargets: (props: {
   cardId: CardId;
   gameEntity: StrikersGameEntity;
-}) => StrikersTileCoordinate[] = (props) => {
+}) => HexCoordinates[] = (props) => {
   // todo - to get the actual values
   // traverseral around the grid at the spot where the cardId
   // is then conver talll the surrounding cells to StrikersTileCoordinates
-  return ['G2', 'G3', 'F4', 'F3', 'H5'];
+  return [{ row: 0, col: 0 }];
 };
-
-// const getCardIdsByTile = (
-//   state: StrikersGameState,
-//   coordinate: HexCoordinates
-// ) => {
-//   return Object.entries(state.tilePositionsByCardId)
-//     .filter(
-//       // does this equality work?
-//       ([cardId, position]) => position === coordinate
-//     )
-//     .map(([cardId]) => cardId);
-// };
 
 const getCardIdWithPossession = (state: StrikersGameState) => {
-  return getCardIdAtPosessionOnTeam(
-    state,
-    state.ballPosition,
-    state.possession
-  );
+  if (!state.possession) {
+    return undefined;
+  }
+
+  return getCardIdAtPositionOnTeam(state, state.ballPosition, state.possession);
 };
 
-const getCardIdAtPosessionOnTeam = (
+const getCardIdAtPositionOnTeam = (
   state: StrikersGameState,
   position: HexCoordinates,
-  side: StrikersSide
+  side: StrikersFieldSide
 ) => {
-  const cardIds =
-    side === 'home' ? state.homeSideCardIds : state.awaySideCardIds;
+  const cardIds = side === 'A' ? state.sideACardIds : state.sideBCardIds;
   return cardIds.find((cardId) => {
     state.tilePositionsByCardId[cardId] === position;
   });
 };
 
-const getPassTargets: (props: {
-  gameEntity: StrikersGameEntity;
-}) => StrikersTileCoordinate[] = (props) => {
-  // todo - to get the actual values
-  // traverseral around the grid at the spot where the cardId
-  // is then conver talll the surrounding cells to StrikersTileCoordinates
-  return ['A2', 'B2', 'B4', 'C3', 'C5'];
+const getPassTargets = ({ gameEntity }: { gameEntity: StrikersGameEntity }) => {
+  const { gameState } = gameEntity;
+  const { possession } = gameState;
+  const { sideACardIds: homeSideCardIds, sideBCardIds: awaySideCardIds } =
+    gameState;
+  const possessionCardId = getCardIdWithPossession(gameEntity.gameState);
+  const cardIds =
+    possession === 'A'
+      ? gameEntity.gameState.sideACardIds
+      : gameEntity.gameState.sideBCardIds;
+
+  if (!possessionCardId || !cardIds.includes(possessionCardId)) {
+    return [];
+  }
+
+  const cardWithPossessionPosition =
+    gameEntity.gameState.tilePositionsByCardId[possessionCardId];
+  assert(
+    cardWithPossessionPosition,
+    'expected card with posession to have a position'
+  );
+
+  const validPassTargets: HexCoordinates[] = [];
+
+  for (const cardId of cardIds) {
+    // Skip the card with possession
+    if (cardId === possessionCardId) {
+      continue;
+    }
+
+    const targetPlayerPosition =
+      gameEntity.gameState.tilePositionsByCardId[cardId];
+
+    // Calculate the hex distance between positions
+    const hexDist = distance(
+      { orientation: Orientation.POINTY, offset: -1 },
+      cardWithPossessionPosition,
+      targetPlayerPosition
+    );
+
+    // Check if the hex distance is within the valid pass range
+    if (hexDist >= MIN_PASS_RANGE && hexDist <= MAX_PASS_RANGE) {
+      validPassTargets.push(targetPlayerPosition);
+    }
+  }
+
+  return validPassTargets;
 };
+
+// const getMoveTargets = ({
+//   gameEntity,
+//   cardId,
+// }: {
+//   gameEntity: StrikersGameEntity;
+//   cardId: string;
+// }) => {
+//   const { gameState } = gameEntity;
+
+//   const cardPosition = gameState.tilePositionsByCardId[cardId];
+//   assert(cardPosition, 'expected card to have a position');
+
+//   const validMoveTargets = [];
+
+//   // Create a traverser for the surrounding hexes
+//   const moveTraverser = spiral({ start: cardPosition, radius: 1 });
+
+//   // for (const adjacentPosition of grid.traverse(moveTraverser)) {
+//   //   // Check if the position is not occupied by a player from the same team
+//   //   const occupyingCardId = gameState.tilePositionsByCardId[adjacentPosition];
+//   //   if (!occupyingCardId || isOpponent(gameEntity, cardId, occupyingCardId)) {
+//   //     validMoveTargets.push({
+//   //       position: adjacentPosition,
+//   //     });
+//   //   }
+//   // }
+
+//   return validMoveTargets;
+// };
+
+// Constants for pass range
+const MIN_PASS_RANGE = 1; // Minimum distance for a valid pass
+const MAX_PASS_RANGE = 4; // Maximum distance for a valid pass
+
+// // Replace 'yourHexSettings' with the actual hex settings you use in your game
+// const yourHexSettings = {
+//   offset: 'odd', // Replace with your hex offset
+//   orientation: 'pointy', // Replace with your hex orientation
+// };
 
 const SendTargetSelectMessageMetaSchema = z.object({
   action: z.enum(['MOVE', 'PASS']),

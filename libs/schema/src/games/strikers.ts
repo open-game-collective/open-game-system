@@ -100,10 +100,14 @@ export const LineupStateValueSchema = z.enum([
 
 const CardIdSchema = z.string();
 
-// const PlayerIdSchema = z.string();
-
-export const StrikersSideSchema = z.enum(['home', 'away']);
-export type StrikersSide = z.infer<typeof StrikersSideSchema>;
+/**
+ * Indiciates which side of the field the team starts on
+ * i.e. a team starts on side A and shoots towards the goal on side B.
+ *
+ * From a players perspective, A is on the left, B is on the right
+ */
+export const StrikersFieldSideSchema = z.enum(['A', 'B']);
+export const StrikersTeamSideSchema = z.enum(['home', 'away']);
 
 export const TilePositionSchema = z.custom<HexCoordinates>();
 
@@ -111,10 +115,10 @@ const StaminaSchema = z.number();
 
 export const StrikersGameStateSchema = z.object({
   ballPosition: TilePositionSchema,
-  possession: StrikersSideSchema,
+  possession: StrikersFieldSideSchema.optional(),
   tilePositionsByCardId: z.record(CardIdSchema, TilePositionSchema),
-  homeSideCardIds: z.array(CardIdSchema),
-  awaySideCardIds: z.array(CardIdSchema),
+  sideACardIds: z.array(CardIdSchema),
+  sideBCardIds: z.array(CardIdSchema),
   staminaByCardId: z.record(CardIdSchema, StaminaSchema),
 });
 
@@ -379,7 +383,7 @@ const StrikersTurnEntityPropsSchema = z.object({
   stagedGameState: StrikersGameStateSchema,
   startedAt: z.date(),
   gameEntityId: SnowflakeIdSchema,
-  side: StrikersSideSchema,
+  side: StrikersFieldSideSchema,
   playerId: SnowflakeIdSchema,
   totalActionCount: z.number(),
   modifiers: z.array(ModifierSchema),

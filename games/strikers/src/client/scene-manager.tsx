@@ -143,8 +143,8 @@ const MyCardsInFormation: FC<{ playerEntity: StrikersPlayerEntity }> = ({
   const playerId = useEntitySelector(playerEntity, (entity) => entity.id);
   const playerCardIds = useEntitySelectorDeepEqual(gameEntity, (gameEntity) =>
     gameEntity.config.homePlayerIds.includes(playerId)
-      ? gameEntity.gameState.homeSideCardIds
-      : gameEntity.gameState.awaySideCardIds
+      ? gameEntity.gameState.sideACardIds
+      : gameEntity.gameState.sideBCardIds
   );
 
   const tilePositions = useEntitySelectorDeepEqual(
@@ -197,11 +197,11 @@ const GameScene = () => {
   );
   const homeSideCardIds = useEntitySelectorDeepEqual(
     gameEntity,
-    (entity) => entity.gameState.homeSideCardIds
+    (entity) => entity.gameState.sideACardIds
   );
   const awaySideCardIds = useEntitySelectorDeepEqual(
     gameEntity,
-    (entity) => entity.gameState.awaySideCardIds
+    (entity) => entity.gameState.sideBCardIds
   );
 
   return (
