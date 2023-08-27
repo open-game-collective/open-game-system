@@ -38,7 +38,13 @@ import {
 } from '@schema/types';
 import { assign } from '@xstate/immer';
 import { compare } from 'fast-json-patch';
-import { HexCoordinates, Orientation, distance, spiral } from 'honeycomb-grid';
+import {
+  Hex,
+  HexCoordinates,
+  Orientation,
+  distance,
+  spiral,
+} from 'honeycomb-grid';
 import { produce } from 'immer';
 import { World } from 'miniplex';
 import { Observable, ReplaySubject } from 'rxjs';
@@ -46,6 +52,7 @@ import { createMachine } from 'xstate';
 import { z } from 'zod';
 import * as effects from '../effects';
 import { convertStrikersTileCoordinateToRowCol } from '@strikers/lib/utils';
+import { axialToStrikersTile } from '@strikers/utils';
 
 export const createStrikersTurnMachine = ({
   world,
@@ -593,10 +600,14 @@ export const createStrikersTurnMachine = ({
             type: 'MultipleChoice',
             showConfirm: true,
             text,
-            options: targets.map((target) => ({
-              name: target,
-              value: target, // todo map to StrikersTileCoordinates
-            })),
+            options: targets.map((target) => {
+              const { q, r } = new Hex(target);
+              const tile = axialToStrikersTile({ q, r });
+              return {
+                name: tile,
+                value: tile,
+              };
+            }),
           } as const;
 
           const contents = [...message.contents, block];
