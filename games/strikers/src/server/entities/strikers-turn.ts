@@ -6,7 +6,6 @@ import {
 } from '@api/index';
 import {
   Entity,
-  GameEntity,
   StrikersEffectEntity,
   WithSenderId,
 } from '@explorers-club/schema';
@@ -20,29 +19,30 @@ import { CardId } from '@schema/game-configuration/strikers';
 import {
   StrikersAction,
   StrikersActionSchema,
-  StrikersEffectDataSchema,
-  StrikersTileCoordinate,
   StrikersTileCoordinateSchema,
 } from '@schema/games/strikers';
 import {
   BlockCommand,
+  StrikersFieldSide,
   StrikersGameEntity,
   StrikersGameEvent,
   StrikersGameEventInput,
-  StrikersFieldSide,
-  StrikersTurnCommand,
   StrikersGameState,
-  StrikersPlayerEntity,
+  StrikersTurnCommand,
   StrikersTurnContext,
   StrikersTurnEntity,
 } from '@schema/types';
+import { convertStrikersTileCoordinateToRowCol } from '@strikers/lib/utils';
+import { axialToStrikersTile, offsetToStrikersTile } from '@strikers/utils';
 import { assign } from '@xstate/immer';
 import { compare } from 'fast-json-patch';
 import {
+  Grid,
   Hex,
   HexCoordinates,
   Orientation,
   distance,
+  rectangle,
   spiral,
 } from 'honeycomb-grid';
 import { produce } from 'immer';
@@ -51,8 +51,8 @@ import { Observable, ReplaySubject } from 'rxjs';
 import { createMachine } from 'xstate';
 import { z } from 'zod';
 import * as effects from '../effects';
-import { convertStrikersTileCoordinateToRowCol } from '@strikers/lib/utils';
-import { axialToStrikersTile } from '@strikers/utils';
+
+const grid = new Grid(Hex, rectangle({ width: 36, height: 26 }));
 
 export const createStrikersTurnMachine = ({
   world,
@@ -171,7 +171,7 @@ export const createStrikersTurnMachine = ({
                                 MULTIPLE_CHOICE_SELECT: {
                                   target: 'PlayerSelected',
                                   actions: 'assignSelectedCardId',
-                                  cond: (_, event) => event.blockIndex === 1,
+                                  cond: 'didSelectPlayerTarget',
                                 },
                               },
                             },
@@ -189,12 +189,21 @@ export const createStrikersTurnMachine = ({
                                 },
                                 InputtingTarget: {
                                   on: {
-                                    MULTIPLE_CHOICE_SELECT: {
-                                      target: 'Ready',
-                                      actions: 'assignSelectedTarget',
-                                      cond: (_, event) =>
-                                        event.blockIndex === 2,
-                                    },
+                                    MULTIPLE_CHOICE_SELECT: [
+                                      {
+                                        target: 'SendingTargetSelectMessage',
+                                        actions: [
+                                          'clearLastMessage',
+                                          'assignSelectedCardId',
+                                        ],
+                                        cond: 'didSelectPlayerTarget',
+                                      },
+                                      {
+                                        target: 'Ready',
+                                        actions: 'assignSelectedTarget',
+                                        cond: 'didSelectMoveTarget',
+                                      },
+                                    ],
                                   },
                                 },
                                 Ready: {
@@ -359,6 +368,19 @@ export const createStrikersTurnMachine = ({
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
           const target = StrikersTileCoordinateSchema.parse(event.value);
           context.selectedTarget = target;
+        }),
+
+        clearLastMessage: assign((context) => {
+          const messageId =
+            context.actionMessageIds[context.actionMessageIds.length - 1];
+          const message = messagesById.get(messageId);
+          delete context.selectedCardId;
+
+          gameChannelSubject.next({
+            id: messageId,
+            type: 'MESSAGE',
+            contents: message.contents.slice(0, -1),
+          });
         }),
 
         clearSelections: assign((context) => {
@@ -541,9 +563,6 @@ export const createStrikersTurnMachine = ({
               ? gameEntity.gameState.sideACardIds
               : gameEntity.gameState.sideBCardIds;
 
-          const selectedAction = getCurrentSelectedAction(entity);
-          const { cardsById } = gameEntity.config;
-
           const contents = [
             ...message.contents,
             {
@@ -601,8 +620,7 @@ export const createStrikersTurnMachine = ({
             showConfirm: true,
             text,
             options: targets.map((target) => {
-              const { q, r } = new Hex(target);
-              const tile = axialToStrikersTile({ q, r });
+              const tile = offsetToStrikersTile(new Hex(target));
               return {
                 name: tile,
                 value: tile,
@@ -620,32 +638,42 @@ export const createStrikersTurnMachine = ({
         },
       },
       guards: {
-        // didSelectTarget: (context, event, meta) => {
-        //   assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-
-        //   const currentAction = getCurrentSelectedAction(entity);
-
-        //   return currentAction === 'PASS'
-        //     ? event.blockIndex === 1
-        //     : event.blockIndex == 2;
-        // },
-        didSelectPassAction: (context, event, meta) => {
+        didSelectPlayerTarget: (_, event) => {
+          return event.blockIndex === 1;
+        },
+        didSelectMoveTarget: (_, event) => {
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-          const action = getSelectedAction(event);
+          return event.blockIndex === 2;
+        },
+        didSelectPassAction: (_, event, meta) => {
+          assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
 
-          return event.blockIndex === 0 && action === 'PASS';
+          if (event.blockIndex !== 0) {
+            return false;
+          }
+
+          const action = getSelectedAction(event);
+          return action === 'PASS';
         },
         didSelectMoveAction: (_, event, meta) => {
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-          const action = getSelectedAction(event);
 
-          return event.blockIndex === 0 && action === 'MOVE';
+          if (event.blockIndex !== 0) {
+            return false;
+          }
+
+          const action = getSelectedAction(event);
+          return action === 'MOVE';
         },
         didSelectShootAction: (_, event, meta) => {
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-          const action = getSelectedAction(event);
 
-          return event.blockIndex === 0 && action === 'SHOOT';
+          if (event.blockIndex !== 0) {
+            return false;
+          }
+
+          const action = getSelectedAction(event);
+          return action === 'SHOOT';
         },
         hasActionsRemaining: () => {
           const actionCount = getStartedActionCount({ entity });
@@ -689,8 +717,13 @@ const getAvailableActions = ({
   gameEntity: StrikersGameEntity;
   side: StrikersFieldSide;
 }) => {
-  // moving and passing are always possible
-  const actions: StrikersAction[] = ['MOVE', 'PASS'];
+  // moving is always possible
+  const actions: StrikersAction[] = ['MOVE'];
+
+  // The team with the ball can always pass
+  if (gameEntity.gameState.possession === side) {
+    actions.push('PASS');
+  }
 
   // shooting is only possible if the player with the ball
   // has a non-zero chance to store.
@@ -758,7 +791,6 @@ const actionNames: Record<StrikersAction, string> = {
 };
 
 const getSelectedAction = (event: BlockCommand) => {
-  const command = BlockCommandSchema.parse(event);
   assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
 
   return StrikersActionSchema.parse(event.value);
@@ -787,10 +819,14 @@ const getMoveTargets: (props: {
   cardId: CardId;
   gameEntity: StrikersGameEntity;
 }) => HexCoordinates[] = (props) => {
-  // todo - to get the actual values
-  // traverseral around the grid at the spot where the cardId
-  // is then conver talll the surrounding cells to StrikersTileCoordinates
-  return [{ row: 0, col: 0 }];
+  const start = props.gameEntity.gameState.tilePositionsByCardId[props.cardId];
+  assert(start, 'expected to find position for cardId +' + props.cardId);
+
+  const targets = grid.traverse(spiral({ radius: 1, start }));
+  const out = targets.toArray().map((f) => {
+    return [f.row, f.col, offsetToStrikersTile(f)];
+  });
+  return targets.toArray();
 };
 
 const getCardIdWithPossession = (state: StrikersGameState) => {
@@ -814,14 +850,12 @@ const getCardIdAtPositionOnTeam = (
 
 const getPassTargets = ({ gameEntity }: { gameEntity: StrikersGameEntity }) => {
   const { gameState } = gameEntity;
+  console.log({ gameState });
   const { possession } = gameState;
-  const { sideACardIds: homeSideCardIds, sideBCardIds: awaySideCardIds } =
-    gameState;
+  const { sideACardIds, sideBCardIds } = gameState;
   const possessionCardId = getCardIdWithPossession(gameEntity.gameState);
-  const cardIds =
-    possession === 'A'
-      ? gameEntity.gameState.sideACardIds
-      : gameEntity.gameState.sideBCardIds;
+  const cardIds = possession === 'A' ? sideACardIds : sideBCardIds;
+  console.log({ cardIds, possessionCardId });
 
   if (!possessionCardId || !cardIds.includes(possessionCardId)) {
     return [];

@@ -90,6 +90,7 @@ export const createStrikersGameMachine = ({
                   initial: 'NormalTime',
                   states: {
                     NormalTime: {
+                      entry: ['placeStartingPossession'],
                       invoke: {
                         src: 'runTurn',
                         onDone: [
@@ -175,6 +176,19 @@ export const createStrikersGameMachine = ({
       predictableActionArguments: true,
     },
     {
+      actions: {
+        placeStartingPossession: (context, event, meta) => {
+          const { gameState } = entity;
+
+          const MIDFIELD_B = { col: 18, row: 13 };
+          // default to away team, can add logic later
+          entity.gameState = {
+            ...gameState,
+            ballPosition: MIDFIELD_B,
+            possession: 'B',
+          };
+        },
+      },
       guards: {
         hasTimeRemainingInHalf: (context, event, meta) => {
           // todo
@@ -194,7 +208,8 @@ export const createStrikersGameMachine = ({
           const { createEntity } = await import('@api/ecs');
 
           const index = entity.turnsIds.length % 2;
-          const side: StrikersFieldSide = index === 0 ? 'A' : 'B';
+          let side: StrikersFieldSide = index === 0 ? 'B' : 'A';
+
           const playerId = entity.config.playerIds[index];
           assert(playerId, 'expected playerId but not foudn');
 
