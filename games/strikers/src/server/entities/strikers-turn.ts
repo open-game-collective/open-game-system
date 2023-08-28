@@ -14,7 +14,6 @@ import {
   assertEntitySchema,
   assertEventType,
 } from '@explorers-club/utils';
-import { BlockCommandSchema } from '@schema/common';
 import { CardId } from '@schema/game-configuration/strikers';
 import {
   StrikersAction,
