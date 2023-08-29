@@ -184,7 +184,7 @@ const CombinedMessageChannel = () => {
     (readonly [SnowflakeId, SnowflakeId])[]
   >(messageChannelStores, (entities) => {
     return entities.flatMap((entity) =>
-      entity.events.map((event) => [entity.id, event.id] as const)
+      entity.messageIds.map((messageId) => [entity.id, messageId] as const)
     );
   });
 
@@ -383,8 +383,7 @@ const ChatMessage: FC<{
 }> = ({ messageId, messageChannelId, index }) => {
   const message = useEntityIdSelector(messageChannelId, (entity) => {
     assertEntitySchema(entity, 'message_channel');
-    // todo make not o(n)
-    return entity.events.find((event) => event.id == messageId);
+    return entity.eventsById[messageId];
   });
 
   if (!message) {

@@ -588,7 +588,6 @@ export type StrikersSelectCardEvent = z.infer<
 export const StrikersGameMessageEventSchema = EventBaseSchema(
   MessageEventTypeLiteral,
   z.object({
-    recipientId: SnowflakeIdSchema.optional(),
     contents: z.array(StrikersMessageContentBlockSchema),
   })
 );

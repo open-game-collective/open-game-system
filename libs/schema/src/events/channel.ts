@@ -61,7 +61,10 @@ export const DebugEventSchema = EventBaseSchema(
   })
 );
 
-export const MessageEventSchema = RoomMessageEventSchema;
+export const MessageEventSchema = z.union([
+  RoomMessageEventSchema,
+  StrikersGameEventSchema,
+]);
 
 export const ChannelEventSchema = z.union([
   RoomEventSchema,

@@ -13,6 +13,7 @@ export const EventBaseSchema = <
       id: SnowflakeIdSchema,
       type: typeLiteral,
       senderId: SnowflakeIdSchema,
+      recipientId: SnowflakeIdSchema.optional(),
       channelId: SnowflakeIdSchema,
 
       // the id of the entity that response commands should be sent to

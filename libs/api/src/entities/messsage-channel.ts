@@ -55,29 +55,29 @@ export const createMessageChannelMachine = ({
             invoke: {
               src: async () => {
                 channel.subscribe((event) => {
-                  // // If a new message jsut add it ot the list
-                  if (event.type === 'MESSAGE') {
-                    const messageId = event.id;
+                  if (
+                    event.recipientId &&
+                    event.recipientId !== userEntity.id
+                  ) {
+                    // Don't add messages if a recipient is specified
+                    // and it doesn't match this user
+                    return;
+                  }
 
-                    if (
-                      event.recipientId &&
-                      event.recipientId !== userEntity.id
-                    ) {
-                      // Don't add messages if a recipient is specified
-                      // and it doesn't match this user
-                      return;
-                    }
+                  if (event.type === 'MESSAGE') {
+                    const eventId = event.id;
 
                     // first check if this event id already there
                     // todo make not o(n) somehow
-                    const existingEvent = messageChannelEntity.events.find(
-                      (event) => event.id === messageId
-                    );
+                    const existingMessageId =
+                      messageChannelEntity.messageIds.find(
+                        (messageId) => messageId === eventId
+                      );
 
-                    if (!existingEvent) {
-                      messageChannelEntity.events = [
-                        ...messageChannelEntity.events,
-                        event,
+                    if (!existingMessageId) {
+                      messageChannelEntity.messageIds = [
+                        ...messageChannelEntity.messageIds,
+                        eventId,
                       ];
 
                       // todo trigger the push notification send here
@@ -85,14 +85,25 @@ export const createMessageChannelMachine = ({
                     } else {
                       // if its an existing message, remove the old one from the list
                       // and put new one at the end
-                      const events = messageChannelEntity.events.filter(
-                        (event) => {
-                          return event.id !== existingEvent.id;
+                      const messageIds = messageChannelEntity.messageIds.filter(
+                        (messageId) => {
+                          return messageId !== existingMessageId;
                         }
                       );
-                      messageChannelEntity.events = [...events, event];
+                      messageChannelEntity.messageIds = [
+                        ...messageIds,
+                        existingMessageId,
+                      ];
                     }
                   }
+
+                  // store all events directly by id
+                  // todo: some duplication here w/ messages, might be better model
+                  // maybe messages jsut needs to sotre ids
+                  messageChannelEntity.eventsById = {
+                    ...messageChannelEntity.eventsById,
+                    [event.id]: event,
+                  };
                 });
 
                 // Keep the machine invoked/listening

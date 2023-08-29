@@ -32,7 +32,7 @@ import {
   StrikersTurnEntity,
 } from '@schema/types';
 import { convertStrikersTileCoordinateToRowCol } from '@strikers/lib/utils';
-import { axialToStrikersTile, offsetToStrikersTile } from '@strikers/utils';
+import { offsetToStrikersTile } from '@strikers/utils';
 import { assign } from '@xstate/immer';
 import { compare } from 'fast-json-patch';
 import {
@@ -365,9 +365,18 @@ export const createStrikersTurnMachine = ({
         sendCardSelectedEvent: ({ selectedCardId }) => {
           // todo... only send to player whos turn it currently is?
           assert(selectedCardId, 'expected selectedCardId when sending event');
+
+          const playerId =
+            entity.side === 'A'
+              ? gameEntity.config.homeTeamCardIds[0]
+              : gameEntity.config.awayTeamCardIds[0];
+          const playerEntity = entitiesById.get(playerId);
+          assertEntitySchema(playerEntity, 'strikers_player');
+
           const event = {
             type: 'SELECT_CARD' as const,
             cardId: selectedCardId,
+            recipientId: playerEntity.userId,
           };
 
           gameChannelSubject.next(event);
