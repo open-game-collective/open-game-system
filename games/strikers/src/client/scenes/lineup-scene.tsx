@@ -51,6 +51,12 @@ const MyCardsInFormation: FC<{ playerEntity: StrikersPlayerEntity }> = ({
   const { gameEntity } = useContext(StrikersContext);
 
   const playerId = useEntitySelector(playerEntity, (entity) => entity.id);
+  const userId = useEntitySelector(playerEntity, (entity) => entity.userId);
+  const isSideA = useEntitySelector(
+    gameEntity,
+    (entity) => entity.config.lobbyConfig.p1UserId === userId,
+    [userId]
+  );
   const playerCardIds = useEntitySelectorDeepEqual(gameEntity, (gameEntity) =>
     gameEntity.config.homeTeamCardIds.includes(playerId)
       ? gameEntity.gameState.sideACardIds
@@ -74,7 +80,7 @@ const MyCardsInFormation: FC<{ playerEntity: StrikersPlayerEntity }> = ({
                 attach="geometry"
                 args={[1, 1, 1, 6, 1]}
               />
-              <meshBasicMaterial color={0x0000ff} />
+              <meshBasicMaterial color={isSideA ? 'blue' : 'red'} />
             </mesh>
           </FieldCell>
         );

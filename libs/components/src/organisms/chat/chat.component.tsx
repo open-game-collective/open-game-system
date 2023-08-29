@@ -1,8 +1,8 @@
 import { Badge } from '@atoms/Badge';
 import { Caption } from '@atoms/Caption';
-import { useMemo } from 'react';
 import { Flex } from '@atoms/Flex';
 import { TextField } from '@atoms/TextField';
+import { WorldContext } from '@context/WorldProvider';
 import {
   MessageChannelEntity,
   MessageContentBlock,
@@ -11,10 +11,12 @@ import {
 } from '@explorers-club/schema';
 import { styled } from '@explorers-club/styles';
 import { assert, assertEntitySchema } from '@explorers-club/utils';
+import { useEntitiesStoreSelector } from '@hooks/useEntitiesStoreSelector';
 import { useEntityIdSelector } from '@hooks/useEntityIdSelector';
 import { useEntitySelector } from '@hooks/useEntitySelector';
 import { MessageContent } from '@molecules/Blocks';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
+import { Atom } from 'nanostores';
 import {
   FC,
   FormEventHandler,
@@ -26,17 +28,6 @@ import {
   useState,
 } from 'react';
 import { ChatContext } from './chat.context';
-import { WorldContext, WorldProvider } from '@context/WorldProvider';
-import { useCurrentMessageChannelEntityStore } from '@hooks/useCurrentMessageChannelEntityStore';
-import { Atom, ReadableAtom, WritableAtom, computed, map } from 'nanostores';
-import {
-  useEntityStoreSelector,
-  useEntityStoreSelectorDeepEqual,
-} from '@hooks/useEntityStoreSelector';
-import { useCurrentChannelEntityStore } from '@hooks/useCurrentChannelEntityStore';
-import { useStore } from '@nanostores/react';
-import { useEntitiesStoreSelector } from '@hooks/useEntitiesStoreSelector';
-import { entitiesById } from '@api/index';
 
 type PlainMessageEvent = {
   type: 'PLAIN_MESSAGE';
@@ -45,11 +36,7 @@ type PlainMessageEvent = {
   message: string;
 };
 
-type ChatEvent = PlainMessageEvent;
-
 export const Chat = () => {
-  // const { createEntityStore } = useContext(WorldContext);
-
   return (
     <Flex direction="column" css={{ width: '100%' }}>
       <ChatMessageList />
@@ -62,7 +49,6 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
   const { roomEntity } = useContext(ChatContext);
 
   const textRef = useRef<HTMLInputElement | null>(null);
-  // const send = useLittleVigilanteSend();
   const handleSubmit: FormEventHandler = useCallback(
     (e) => {
       const text = textRef.current?.value || '';
@@ -198,7 +184,7 @@ const CombinedMessageChannel = () => {
     (readonly [SnowflakeId, SnowflakeId])[]
   >(messageChannelStores, (entities) => {
     return entities.flatMap((entity) =>
-      entity.messages.map((message) => [entity.id, message.id] as const)
+      entity.events.map((event) => [entity.id, event.id] as const)
     );
   });
 
@@ -398,7 +384,7 @@ const ChatMessage: FC<{
   const message = useEntityIdSelector(messageChannelId, (entity) => {
     assertEntitySchema(entity, 'message_channel');
     // todo make not o(n)
-    return entity.messages.find((message) => message.id == messageId);
+    return entity.events.find((event) => event.id == messageId);
   });
 
   if (!message) {

@@ -225,13 +225,15 @@ export const createStrikersGameMachine = ({
             effectsIds: [],
           });
           world.add(turnEntity);
-          entity.turnsIds.push(turnEntity.id);
+          entity.turnsIds = [...entity.turnsIds, turnEntity.id];
 
           const playerEntity = entitiesById.get(playerId);
           assertEntitySchema(playerEntity, 'strikers_player');
           const userEntity = entitiesById.get(playerEntity.userId);
           assertEntitySchema(userEntity, 'user');
 
+          // maybe we dont need to do this?
+          // or maybe this is how we will send private state / message
           userEntity.send({
             type: 'ENTER_CHANNEL',
             channelId: turnEntity.id,
@@ -239,7 +241,7 @@ export const createStrikersGameMachine = ({
 
           const id = generateSnowflakeId();
 
-          gameChannel.next({
+          const messageEvent = {
             id,
             type: 'MESSAGE',
             contents: [
@@ -250,7 +252,9 @@ export const createStrikersGameMachine = ({
               },
             ],
             senderId: entity.id,
-          });
+          };
+
+          gameChannel.next(messageEvent);
 
           await waitForCondition(
             turnEntity,

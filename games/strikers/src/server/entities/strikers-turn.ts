@@ -169,7 +169,10 @@ export const createStrikersTurnMachine = ({
                               on: {
                                 MULTIPLE_CHOICE_SELECT: {
                                   target: 'PlayerSelected',
-                                  actions: 'assignSelectedCardId',
+                                  actions: [
+                                    'assignSelectedCardId',
+                                    'sendCardSelectedEvent',
+                                  ],
                                   cond: 'didSelectPlayerTarget',
                                 },
                               },
@@ -194,6 +197,7 @@ export const createStrikersTurnMachine = ({
                                         actions: [
                                           'clearLastMessage',
                                           'assignSelectedCardId',
+                                          'sendCardSelectedEvent',
                                         ],
                                         cond: 'didSelectPlayerTarget',
                                       },
@@ -358,6 +362,17 @@ export const createStrikersTurnMachine = ({
     },
     {
       actions: {
+        sendCardSelectedEvent: ({ selectedCardId }) => {
+          // todo... only send to player whos turn it currently is?
+          assert(selectedCardId, 'expected selectedCardId when sending event');
+          const event = {
+            type: 'SELECT_CARD' as const,
+            cardId: selectedCardId,
+          };
+
+          gameChannelSubject.next(event);
+        },
+
         assignSelectedCardId: assign((context, event) => {
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
           context.selectedCardId = event.value;
@@ -374,12 +389,13 @@ export const createStrikersTurnMachine = ({
             context.actionMessageIds[context.actionMessageIds.length - 1];
           const message = messagesById.get(messageId);
           delete context.selectedCardId;
-
-          gameChannelSubject.next({
+          const messageEvent = {
             id: messageId,
             type: 'MESSAGE',
             contents: message.contents.slice(0, -1),
-          });
+          };
+
+          gameChannelSubject.next(messageEvent);
         }),
 
         clearSelections: assign((context) => {
@@ -388,11 +404,13 @@ export const createStrikersTurnMachine = ({
           const message = messagesById.get(messageId);
           delete context.selectedCardId;
 
-          gameChannelSubject.next({
+          const messageEvent = {
             id: messageId,
             type: 'MESSAGE',
             contents: [message.contents[0]],
-          });
+          };
+
+          gameChannelSubject.next(messageEvent);
         }),
       },
       services: {
@@ -531,7 +549,7 @@ export const createStrikersTurnMachine = ({
           const remainingActionCount =
             entity.totalActionCount - actionCount + 1;
 
-          gameChannelSubject.next({
+          const messageEvent = {
             id,
             type: 'MESSAGE',
             recipientId: playerEntity.userId,
@@ -548,7 +566,8 @@ export const createStrikersTurnMachine = ({
                 }),
               },
             ],
-          });
+          };
+          gameChannelSubject.next(messageEvent);
 
           return id;
         },
@@ -577,11 +596,13 @@ export const createStrikersTurnMachine = ({
             },
           ];
 
-          gameChannelSubject.next({
+          const messageEvent = {
             id: messageId,
             type: 'MESSAGE',
             contents,
-          });
+          };
+
+          gameChannelSubject.next(messageEvent);
         },
         sendTargetSelectMessage: async (context, event, { meta }) => {
           const { action } = SendTargetSelectMessageMetaSchema.parse(meta);
@@ -629,11 +650,13 @@ export const createStrikersTurnMachine = ({
 
           const contents = [...message.contents, block];
 
-          gameChannelSubject.next({
+          const messageEvent = {
             id: messageId,
             type: 'MESSAGE',
             contents,
-          });
+          };
+
+          gameChannelSubject.next(messageEvent);
         },
       },
       guards: {

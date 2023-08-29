@@ -57,8 +57,6 @@ declare global {
   }
 }
 
-window.$WORLDS = {};
-
 export const WorldProvider: FC<{
   children: ReactNode;
   world: World<Entity>;
@@ -67,7 +65,6 @@ export const WorldProvider: FC<{
   const { client } = trpc.useContext();
   type Callback = Parameters<Entity['subscribe']>[0];
   const [entitiesById] = useState(createIndex(world));
-  window.$WORLDS[connectionId] = world;
   // const [subscribersById] = useState(new Map<SnowflakeId, Set<() => void>>());
   const [nextFnById] = useState(new Map<SnowflakeId, Callback>());
 
@@ -81,6 +78,7 @@ export const WorldProvider: FC<{
       const subscriptions = new Set<TCallback>();
 
       const send = async (command: TCommand) => {
+        console.log(id, entityProps, command);
         next({
           type: 'SEND_TRIGGER',
           command,

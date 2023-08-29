@@ -83,7 +83,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                 const entity = entitiesById.get(playerId);
                 assertEntitySchema(entity, 'strikers_player');
 
-                gameChannel.next({
+                const messageEvent = {
                   id,
                   type: 'MESSAGE',
                   recipientId: entity.userId,
@@ -98,7 +98,9 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                       })),
                     },
                   ],
-                });
+                };
+
+                gameChannel.next(messageEvent);
 
                 result[playerId] = id;
               });
@@ -187,7 +189,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
           const messageId = context.messageIdsByPlayerId[strikersPlayer.id];
           const formation = context.formationsByPlayerId[strikersPlayer.id];
 
-          gameChannel.next({
+          const messageEvent = {
             id: messageId,
             type: 'MESSAGE',
             contents: [
@@ -198,7 +200,8 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                 timestamp: '',
               },
             ],
-          });
+          };
+          gameChannel.next(messageEvent);
         }),
       },
       guards: {

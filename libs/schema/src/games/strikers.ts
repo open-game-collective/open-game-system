@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { SnowflakeIdSchema } from '../common';
 import { EntityBaseSchema } from '../entity/base';
 import {
+  LogEventTypeLiteral,
   MessageEventTypeLiteral,
   StrikersEffectSchemaTypeLiteral,
   StrikersGameIdLiteral,
@@ -504,7 +505,7 @@ export const StrikersEffectContextSchema = z.object({
 export const StrikersTileCoordinateSchema = z.custom<string>((val: any) => {
   // Use a regex to test the validity of the string format
   // This regex matches a single letter (A-Z) followed by a number (1-20)
-  return /^[A-Z](?:[1-9]|1[0-9]|20)$/.test(val as string);
+  return /^[A-Z](?:[1-9]|1[0-9]|2[0-9]|3[0-6])$/.test(val as string);
 }, 'Invalid StrikersTileCoordinate format. It should be A-Z for columns and 1-20 for rows. Example: A1, C10, Z20.');
 export type StrikersTileCoordinate = z.infer<
   typeof StrikersTileCoordinateSchema
@@ -567,7 +568,24 @@ export const StrikersMessageContentBlockSchema = z.union([
   PlainMessageBlockSchema,
 ]);
 
-export const StrikersGameEventSchema = EventBaseSchema(
+const StrikersSelectActionEventSchema = EventBaseSchema(
+  z.literal('SELECT_ACTION'),
+  z.object({
+    action: StrikersActionSchema,
+  })
+);
+
+const StrikersSelectCardEventSchema = EventBaseSchema(
+  z.literal('SELECT_CARD'),
+  z.object({
+    cardId: CardIdSchema,
+  })
+);
+export type StrikersSelectCardEvent = z.infer<
+  typeof StrikersSelectCardEventSchema
+>;
+
+export const StrikersGameMessageEventSchema = EventBaseSchema(
   MessageEventTypeLiteral,
   z.object({
     recipientId: SnowflakeIdSchema.optional(),
@@ -575,6 +593,8 @@ export const StrikersGameEventSchema = EventBaseSchema(
   })
 );
 
-// export const StrikersGameEventSchema = z.discriminatedUnion('type', [
-//   StrikersGameMessageEventSchema,
-// ]);
+export const StrikersGameEventSchema = z.discriminatedUnion('type', [
+  StrikersGameMessageEventSchema,
+  StrikersSelectActionEventSchema,
+  StrikersSelectCardEventSchema,
+]);

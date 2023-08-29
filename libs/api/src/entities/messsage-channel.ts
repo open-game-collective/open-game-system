@@ -1,13 +1,10 @@
 /*
  * Think of channels as the place where events and changes from an entity
- * get streamed "to". It has access to an individual's user id it is able
+ * get streamed to. It has access to an individual's user id so it is able
  * to determine which events it should filter out for the user and which to
  * include.
  *
  * Channels only run on the server where the client doesn't have access.
- *
- * This is an example of an entity type with a dynmaic service type.
- * Services are pretty close to systems in ECS.
  */
 import {
   Entity,
@@ -20,17 +17,6 @@ import { assert, assertEntitySchema } from '@explorers-club/utils';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
 import { channelObservablesById, entitiesById } from '../server/state';
-
-// return createMachine({
-//   id: 'MessageChannelMachine',
-//   type: 'parallel',
-//   schema: {
-//     context: {} as MessageChannelContext,
-//     events: {} as MessageChannelCommand,
-//   },
-//   states: {},
-//   predictableActionArguments: true,
-// });
 
 export const createMessageChannelMachine = ({
   world,
@@ -82,15 +68,15 @@ export const createMessageChannelMachine = ({
                       return;
                     }
 
-                    // first check if this message id already there
+                    // first check if this event id already there
                     // todo make not o(n) somehow
-                    const existingMessage = messageChannelEntity.messages.find(
-                      (message) => message.id === messageId
+                    const existingEvent = messageChannelEntity.events.find(
+                      (event) => event.id === messageId
                     );
 
-                    if (!existingMessage) {
-                      messageChannelEntity.messages = [
-                        ...messageChannelEntity.messages,
+                    if (!existingEvent) {
+                      messageChannelEntity.events = [
+                        ...messageChannelEntity.events,
                         event,
                       ];
 
@@ -99,12 +85,12 @@ export const createMessageChannelMachine = ({
                     } else {
                       // if its an existing message, remove the old one from the list
                       // and put new one at the end
-                      const messages = messageChannelEntity.messages.filter(
-                        (message) => {
-                          return message.id !== existingMessage.id;
+                      const events = messageChannelEntity.events.filter(
+                        (event) => {
+                          return event.id !== existingEvent.id;
                         }
                       );
-                      messageChannelEntity.messages = [...messages, event];
+                      messageChannelEntity.events = [...events, event];
                     }
                   }
                 });
@@ -129,43 +115,4 @@ export const createMessageChannelMachine = ({
       },
     },
   }) satisfies MessageChannelMachine;
-
-  // parentEntity.channel.pipe(map((f) => f)).subscribe((e) => {
-
-  // })
-  // parentEntity.channel.subscribe((e) => {
-
-  // })
-
-  // parentEntity.channel.subscribe((e) => {
-  //   console.log(e);
-  // })
-
-  // parentEntity.channel.subscribe((messageData) => {
-
-  // })
-
-  // parentEntity.subscribe((event) => {
-  //   event.type
-  // })
-
-  // switch (parentEntity.schema) {
-  //   case 'room':
-  //     // parentEntity.channel.subscribe((e) => {
-  //     //   console.log(e);
-  //     // });
-  //     // What does this channel do?
-  //     return createMachine({}) as MessageChannelMachine;
-  //   case 'little_vigilante_game':
-  //     return createMachine({}) as MessageChannelMachine;
-  //   case 'codebreakers_game':
-  //     return createMachine({}) as MessageChannelMachine;
-  //   case 'banana_traders_game':
-  //     return createMachine({}) as MessageChannelMachine;
-  //   default:
-  //     throw new Error(
-  //       'message channel machine not implemented for entity schema: ' +
-  //         parentEntity.schema
-  //     );
-  // }
 };
