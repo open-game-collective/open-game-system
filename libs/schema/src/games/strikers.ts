@@ -24,6 +24,8 @@ import {
   ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 } from '@schema/commands';
+import { Observable } from 'rxjs';
+import { StrikersGameEvent } from '..';
 
 // Define literals for each formation name
 const Formation442Literal = z.literal('4-4-2');
@@ -114,6 +116,49 @@ export const TilePositionSchema = z.custom<HexCoordinates>();
 
 const StaminaSchema = z.number();
 
+const TurnStartedBlockSchema = z.object({
+  type: z.literal('TurnStarted'),
+  turnId: SnowflakeIdSchema,
+  timestamp: z.date(),
+});
+
+export const StrikersMessageContentBlockSchema = z.union([
+  TurnStartedBlockSchema,
+  StartGameBlockSchema,
+  MultipleChoiceBlockSchema,
+  PlainMessageBlockSchema,
+]);
+
+const StrikersSelectActionEventSchema = EventBaseSchema(
+  z.literal('SELECT_ACTION'),
+  z.object({
+    action: StrikersActionSchema,
+  })
+);
+
+const StrikersSelectCardEventSchema = EventBaseSchema(
+  z.literal('SELECT_CARD'),
+  z.object({
+    cardId: CardIdSchema,
+  })
+);
+export type StrikersSelectCardEvent = z.infer<
+  typeof StrikersSelectCardEventSchema
+>;
+
+export const StrikersGameMessageEventSchema = EventBaseSchema(
+  MessageEventTypeLiteral,
+  z.object({
+    contents: z.array(StrikersMessageContentBlockSchema),
+  })
+);
+
+export const StrikersGameEventSchema = z.discriminatedUnion('type', [
+  StrikersGameMessageEventSchema,
+  StrikersSelectActionEventSchema,
+  StrikersSelectCardEventSchema,
+]);
+
 export const StrikersGameStateSchema = z.object({
   ballPosition: TilePositionSchema,
   possession: StrikersFieldSideSchema.optional(),
@@ -123,11 +168,15 @@ export const StrikersGameStateSchema = z.object({
   staminaByCardId: z.record(CardIdSchema, StaminaSchema),
 });
 
+const StrikersChannelSchema =
+  z.custom<Observable<z.infer<typeof StrikersGameEventSchema>>>();
+
 const StrikersGameEntityPropSchema = z.object({
   schema: StrikersGameSchemaTypeLiteral,
   gameId: StrikersGameIdLiteral,
   config: StrikersGameConfigDataSchema,
   gameState: StrikersGameStateSchema,
+  channel: StrikersChannelSchema,
   turnsIds: z.array(SnowflakeIdSchema),
   lineupService: z
     .object({
@@ -542,58 +591,3 @@ export const StrikersPlayerEntitySchema = EntityBaseSchema(
 export const StrikersPlayerContextSchema = z.object({
   foo: z.string(),
 });
-
-// const TurnStartMessageEventSchema = z.object({
-//   type: z.literal('TURN_START'),
-// });
-const TurnStartedBlockSchema = z.object({
-  type: z.literal('TurnStarted'),
-  turnId: SnowflakeIdSchema,
-  timestamp: z.date(),
-});
-
-// const ChooseFormationBlockSchema = z.object({
-//   type: z.literal('ChooseFormation'),
-// });
-
-// const SubmittedFormationBlockSchema = z.object({
-//   type: z.literal('SubmittedFormation'),
-//   formation: FormationLiteral,
-// });
-
-export const StrikersMessageContentBlockSchema = z.union([
-  TurnStartedBlockSchema,
-  StartGameBlockSchema,
-  MultipleChoiceBlockSchema,
-  PlainMessageBlockSchema,
-]);
-
-const StrikersSelectActionEventSchema = EventBaseSchema(
-  z.literal('SELECT_ACTION'),
-  z.object({
-    action: StrikersActionSchema,
-  })
-);
-
-const StrikersSelectCardEventSchema = EventBaseSchema(
-  z.literal('SELECT_CARD'),
-  z.object({
-    cardId: CardIdSchema,
-  })
-);
-export type StrikersSelectCardEvent = z.infer<
-  typeof StrikersSelectCardEventSchema
->;
-
-export const StrikersGameMessageEventSchema = EventBaseSchema(
-  MessageEventTypeLiteral,
-  z.object({
-    contents: z.array(StrikersMessageContentBlockSchema),
-  })
-);
-
-export const StrikersGameEventSchema = z.discriminatedUnion('type', [
-  StrikersGameMessageEventSchema,
-  StrikersSelectActionEventSchema,
-  StrikersSelectCardEventSchema,
-]);

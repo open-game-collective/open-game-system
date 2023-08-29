@@ -17,6 +17,7 @@ import { FieldCell } from '../components/field-cell';
 import { Goal } from '../components/goal';
 import { StrikersContext } from '../context/strikers.context';
 import { TurnContext } from '../context/turn.context';
+import { useObservableState } from 'observable-hooks';
 
 export const TurnScene = () => {
   const { gameEntity } = useContext(StrikersContext);
@@ -104,6 +105,14 @@ const FollowActionCamera = () => {
   const { turnEntity } = useContext(TurnContext);
   const { playerEntity, gameEntity } = useContext(StrikersContext);
   const { cameraControls } = useContext(CameraRigContext);
+
+  useLayoutEffect(() => {
+    gameEntity.channel.subscribe((event) => {
+      if (event.type === 'SELECT_CARD') {
+        console.log('FOCUS CARD!', event);
+      }
+    });
+  }, [gameEntity]);
 
   useLayoutEffect(() => {
     return turnCamera$.subscribe(({ focusedCardId }, changed) => {

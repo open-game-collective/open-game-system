@@ -10,11 +10,12 @@ import {
   SyncedEntityProps,
   UserEntity,
 } from '@explorers-club/schema';
-import { AnyFunction, assert } from '@explorers-club/utils';
+import { AnyFunction, assert, assertEntitySchema } from '@explorers-club/utils';
+import { kMaxLength } from 'buffer';
 import { Operation, applyPatch } from 'fast-json-patch';
 import { createIndex } from 'libs/api/src/world';
 import { World } from 'miniplex';
-import { Atom, WritableAtom, atom, computed } from 'nanostores';
+import { Atom, WritableAtom, atom, computed, map } from 'nanostores';
 import {
   FC,
   ReactNode,
@@ -24,6 +25,7 @@ import {
   useState,
 } from 'react';
 import { Selector } from 'reselect';
+import { Subject } from 'rxjs';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 
 type EntityRegistry = {
@@ -65,6 +67,7 @@ export const WorldProvider: FC<{
   const { client } = trpc.useContext();
   type Callback = Parameters<Entity['subscribe']>[0];
   const [entitiesById] = useState(createIndex(world));
+  const [channelsById] = useState(new Map<SnowflakeId, Subject<any>>());
   // const [subscribersById] = useState(new Map<SnowflakeId, Set<() => void>>());
   const [nextFnById] = useState(new Map<SnowflakeId, Callback>());
 
@@ -109,9 +112,13 @@ export const WorldProvider: FC<{
       };
       nextFnById.set(id, next);
 
+      const channel = new Subject();
+      channelsById.set(id, channel);
+
       const entity: TEntity = {
         send,
         subscribe,
+        channel,
         ...entityProps,
       } as unknown as TEntity;
       // todo add send and subscribe methods here
@@ -129,6 +136,42 @@ export const WorldProvider: FC<{
         if (event.type === 'ADDED') {
           for (const entityProps of event.entities) {
             const entity = createEntity(entityProps);
+
+            // Set up proxy for message channels to send
+            // their events through to the parent channelId
+            if (entity.schema === 'message_channel') {
+              const channel = channelsById.get(entity.channelId);
+              assert(
+                channel,
+                'expected channel to when setting up message_channel proxy'
+              );
+              entity.subscribe((entityEvent) => {
+                if (entityEvent.type === 'CHANGE') {
+                  for (const patch of entityEvent.patches) {
+                    // if adding a new event, send it out on the channel..
+                    if (
+                      patch.path.startsWith('/eventsById/') &&
+                      patch.op === 'add'
+                    ) {
+                      channel.next(patch.value);
+                    }
+                    // todo if changing an existng event, might need to do something diff?
+                  }
+                }
+              });
+              // if (
+              //   'channelId' in entityProps &&
+              //   typeof entityProps.channelId === 'string'
+              // ) {
+              //   const entityChannel = channelsById.get(entityProps.channelId);
+              //   subscribe(() => {});
+              //   console.log(
+              //     'set up channel for',
+              //     entityProps.channelId,
+              //     entityProps
+              //   );
+              // }
+            }
 
             entitiesById.set(entityProps.id, entity);
             world.add(entity);
