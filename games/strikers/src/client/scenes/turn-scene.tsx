@@ -18,6 +18,8 @@ import { Goal } from '../components/goal';
 import { StrikersContext } from '../context/strikers.context';
 import { TurnContext } from '../context/turn.context';
 import { useObservableState } from 'observable-hooks';
+import { GridContext } from '../context/grid.context';
+import { spiral } from 'honeycomb-grid';
 
 export const TurnScene = () => {
   const { gameEntity } = useContext(StrikersContext);
@@ -104,23 +106,36 @@ const TurnCamera = () => {
 const FollowActionCamera = () => {
   const { turnEntity } = useContext(TurnContext);
   const { playerEntity, gameEntity } = useContext(StrikersContext);
-  const { cameraControls } = useContext(CameraRigContext);
+  const { cameraControls, service } = useContext(CameraRigContext);
+  const grid = useContext(GridContext);
 
   useLayoutEffect(() => {
     gameEntity.channel.subscribe((event) => {
       if (event.type === 'SELECT_CARD') {
-        console.log('FOCUS CARD!', event);
+        const tilePosition =
+          gameEntity.gameState.tilePositionsByCardId[event.cardId];
+        service.send({
+          type: 'POSITION',
+          target: grid.traverse(
+            spiral({
+              start: tilePosition,
+              radius: 4,
+            })
+          ),
+        });
       }
     });
   }, [gameEntity]);
 
-  useLayoutEffect(() => {
-    return turnCamera$.subscribe(({ focusedCardId }, changed) => {
-      if (changed === 'focusedCardId') {
-        console.log('focus camera on ', focusedCardId);
-      }
-    });
-  }, [cameraControls, turnCamera$]);
+  // useLayoutEffect(() => {
+  //   return turnCamera$.subscribe(({ focusedCardId }, changed) => {
+  //     if (changed === 'focusedCardId' && focusedCardId) {
+  //       const tilePosition =
+  //         gameEntity.gameState.tilePositionsByCardId[focusedCardId];
+  //       console.log('focus camera on ', tilePosition);
+  //     }
+  //   });
+  // }, [cameraControls, turnCamera$]);
 
   // todo fix mem leak, handle unsubscribe
   useLayoutEffect(() => {
