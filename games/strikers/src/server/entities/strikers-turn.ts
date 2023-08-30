@@ -861,7 +861,7 @@ const getMoveTargets: (props: {
 };
 
 const getCardIdWithPossession = (state: StrikersGameState) => {
-  if (!state.possession) {
+  if (!state.possession || !state.ballPosition) {
     return undefined;
   }
 
@@ -881,12 +881,10 @@ const getCardIdAtPositionOnTeam = (
 
 const getPassTargets = ({ gameEntity }: { gameEntity: StrikersGameEntity }) => {
   const { gameState } = gameEntity;
-  console.log({ gameState });
   const { possession } = gameState;
   const { sideACardIds, sideBCardIds } = gameState;
   const possessionCardId = getCardIdWithPossession(gameEntity.gameState);
   const cardIds = possession === 'A' ? sideACardIds : sideBCardIds;
-  console.log({ cardIds, possessionCardId });
 
   if (!possessionCardId || !cardIds.includes(possessionCardId)) {
     return [];

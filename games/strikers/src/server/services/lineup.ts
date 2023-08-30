@@ -27,7 +27,7 @@ import { createMachine } from 'xstate';
 import { z } from 'zod';
 import { getSenderEntities } from '@api/server/utils';
 import { CardId } from '@schema/game-configuration/strikers';
-import { HexCoordinates } from 'honeycomb-grid';
+import { Hex, HexCoordinates } from 'honeycomb-grid';
 
 export const createLineupMachine = <TMessage extends ChannelEvent>({
   gameChannel,
@@ -54,8 +54,6 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
           invoke: {
             onDone: 'SendMessages',
             src: async () => {
-              // todo:
-              // put
               const {
                 tilePositionsByCardId,
                 homeTeamCardIds,
@@ -64,11 +62,18 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
                 cards: Object.values(gameEntity.config.cardsById),
               });
 
+              const centerCardId = findCenterCardId(
+                awayTeamCardIds,
+                tilePositionsByCardId
+              );
+
               gameEntity.gameState = {
                 ...gameEntity.gameState,
+                possession: 'B',
                 tilePositionsByCardId,
                 sideACardIds: homeTeamCardIds,
                 sideBCardIds: awayTeamCardIds,
+                ballPosition: tilePositionsByCardId[centerCardId],
               };
             },
           },
@@ -479,3 +484,25 @@ const getTilePosition = (props: {
 
   return { col, row };
 };
+
+function findCenterCardId(
+  cardIds: string[],
+  tilePositionsByCardId: Record<string, HexCoordinates>
+) {
+  const MID_X = 36 / 2;
+  const MID_Y = 26 / 2;
+
+  return cardIds.reduce((closestCardId, currentCardId) => {
+    const closestCoord = tilePositionsByCardId[closestCardId];
+    const { row, col } = new Hex(closestCoord);
+    const closestDistance = Math.sqrt(
+      Math.pow(col - MID_X, 2) + Math.pow(row - MID_Y, 2)
+    );
+
+    const currentDistance = Math.sqrt(
+      Math.pow(col - MID_X, 2) + Math.pow(row - MID_Y, 2)
+    );
+
+    return currentDistance < closestDistance ? currentCardId : closestCardId;
+  }, cardIds[0]);
+}

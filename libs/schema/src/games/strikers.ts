@@ -160,7 +160,7 @@ export const StrikersGameEventSchema = z.discriminatedUnion('type', [
 ]);
 
 export const StrikersGameStateSchema = z.object({
-  ballPosition: TilePositionSchema,
+  ballPosition: TilePositionSchema.optional(),
   possession: StrikersFieldSideSchema.optional(),
   tilePositionsByCardId: z.record(CardIdSchema, TilePositionSchema),
   sideACardIds: z.array(CardIdSchema),

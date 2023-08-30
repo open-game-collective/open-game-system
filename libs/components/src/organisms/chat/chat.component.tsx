@@ -13,21 +13,28 @@ import { styled } from '@explorers-club/styles';
 import { assert, assertEntitySchema } from '@explorers-club/utils';
 import { useEntitiesStoreSelector } from '@hooks/useEntitiesStoreSelector';
 import { useEntityIdSelector } from '@hooks/useEntityIdSelector';
-import { useEntitySelector } from '@hooks/useEntitySelector';
+import {
+  useEntitySelector,
+  useEntitySelectorDeepEqual,
+} from '@hooks/useEntitySelector';
 import { MessageContent } from '@molecules/Blocks';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
-import { Atom } from 'nanostores';
+import { Atom, map } from 'nanostores';
 import {
   FC,
   FormEventHandler,
+  MutableRefObject,
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
 import { ChatContext } from './chat.context';
+import { Box } from '@atoms/Box';
+import { secondaryColorByRole } from '@explorers-club/little-vigilante/meta/little-vigilante.constants';
 
 type PlainMessageEvent = {
   type: 'PLAIN_MESSAGE';
@@ -100,26 +107,33 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
   );
 };
 
+const messageChannel$ = map({
+  isScrolled: false,
+  scrollToBottom: () => {},
+});
+
 const CombinedMessageChannelContext = createContext(
   {} as {
     userEntity: UserEntity;
+    messageChannel$: typeof messageChannel$;
   }
 );
 
 const ChatMessageList = () => {
   const { userEntity } = useContext(ChatContext);
 
-  const channelEntityIds = useEntitySelector(
-    userEntity,
-    (entity) => entity.chatService?.context.channelEntityIds
-  );
+  const channelEntityIds = useEntitySelectorDeepEqual(userEntity, (entity) => {
+    return entity.chatService?.context.channelEntityIds;
+  });
 
   if (!channelEntityIds) {
     return <div>loading messages</div>;
   }
 
   return (
-    <CombinedMessageChannelContext.Provider value={{ userEntity }}>
+    <CombinedMessageChannelContext.Provider
+      value={{ userEntity, messageChannel$ }}
+    >
       <CombinedMessageChannel />
     </CombinedMessageChannelContext.Provider>
   );
@@ -128,6 +142,7 @@ const ChatMessageList = () => {
 const CombinedMessageChannel = () => {
   const { userEntity } = useContext(CombinedMessageChannelContext);
   const { createEntityStore } = useContext(WorldContext);
+  const { messageChannel$ } = useContext(CombinedMessageChannelContext);
   const [messageChannelStoreMap] = useState<
     Map<string, Atom<MessageChannelEntity>>
   >(() => {
@@ -190,59 +205,11 @@ const CombinedMessageChannel = () => {
 
   const scrollViewRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    let isScrolled = false;
-    const scrollView = scrollViewRef.current;
-    if (!scrollView) {
-      return;
-    }
-    const observer = new ResizeObserver((entries) => {
-      scrollView.scrollTo(0, scrollView.scrollHeight);
-    });
-    observer.observe(scrollView);
+  useAnchoredScrolling(scrollViewRef);
 
-    const handleScroll = (e: Event) => {
-      if (!scrollView) {
-        return;
-      }
-
-      const { clientHeight, scrollTop, scrollHeight } = scrollView;
-
-      if (clientHeight + scrollTop === scrollHeight) {
-        isScrolled = false;
-      } else {
-        isScrolled = true;
-      }
-    };
-
-    // Track if we are scrolled up or not
-    // and only jump back to jump if we press
-    // scrollView.addEventListener('scroll', handleScroll);
-
-    // const sub = service.subscribe(() => {
-    //   if (isScrolled) {
-    //     return;
-    //   }
-
-    //   if (!scrollView) {
-    //     return;
-    //   }
-
-    //   const { scrollHeight } = scrollView;
-
-    //   if (!isScrolled) {
-    //     setTimeout(() => {
-    //       scrollView.scrollTo(0, scrollHeight);
-    //     }, 0);
-    //   }
-    // });
-    // scrollView.scrollTo(0, scrollView.scrollHeight);
-
-    // return () => {
-    //   sub.unsubscribe();
-    //   scrollView?.removeEventListener('scroll', handleScroll);
-    // };
-  }, [scrollViewRef]);
+  useLayoutEffect(() => {
+    // todo add a way to keep the scroll view anchored to bottom
+  });
 
   if (!messageTuples || !messageTuples.length) {
     return <div>no messages</div>;
@@ -254,11 +221,10 @@ const CombinedMessageChannel = () => {
       gap="1"
       justify="end"
       css={{
-        px: '$3',
-        py: '$2',
-        // height: '200px',
+        // px: '$3',
+        // py: '$2',
+        height: '250px',
         // minHeight: '100%',
-        minHeight: '250px',
         border: '4px solid $primary3',
         // flexGrow: 1,
         position: 'relative',
@@ -291,8 +257,6 @@ const CombinedMessageChannel = () => {
               })}
             </Flex>
             <TypingIndicator />
-            {/* Anchor from https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/ */}
-            {/* <Box css={{ overflowAnchor: 'auto !important', height: '1px' }} /> */}
           </ChatViewport>
           <ChatScrollbar orientation="vertical">
             <ChatScrollThumb />
@@ -301,6 +265,72 @@ const CombinedMessageChannel = () => {
       </Flex>
     </Flex>
   );
+};
+
+/**
+ * Tracks the scroll state in the store map
+ */
+const useAnchoredScrolling = (
+  scrollViewRef: MutableRefObject<HTMLDivElement | null>
+) => {
+  useEffect(() => {
+    const scrollView = scrollViewRef.current;
+    if (!scrollView) {
+      return;
+    }
+
+    // Resize observer to handle size changes of children
+    const resizeObserver = new ResizeObserver(() => {
+      // schedule scroll after the next render
+      if (!messageChannel$.get().isScrolled) {
+        setTimeout(() => {
+          scrollView.scrollTo(0, scrollView.scrollHeight);
+        }, 0);
+      }
+    });
+
+    // Observe each child of the scrollView for size changes
+    const observeChildren = () => {
+      Array.from(scrollView.children).forEach((child) => {
+        resizeObserver.observe(child);
+      });
+    };
+    observeChildren();
+
+    // Mutation observer to handle addition/removal of children
+    const mutationObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'childList') {
+          // Stop observing old nodes and observe new ones
+          resizeObserver.disconnect();
+          observeChildren();
+        }
+      }
+    });
+    mutationObserver.observe(scrollView, { childList: true });
+
+    // Function to check if the scrollView is scrolled to the bottom
+    const isScrolledToBottom = () => {
+      const { clientHeight, scrollTop, scrollHeight } = scrollView;
+      return clientHeight + scrollTop === scrollHeight;
+    };
+
+    // Your existing scroll listener
+    const handleScroll = (e: Event) => {
+      if (isScrolledToBottom()) {
+        messageChannel$.setKey('isScrolled', false);
+      } else {
+        messageChannel$.setKey('isScrolled', true);
+      }
+    };
+    scrollView.addEventListener('scroll', handleScroll);
+
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      scrollView?.removeEventListener('scroll', handleScroll);
+    };
+  }, [scrollViewRef]);
 };
 
 const ChatScrollThumb = styled(ScrollArea.ScrollAreaThumb, {
@@ -326,7 +356,6 @@ const ChatScrollbar = styled(ScrollArea.ScrollAreaScrollbar, {
   display: 'flex',
   userSelect: 'none',
   touchAction: 'none',
-  padding: '$1',
   background: '$primary6',
   width: '$2',
   transition: 'background 160ms ease-out',
@@ -345,7 +374,6 @@ const ChatRoot = styled(ScrollArea.Root, {
 const ChatViewport = styled(ScrollArea.Viewport, {
   width: '100%',
   height: '100%',
-  p: '$3',
   boxSizing: 'border-box',
 });
 
@@ -395,6 +423,9 @@ const ChatMessage: FC<{
     'expected chat message to be of type message'
   );
 
+  // better way to do this?
+  messageChannel$.get().scrollToBottom();
+
   return (
     <>
       {message.contents.map((block, index) => (
@@ -408,128 +439,3 @@ const ChatMessage: FC<{
     </>
   );
 };
-
-// const ChatAvatar: FC<{ senderEntityId: SnowflakeId }> = () => {
-//   return <Avatar />;
-// };
-
-// const PlainMessage: FC<{ event: PlainMessageEvent; index: number }> = ({
-//   event,
-//   index,
-// }) => {
-//   // const userId = UserSenderSchema.safeParse(sender).success
-//   //   ? UserSenderSchema.parse(sender).userId
-//   //   : null;
-//   const isContinued = false; // todo move to hook;
-
-//   return (
-//     <Flex align="start" gap="1" css={{ mb: '$1' }}>
-//       <Box css={isContinued ? { height: '1px', opacity: 0 } : {}}>
-//         <ChatAvatar senderEntityId={event.senderEntityId} />
-//       </Box>
-//       <Flex direction="column" gap="1">
-//         {/* <MessageCaption /> */}
-//         <SenderName event={event} index={index} />
-//         {/* {!isContinued &&
-//           (userId ? (
-//             <Caption variant={colorBySlotNumber[players[userId].slotNumber]}>
-//               {players[userId].name}
-//               <Caption variant="low_contrast" css={{ display: 'inline' }}>
-//                 {hostIds.includes(userId) && ' • host'}
-//               </Caption>
-//             </Caption>
-//           ) : (
-//             <Caption>Game{isPrivate && ' • private'}</Caption>
-//           ))} */}
-//         <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>
-//           <MessageComponent message={event.message} />
-//         </Text>
-//       </Flex>
-//     </Flex>
-//   );
-// };
-
-// const SenderName: FC<{ event: ChatEvent; index: number }> = ({ event }) => {
-//   const isContinued = false; // todo move to hook;
-//   const isHost = false;
-//   const isPrivate = false;
-
-//   const name = useEntityIdSelector(event.senderEntityId, (entity: Entity) => {
-//     if (entity.schema === 'room') {
-//       return entity.slug;
-//     } else {
-//       return 'todo: implement as user.name';
-//     }
-//   });
-
-//   return !isContinued ? (
-//     <Caption>
-//       {name}
-//       {isHost && (
-//         <Caption variant="low_contrast" css={{ display: 'inline' }}>
-//           • host'
-//         </Caption>
-//       )}
-//     </Caption>
-//   ) : (
-//     <Caption>Game{isPrivate && ' • private'}</Caption>
-//   );
-// };
-
-// const MessageComponent: FC<{ message: string }> = ({ message }) => {
-//   return (
-//     <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>
-//       <MessageComponent message={message} />
-//     </Text>
-//   );
-// };
-
-// const Message: FC<{
-//   event: MessageEvent;
-//   index: number;
-// }> = ({ event: { message, sender }, index }) => {
-//   const userId = UserSenderSchema.safeParse(sender).success
-//     ? UserSenderSchema.parse(sender).userId
-//     : null;
-//   const isPrivate = ServerSenderSchema.safeParse(sender).success
-//     ? ServerSenderSchema.parse(sender).isPrivate
-//     : null;
-//   const players = useLittleVigilanteSelector((state) => state.players);
-
-//   const service = useContext(ChatServiceContext);
-//   const events = useSelector(service, (state) => state.context.events);
-//   const prevEvent = events[index - 1];
-//   const isContinued = prevEvent && deepEqual(prevEvent.sender, sender);
-//   const hostIds = useLittleVigilanteSelector((state) => state.hostUserIds);
-
-//   return (
-//     <Flex align="start" gap="1" css={{ mb: '$1' }}>
-//       <Box css={isContinued ? { height: '1px', opacity: 0 } : {}}>
-//         {userId ? (
-//           <PlayerAvatar
-//             userId={userId}
-//             color={colorBySlotNumber[players[userId].slotNumber]}
-//           />
-//         ) : (
-//           <GameAvatar />
-//         )}
-//       </Box>
-//       <Flex direction="column" gap="1">
-//         {!isContinued &&
-//           (userId ? (
-//             <Caption variant={colorBySlotNumber[players[userId].slotNumber]}>
-//               {players[userId].name}
-//               <Caption variant="low_contrast" css={{ display: 'inline' }}>
-//                 {hostIds.includes(userId) && ' • host'}
-//               </Caption>
-//             </Caption>
-//           ) : (
-//             <Caption>Game{isPrivate && ' • private'}</Caption>
-//           ))}
-//         <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>
-//           <MessageComponent message={message} />
-//         </Text>
-//       </Flex>
-//     </Flex>
-//   );
-// };

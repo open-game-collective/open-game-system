@@ -185,7 +185,6 @@ export const createStrikersGameMachine = ({
           entity.gameState = {
             ...gameState,
             ballPosition: MIDFIELD_B,
-            possession: 'B',
           };
         },
       },

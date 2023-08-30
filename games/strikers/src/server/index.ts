@@ -80,7 +80,7 @@ export const createStrikersGame = (
     gameId: 'strikers',
     config,
     gameState: {
-      ballPosition: [0, 0],
+      ballPosition: undefined,
       tilePositionsByCardId: {},
       sideACardIds: [],
       sideBCardIds: [],
