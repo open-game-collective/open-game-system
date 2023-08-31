@@ -13,7 +13,7 @@ import { FC, useContext, useLayoutEffect } from 'react';
 import { Vector3 } from 'three';
 import { lookBirdsEye } from '../camera.utils';
 import { CameraRigContext } from '../components/camera-rig.context';
-import { Field } from '../components/field';
+import { Field, FieldControls } from '../components/field';
 import { FieldCell } from '../components/field-cell';
 import { Goal } from '../components/goal';
 import { GridContext } from '../context/grid.context';
@@ -50,6 +50,7 @@ export const TurnScene = () => {
       <SunsetSky />
       <TurnCamera />
       <Field>
+        <FieldControls />
         <Goal side="A" />
         <Goal side="B" />
         {homeSideCardIds.map((cardId) => (
