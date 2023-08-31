@@ -7,6 +7,7 @@ import {
 } from '@hooks/useEntitySelector';
 import { useStore } from '@nanostores/react';
 import { useThree } from '@react-three/fiber';
+import { spiral } from 'honeycomb-grid';
 import { map } from 'nanostores';
 import { FC, useContext, useLayoutEffect } from 'react';
 import { Vector3 } from 'three';
@@ -15,13 +16,20 @@ import { CameraRigContext } from '../components/camera-rig.context';
 import { Field } from '../components/field';
 import { FieldCell } from '../components/field-cell';
 import { Goal } from '../components/goal';
+import { GridContext } from '../context/grid.context';
 import { StrikersContext } from '../context/strikers.context';
 import { TurnContext } from '../context/turn.context';
-import { useObservableState } from 'observable-hooks';
-import { GridContext } from '../context/grid.context';
-import { spiral } from 'honeycomb-grid';
+import { ClientEventContext } from '../context/client-event.context';
 
 export const TurnScene = () => {
+  const { send, event$ } = useContext(ClientEventContext);
+
+  useLayoutEffect(() => {
+    return event$.listen((event) => {
+      console.log('YO EVENT! turn scene', event);
+    });
+  });
+
   const { gameEntity } = useContext(StrikersContext);
   const tilePositionsByCardId = useEntitySelectorDeepEqual(
     gameEntity,
@@ -41,8 +49,8 @@ export const TurnScene = () => {
       <SunsetSky />
       <TurnCamera />
       <Field>
-        <Goal side="away" />
-        <Goal side="home" />
+        <Goal side="A" />
+        <Goal side="B" />
         {homeSideCardIds.map((cardId) => (
           <FieldCell key={cardId} tilePosition={tilePositionsByCardId[cardId]}>
             <mesh>
@@ -104,13 +112,13 @@ const TurnCamera = () => {
  * Follows the action of the turn
  */
 const FollowActionCamera = () => {
-  const { turnEntity } = useContext(TurnContext);
-  const { playerEntity, gameEntity } = useContext(StrikersContext);
-  const { cameraControls, service } = useContext(CameraRigContext);
+  const { gameEntity } = useContext(StrikersContext);
+  const { channel } = gameEntity;
+  const { service } = useContext(CameraRigContext);
   const grid = useContext(GridContext);
 
   useLayoutEffect(() => {
-    gameEntity.channel.subscribe((event) => {
+    channel.subscribe((event) => {
       if (event.type === 'SELECT_CARD') {
         const tilePosition =
           gameEntity.gameState.tilePositionsByCardId[event.cardId];
@@ -125,77 +133,7 @@ const FollowActionCamera = () => {
         });
       }
     });
-  }, [gameEntity]);
-
-  // useLayoutEffect(() => {
-  //   return turnCamera$.subscribe(({ focusedCardId }, changed) => {
-  //     if (changed === 'focusedCardId' && focusedCardId) {
-  //       const tilePosition =
-  //         gameEntity.gameState.tilePositionsByCardId[focusedCardId];
-  //       console.log('focus camera on ', tilePosition);
-  //     }
-  //   });
-  // }, [cameraControls, turnCamera$]);
-
-  // todo fix mem leak, handle unsubscribe
-  useLayoutEffect(() => {
-    (async () => {
-      if (playerEntity && playerEntity.id === turnEntity.playerId) {
-        playerEntity.subscribe((event) => {
-          console.log('player event', event);
-        });
-        gameEntity.subscribe((event) => {
-          console.log('game event', event);
-        });
-        turnEntity.subscribe((event) => {
-          console.log('turn event', event);
-        });
-        // turnEntity.subscribe((event) => {
-        //   cosono
-        // }
-        // Could we somehow listen on the messages that get sent to the turn?
-
-        // playerEntity.subscribe(() => {
-        //   //
-
-        // })
-
-        // turnEntity.subscribe(() => {
-        //   turnEntity.
-
-        //   // oh god
-        //   // if (typeof turnEntity.states.Status === 'object') {
-        //   //   if (typeof turnEntity.states.Status.Actions === 'object') {
-        //   //     if (
-        //   //       typeof turnEntity.states.Status.Actions.InputtingAction ===
-        //   //       'object'
-        //   //     ) {
-        //   //       if (
-        //   //         typeof turnEntity.states.Status.Actions.InputtingAction
-        //   //           .Moving === 'object'
-        //   //       ) {
-        //   //         if (
-        //   //           typeof turnEntity.states.Status.Actions.InputtingAction
-        //   //             .Moving.InputtingPlayer === 'object'
-        //   //         ) {
-        //   //           if (
-        //   //             typeof turnEntity.states.Status.Actions.InputtingAction
-        //   //               .Moving.InputtingPlayer.PlayerSelected === 'object'
-        //   //           ) {
-        //   //             console.log('player selected!');
-        //   //           }
-        //   //         }
-        //   //       }
-        //   //     }
-        //   //   }
-        //   // }
-        //   // todo, is this a state machine?
-        //   // we send change events to it?
-        //   // it checks what is true or not?
-        // });
-      }
-    })();
-  }, [playerEntity, turnEntity]);
+  }, [channel]);
 
   return null;
 };

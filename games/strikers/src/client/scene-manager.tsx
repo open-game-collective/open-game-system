@@ -9,16 +9,21 @@ import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
 import { useEntitySelector } from '@hooks/useEntitySelector';
 import { useMyUserId } from '@hooks/userCurrentUserId';
 import { useStore } from '@nanostores/react';
-import { Grid, defineHex, rectangle } from 'honeycomb-grid';
-import { FC, useContext, useEffect, useState } from 'react';
+import { FieldHex } from '@strikers/lib/field-hex';
+import { Grid, rectangle } from 'honeycomb-grid';
+import {
+  FC,
+  useContext,
+  useEffect,
+  useState
+} from 'react';
 import { selectCurrentScene } from '../selectors';
 import { CameraRigProvider } from './components/camera-rig.context';
 import { GridContext } from './context/grid.context';
 import { StrikersContext } from './context/strikers.context';
 import { LineupScene } from './scenes/lineup-scene';
 import { TurnScene } from './scenes/turn-scene';
-
-const HexTile = defineHex();
+import { ClientEventProvider } from './context/client-event.context';
 
 export const StrikersSceneManager: FC<{
   gameInstanceId: SnowflakeId;
@@ -53,7 +58,7 @@ export const StrikersSceneManager: FC<{
 
   assertEntitySchema(gameEntity, 'strikers_game');
   const [grid] = useState(
-    new Grid(HexTile, rectangle({ width: 36, height: 26 }))
+    new Grid(FieldHex, rectangle({ width: 36, height: 26 }))
   );
 
   return (
@@ -73,9 +78,9 @@ const GameScenes = () => {
   const currentScene = useEntitySelector(gameEntity, selectCurrentScene);
 
   return (
-    <>
+    <ClientEventProvider>
       {currentScene === 'lineup' && <LineupScene />}
       {currentScene === 'turn' && <TurnScene />}
-    </>
+    </ClientEventProvider>
   );
 };

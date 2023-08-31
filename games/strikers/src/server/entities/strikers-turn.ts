@@ -5,6 +5,15 @@ import {
   generateSnowflakeId,
 } from '@api/index';
 import {
+  CubeCoordinates,
+  Direction,
+  OffsetCoordinates,
+  isOffset,
+  isTuple,
+  line,
+  tupleToCube,
+} from 'honeycomb-grid';
+import {
   Entity,
   StrikersEffectEntity,
   WithSenderId,
@@ -433,7 +442,11 @@ export const createStrikersTurnMachine = ({
             gameEntity.gameState.tilePositionsByCardId[selectedCardId];
 
           const nextGameState = produce(gameEntity.gameState, (draft) => {
-            draft.ballPosition = toPosition;
+            // draft.ballPosition = toPosition;
+            draft.tilePositionsByCardId = {
+              ...draft.tilePositionsByCardId,
+              [selectedCardId]: toPosition,
+            };
           });
           const patches = compare(gameEntity.gameState, nextGameState);
 
@@ -875,9 +888,16 @@ const getCardIdAtPositionOnTeam = (
 ) => {
   const cardIds = side === 'A' ? state.sideACardIds : state.sideBCardIds;
   return cardIds.find((cardId) => {
-    state.tilePositionsByCardId[cardId] === position;
+    console.log(
+      position,
+      state.tilePositionsByCardId[cardId],
+      equals(position, state.tilePositionsByCardId[cardId])
+    );
+    return equals(state.tilePositionsByCardId[cardId], position);
   });
 };
+
+// Deduplicate function
 
 const getPassTargets = ({ gameEntity }: { gameEntity: StrikersGameEntity }) => {
   const { gameState } = gameEntity;
@@ -891,37 +911,59 @@ const getPassTargets = ({ gameEntity }: { gameEntity: StrikersGameEntity }) => {
   }
 
   const cardWithPossessionPosition =
-    gameEntity.gameState.tilePositionsByCardId[possessionCardId];
+    gameState.tilePositionsByCardId[possessionCardId];
   assert(
     cardWithPossessionPosition,
     'expected card with posession to have a position'
   );
 
-  const validPassTargets: HexCoordinates[] = [];
+  const targetPositions = cardIds.reduce((set, cardId) => {
+    set.add(gameState.tilePositionsByCardId[cardId]);
+    return set;
+  }, new Set<HexCoordinates>());
 
-  for (const cardId of cardIds) {
-    // Skip the card with possession
-    if (cardId === possessionCardId) {
-      continue;
-    }
+  grid
+    .traverse([
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.NE,
+        length: 6,
+      }),
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.NW,
+        length: 6,
+      }),
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.SE,
+        length: 6,
+      }),
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.SW,
+        length: 6,
+      }),
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.W,
+        length: 6,
+      }),
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.E,
+        length: 6,
+      }),
+    ])
+    .forEach((hex) => {
+      targetPositions.add(hex);
+    });
 
-    const targetPlayerPosition =
-      gameEntity.gameState.tilePositionsByCardId[cardId];
+  return [...targetPositions];
 
-    // Calculate the hex distance between positions
-    const hexDist = distance(
-      { orientation: Orientation.POINTY, offset: -1 },
-      cardWithPossessionPosition,
-      targetPlayerPosition
-    );
-
-    // Check if the hex distance is within the valid pass range
-    if (hexDist >= MIN_PASS_RANGE && hexDist <= MAX_PASS_RANGE) {
-      validPassTargets.push(targetPlayerPosition);
-    }
-  }
-
-  return validPassTargets;
+  // return grid.traverse(
+  //   spiral({ start: cardWithPossessionPosition, radius: 6 })
+  // );
 };
 
 // const getMoveTargets = ({
@@ -971,3 +1013,27 @@ const SendTargetSelectMessageMetaSchema = z.object({
 type SendTargetSelectMessageMeta = z.infer<
   typeof SendTargetSelectMessageMetaSchema
 >;
+
+/**
+ * Copied from honeycomb, for some reason not able to import?
+ * @param a
+ * @param b
+ */
+function equals(a: HexCoordinates, b: HexCoordinates) {
+  if (isOffset(a) && isOffset(b)) {
+    return a.col === b.col && a.row === b.row;
+  }
+
+  // can't use isOffset() because that also checks in the prototype chain and that would always return true for hexes
+  if (Object.hasOwn(a, 'col') || Object.hasOwn(b, 'col')) {
+    throw new Error(
+      `Can't compare coordinates where one are offset coordinates. Either pass two offset coordinates or two axial/cube coordinates. Received: ${JSON.stringify(
+        a
+      )} and ${JSON.stringify(b)}`
+    );
+  }
+
+  const cubeA = (isTuple(a) ? tupleToCube(a) : a) as CubeCoordinates;
+  const cubeB = (isTuple(b) ? tupleToCube(b) : b) as CubeCoordinates;
+  return cubeA.q === cubeB.q && cubeA.r === cubeB.r;
+}

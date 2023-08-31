@@ -23,8 +23,8 @@ export const LineupScene = () => {
       <SunsetSky />
       <LineupSceneCamera initialCameraPosition={new Vector3(0, 10, 120)} />
       <Field>
-        <Goal side="away" />
-        <Goal side="home" />
+        <Goal side="A" />
+        <Goal side="B" />
         {playerEntity && <MyCardsInFormation playerEntity={playerEntity} />}
       </Field>
     </>

@@ -17,6 +17,7 @@ import type {
   StrikersTurnEntity,
 } from '@schema/types';
 import { deepClone } from 'fast-json-patch';
+import { Hex, HexCoordinates } from 'honeycomb-grid';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
 import { DoneInvokeEvent, createMachine } from 'xstate';
@@ -179,12 +180,18 @@ export const createStrikersGameMachine = ({
       actions: {
         placeStartingPossession: (context, event, meta) => {
           const { gameState } = entity;
+          const centerCardId = findCenterCardId(
+            gameState.possession === 'A'
+              ? gameState.sideACardIds
+              : gameState.sideBCardIds,
+            gameState.tilePositionsByCardId
+          );
 
           const MIDFIELD_B = { col: 18, row: 13 };
           // default to away team, can add logic later
           entity.gameState = {
             ...gameState,
-            ballPosition: MIDFIELD_B,
+            ballPosition: gameState.tilePositionsByCardId[centerCardId],
           };
         },
       },
@@ -353,3 +360,25 @@ export const createStrikersGameMachine = ({
 
 //   return [columns[team][position], row];
 // }
+
+function findCenterCardId(
+  cardIds: string[],
+  tilePositionsByCardId: Record<string, HexCoordinates>
+) {
+  const MID_X = 36 / 2;
+  const MID_Y = 26 / 2;
+
+  return cardIds.reduce((closestCardId, currentCardId) => {
+    const closestCoord = tilePositionsByCardId[closestCardId];
+    const { row, col } = new Hex(closestCoord);
+    const closestDistance = Math.sqrt(
+      Math.pow(col - MID_X, 2) + Math.pow(row - MID_Y, 2)
+    );
+
+    const currentDistance = Math.sqrt(
+      Math.pow(col - MID_X, 2) + Math.pow(row - MID_Y, 2)
+    );
+
+    return currentDistance < closestDistance ? currentCardId : closestCardId;
+  }, cardIds[0]);
+}

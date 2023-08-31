@@ -1,10 +1,11 @@
+import { FieldHex } from '@strikers/lib/field-hex';
 import { gridPointToWorldPosition } from '@strikers/lib/utils';
-import { Grid, Hex, HexCoordinates } from 'honeycomb-grid';
-import { Sphere, Vector3 } from 'three';
+import { Grid } from 'honeycomb-grid';
+import { Sphere } from 'three';
 
 export const getSphereForHexes: (
-  child: Grid<Hex>,
-  parent: Grid<Hex>
+  child: Grid<FieldHex>,
+  parent: Grid<FieldHex>
 ) => Sphere = (child, parent) => {
   let hexesCount = 0;
 
