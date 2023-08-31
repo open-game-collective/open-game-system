@@ -1,12 +1,13 @@
 import { SunsetSky } from '@3d/sky';
-import { StrikersPlayerEntity } from '@explorers-club/schema';
-import * as cameraUtils from '../camera.utils';
+import { Text } from '@react-three/drei';
+import { StrikersPlayerEntity, StrikersTeamSide } from '@explorers-club/schema';
 import {
   useEntitySelector,
   useEntitySelectorDeepEqual,
 } from '@hooks/useEntitySelector';
 import { FC, useContext, useLayoutEffect } from 'react';
 import { Vector3 } from 'three';
+import * as cameraUtils from '../camera.utils';
 import { CameraRigContext } from '../components/camera-rig.context';
 import { Field } from '../components/field';
 import { FieldCell } from '../components/field-cell';
@@ -52,13 +53,13 @@ const MyCardsInFormation: FC<{ playerEntity: StrikersPlayerEntity }> = ({
 
   const playerId = useEntitySelector(playerEntity, (entity) => entity.id);
   const userId = useEntitySelector(playerEntity, (entity) => entity.userId);
-  const isSideA = useEntitySelector(
+  const isHomeTeam = useEntitySelector(
     gameEntity,
     (entity) => entity.config.lobbyConfig.p1UserId === userId,
     [userId]
   );
   const playerCardIds = useEntitySelectorDeepEqual(gameEntity, (gameEntity) =>
-    gameEntity.config.homeTeamCardIds.includes(playerId)
+    gameEntity.config.homeTeamPlayerIds.includes(playerId)
       ? gameEntity.gameState.sideACardIds
       : gameEntity.gameState.sideBCardIds
   );
@@ -74,17 +75,43 @@ const MyCardsInFormation: FC<{ playerEntity: StrikersPlayerEntity }> = ({
         return (
           <FieldCell key={cardId} tilePosition={tilePositions[cardId]}>
             <axesHelper />
-            <mesh>
-              // todo use a an extrudeGeometry over the hex points instead?
-              <cylinderBufferGeometry
-                attach="geometry"
-                args={[1, 1, 1, 6, 1]}
-              />
-              <meshBasicMaterial color={isSideA ? 'blue' : 'red'} />
-            </mesh>
+            <CardMeeple team={isHomeTeam ? 'home' : 'away'} cardId={cardId} />
           </FieldCell>
         );
       })}
     </>
+  );
+};
+
+const CardMeeple: FC<{ cardId: string; team: StrikersTeamSide }> = ({
+  cardId,
+  team,
+}) => {
+  const { gameEntity } = useContext(StrikersContext);
+  const card = gameEntity.config.cardsById[cardId];
+
+  const nameplateText = `${card.abbreviation} #${card.jerseyNum}`;
+  // todo visualize the nameplateText "above" the mesh in this component
+
+  return (
+    <group>
+      <mesh>
+        <cylinderBufferGeometry attach="geometry" args={[1, 1, 1, 6, 1]} />
+        <meshBasicMaterial color={team === 'home' ? 'blue' : 'red'} />
+      </mesh>
+      <group position={[0, 1, -1]}>
+        <Text
+          color="black"
+          fontSize={1}
+          anchorX="center"
+          anchorY="bottom"
+          matrixWorldAutoUpdate={undefined}
+          getObjectsByProperty={undefined}
+          getVertexPosition={undefined}
+        >
+          {nameplateText}
+        </Text>
+      </group>
+    </group>
   );
 };

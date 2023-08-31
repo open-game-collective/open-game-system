@@ -81,7 +81,6 @@ export const WorldProvider: FC<{
       const subscriptions = new Set<TCallback>();
 
       const send = async (command: TCommand) => {
-        console.log(id, entityProps, command);
         next({
           type: 'SEND_TRIGGER',
           command,

@@ -127,7 +127,7 @@ export const createLineupMachine = <TMessage extends ChannelEvent>({
 
                 context.formationsByPlayerId[strikersPlayer.id] = formation;
 
-                const isHomeTeam = gameEntity.config.homeTeamCardIds.includes(
+                const isHomeTeam = gameEntity.config.homeTeamPlayerIds.includes(
                   strikersPlayer.id
                 );
 
