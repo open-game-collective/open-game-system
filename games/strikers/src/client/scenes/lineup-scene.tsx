@@ -9,7 +9,7 @@ import { Vector3 } from 'three';
 import * as cameraUtils from '../camera.utils';
 import { CameraRigContext } from '../components/camera-rig.context';
 import { CardMeeple } from '../components/card-meeple';
-import { Field } from '../components/field';
+import { Field, FieldControls } from '../components/field';
 import { FieldCell } from '../components/field-cell';
 import { Goal } from '../components/goal';
 import { GridContext } from '../context/grid.context';
@@ -24,6 +24,7 @@ export const LineupScene = () => {
       <SunsetSky />
       <LineupSceneCamera initialCameraPosition={new Vector3(0, 10, 120)} />
       <Field>
+        <FieldControls />
         <Goal side="A" />
         <Goal side="B" />
         {playerEntity && <MyCardsInFormation playerEntity={playerEntity} />}
