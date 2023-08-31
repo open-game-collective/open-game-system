@@ -45,11 +45,9 @@ export function Field({ children }: { children?: ReactNode }) {
 
 const FieldCoordinates = () => {
   const grid = useContext(GridContext);
-  console.log(grid.size);
   return (
     <>
       {Array.from(grid).map((hex) => {
-        console.log(hex.toString(), hex.col, hex.row);
         return (
           <FieldCell key={hex.toString()} tilePosition={hex}>
             <group rotation={[-Math.PI / 2, 0, 0]}>
@@ -62,7 +60,8 @@ const FieldCoordinates = () => {
                 getObjectsByProperty={undefined}
                 getVertexPosition={undefined}
               >
-                {axialToStrikersTile(hex)}
+                {/* {axialToStrikersTile(hex)} */}
+                {rowToLetter(hex.row)} {hex.col}
               </Text>
             </group>
           </FieldCell>
@@ -84,3 +83,10 @@ export const FieldControls = () => {
 
   return null;
 };
+
+function rowToLetter(n: number): string {
+  if (n < 0 || n > 25) {
+    throw new Error('Number out of range');
+  }
+  return String.fromCharCode(65 + (25 - n));
+}
