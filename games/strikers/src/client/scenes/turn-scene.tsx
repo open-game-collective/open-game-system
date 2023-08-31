@@ -20,6 +20,7 @@ import { GridContext } from '../context/grid.context';
 import { StrikersContext } from '../context/strikers.context';
 import { TurnContext } from '../context/turn.context';
 import { ClientEventContext } from '../context/client-event.context';
+import { CardMeeple } from '../components/card-meeple';
 
 export const TurnScene = () => {
   const { send, event$ } = useContext(ClientEventContext);
@@ -53,18 +54,12 @@ export const TurnScene = () => {
         <Goal side="B" />
         {homeSideCardIds.map((cardId) => (
           <FieldCell key={cardId} tilePosition={tilePositionsByCardId[cardId]}>
-            <mesh>
-              <boxBufferGeometry />
-              <meshBasicMaterial color="blue" />
-            </mesh>
+            <CardMeeple team="home" cardId={cardId} />
           </FieldCell>
         ))}
         {awaySideCardIds.map((cardId) => (
           <FieldCell key={cardId} tilePosition={tilePositionsByCardId[cardId]}>
-            <mesh>
-              <boxBufferGeometry />
-              <meshBasicMaterial color="red" />
-            </mesh>
+            <CardMeeple team="away" cardId={cardId} />
           </FieldCell>
         ))}
       </Field>

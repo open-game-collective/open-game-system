@@ -1,6 +1,5 @@
 import { SunsetSky } from '@3d/sky';
-import { Text } from '@react-three/drei';
-import { StrikersPlayerEntity, StrikersTeamSide } from '@explorers-club/schema';
+import { StrikersPlayerEntity } from '@explorers-club/schema';
 import {
   useEntitySelector,
   useEntitySelectorDeepEqual,
@@ -9,6 +8,7 @@ import { FC, useContext, useLayoutEffect } from 'react';
 import { Vector3 } from 'three';
 import * as cameraUtils from '../camera.utils';
 import { CameraRigContext } from '../components/camera-rig.context';
+import { CardMeeple } from '../components/card-meeple';
 import { Field } from '../components/field';
 import { FieldCell } from '../components/field-cell';
 import { Goal } from '../components/goal';
@@ -80,38 +80,5 @@ const MyCardsInFormation: FC<{ playerEntity: StrikersPlayerEntity }> = ({
         );
       })}
     </>
-  );
-};
-
-const CardMeeple: FC<{ cardId: string; team: StrikersTeamSide }> = ({
-  cardId,
-  team,
-}) => {
-  const { gameEntity } = useContext(StrikersContext);
-  const card = gameEntity.config.cardsById[cardId];
-
-  const nameplateText = `${card.abbreviation} #${card.jerseyNum}`;
-  // todo visualize the nameplateText "above" the mesh in this component
-
-  return (
-    <group>
-      <mesh>
-        <cylinderBufferGeometry attach="geometry" args={[1, 1, 1, 6, 1]} />
-        <meshBasicMaterial color={team === 'home' ? 'blue' : 'red'} />
-      </mesh>
-      <group position={[0, 1, -1]}>
-        <Text
-          color="black"
-          fontSize={1}
-          anchorX="center"
-          anchorY="bottom"
-          matrixWorldAutoUpdate={undefined}
-          getObjectsByProperty={undefined}
-          getVertexPosition={undefined}
-        >
-          {nameplateText}
-        </Text>
-      </group>
-    </group>
   );
 };
