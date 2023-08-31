@@ -23,7 +23,7 @@ const drawHexagons = (
 
   // Compute the width and height of a hexagon depending on its orientation.
   const hexWidth = orientation === Orientation.FLAT ? xRadius : yRadius;
-  const hexHeight = orientation === Orientation. ? yRadius : xRadius;
+  const hexHeight = orientation === Orientation.FLAT ? yRadius : xRadius;
 
   // Compute the width and height of the grid by getting the maximum column and row indices.
   const gridWidth = Math.max(...hexes.map((hex) => hex.col)) + 1;
