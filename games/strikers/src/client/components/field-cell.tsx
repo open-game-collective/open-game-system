@@ -2,6 +2,7 @@ import { HexCoordinates } from 'honeycomb-grid';
 import { FC, ReactNode, useCallback, useContext } from 'react';
 import { GridContext } from '../context/grid.context';
 import { ClientEventContext } from '../context/client-event.context';
+import { gridPointToWorldPosition } from '@strikers/lib/utils';
 
 interface Props {
   tilePosition: HexCoordinates;
@@ -17,12 +18,15 @@ export const FieldCell: FC<Props> = ({ children, tilePosition }) => {
     send({ type: 'PRESS_TILE', position: hex });
   }, [tilePosition]);
 
+  const position = gridPointToWorldPosition(
+    { x: hex.x, y: hex.y },
+    grid.pixelWidth,
+    grid.pixelHeight
+  );
+
   return (
-    <group
-      position={[grid.pixelWidth / 2, 1, grid.pixelHeight / 2]}
-      onPointerUp={handlePointerUp}
-    >
-      <group position={[hex.center.x, 0, hex.center.y]}>{children}</group>
+    <group position={position} onPointerUp={handlePointerUp}>
+      {children}
     </group>
   );
 };

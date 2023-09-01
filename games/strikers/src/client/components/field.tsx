@@ -1,14 +1,14 @@
 import { useStore } from '@nanostores/react';
 import { Text } from '@react-three/drei';
 import { useInterpret } from '@xstate/react';
-import { useControls } from 'leva';
+import { folder, useControls } from 'leva';
 import { map } from 'nanostores';
 import { ReactNode, useContext } from 'react';
 import { DoubleSide } from 'three';
 import { GridContext } from '../context/grid.context';
-import { FieldContext, fieldMachine } from './field.context';
+import { CameraRigContext } from './camera-rig.context';
 import { FieldCell } from './field-cell';
-import { axialToStrikersTile } from '@strikers/utils';
+import { FieldContext, fieldMachine } from './field.context';
 
 export interface FieldState {
   showCoordinates: boolean;
@@ -73,12 +73,14 @@ const FieldCoordinates = () => {
 
 export const FieldControls = () => {
   useControls({
-    showCoordinates: {
-      value: field$.get().showCoordinates,
-      onChange: (newValue) => {
-        field$.setKey('showCoordinates', newValue);
+    field: folder({
+      showCoordinates: {
+        value: field$.get().showCoordinates,
+        onChange: (newValue) => {
+          field$.setKey('showCoordinates', newValue);
+        },
       },
-    },
+    }),
   });
 
   return null;
@@ -88,5 +90,5 @@ function rowToLetter(n: number): string {
   if (n < 0 || n > 25) {
     throw new Error('Number out of range');
   }
-  return String.fromCharCode(65 + (25 - n));
+  return String.fromCharCode(65 + n);
 }
