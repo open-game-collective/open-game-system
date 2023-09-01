@@ -1,4 +1,5 @@
-![ogs_full_v2 (3) (1)](https://github.com/open-game-collective/open-game-system/assets/718391/48885885-8a3f-447d-9f63-25a161c10053)
+![ogs_full_v3 (1)](https://github.com/open-game-collective/open-game-system/assets/718391/7782195d-3c2a-438f-a2cc-c4af7a320025)
+
 
 ### Dev Commands
 
