@@ -151,3 +151,4 @@ export const NotificationPayloadSchema = z.object({
   title: z.string().min(1).max(100),
   options: NotificationOptionsSchema.optional(),
 });
+

@@ -26,7 +26,6 @@ import {
   ConnectionUpdatePermissionSchema,
 } from '@schema/lib/connection';
 import type { RoomCommand, SessionCommand } from '@schema/types';
-import { assign as assignImmer } from '@xstate/immer';
 import { World } from 'miniplex';
 import { DoneInvokeEvent, assign, createMachine } from 'xstate';
 // import { createEntity } from '../ecs';
@@ -191,15 +190,20 @@ export const createConnectionMachine = ({
               on: {
                 CONNECT: {
                   target: 'Yes',
-                  actions: assign({
-                    reconnectCount: ({ reconnectCount }) => reconnectCount + 1,
-                  }),
+                  actions: [
+                    assign({
+                      reconnectCount: ({ reconnectCount }) =>
+                        reconnectCount + 1,
+                    }),
+                  ],
                 },
               },
             },
             Yes: {
               on: {
-                DISCONNECT: 'No',
+                DISCONNECT: {
+                  target: 'No',
+                },
               },
             },
           },

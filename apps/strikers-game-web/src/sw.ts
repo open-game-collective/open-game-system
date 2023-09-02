@@ -11,7 +11,7 @@
 
 // todo use pushsubscriptionchange to update subscription from background
 // see: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope/pushsubscriptionchange_event
-import { NotificationPayloadSchema } from '@schema/common';
+// import { NotificationPayloadSchema } from '@schema/common';
 import { precacheAndRoute } from 'workbox-precaching';
 
 const sw = self as ServiceWorkerGlobalScope & typeof globalThis;
@@ -22,8 +22,10 @@ const manifest = precacheAndRoute(self.__WB_MANIFEST);
 
 self.addEventListener('push', async (event) => {
   const body = event.data!.json();
-  const { title, options } = NotificationPayloadSchema.parse(body);
-  console.log({ title, options });
+  const { title, options } = body;
+  // todo make typesafe
+  // const { title, options } = NotificationPayloadSchema.parse(body);
+  // console.log({ title, options });
 
   const send = sw.registration.showNotification(title);
   event.waitUntil(send);

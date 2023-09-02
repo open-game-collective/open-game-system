@@ -54,6 +54,18 @@ export const createUserMachine = ({
         context: {} as UserContext,
         events: {} as WithSenderId<UserCommand>, // warning sendinerId not present for initialize
       },
+      on: {
+        DISCONNECT: {
+          actions: (context, event) => {
+            console.log('dc user', event);
+          },
+        },
+        CONNECT: {
+          actions: (context, event) => {
+            console.log('connect user', event);
+          },
+        },
+      },
       context: {
         chatServiceRef: undefined,
         pushSubscriptions: [],
@@ -124,117 +136,6 @@ export const createUserMachine = ({
             No: {},
           },
         },
-        // Unitialized: {
-        //   on: {
-        //     INITIALIZE: {
-        //       target: 'Initializing',
-        //     },
-        //   },
-        // },
-        // Initializing: {
-        //   invoke: {
-        //     onDone: {
-        //       target: 'Initialized',
-        //       actions: assign({
-        //       })
-        //     },
-        //     onError: 'Error',
-        //     src: async (context, event) => {
-        //       const id = generateSnowflakeId();
-        //       assertEventType(event, "INITIALIZE");
-
-        //       const { deviceId, authTokens, initialLocation: location } = event;
-        //       let supabaseSession: Session;
-
-        //       // Get our user from supabase using the auth tokens
-        //       if (authTokens) {
-        //         const { data, error } = await supabaseClient.auth.setSession({
-        //           access_token: authTokens.accessToken,
-        //           refresh_token: authTokens.refreshToken,
-        //         });
-
-        //         if (error) {
-        //           throw new TRPCError({
-        //             code: 'BAD_REQUEST',
-        //             message: error.message,
-        //             cause: error,
-        //           });
-        //         }
-
-        //         if (!data.session) {
-        //           throw new TRPCError({
-        //             code: 'BAD_REQUEST',
-        //             message: 'Unable to start session',
-        //           });
-        //         }
-
-        //         supabaseSession = data.session;
-
-        //       } else {
-        //         const { data, error } = await supabaseClient.auth.signUp({
-        //           email: `anon-${generateRandomString()}@explorers.club`,
-        //           password: `${generateRandomString()}33330`,
-        //         });
-        //         if (error) {
-        //           throw new TRPCError({
-        //             code: 'INTERNAL_SERVER_ERROR',
-        //             message: error.message,
-        //             cause: error,
-        //           });
-        //         }
-
-        //         if (!data.session) {
-        //           throw new TRPCError({
-        //             code: 'INTERNAL_SERVER_ERROR',
-        //             message: 'Expected session but was missing',
-        //           });
-        //         }
-        //         supabaseSession = data.session;
-        //         await supabaseClient.auth.setSession({
-        //           access_token: data.session.access_token,
-        //           refresh_token: data.session.refresh_token,
-        //         });
-        //       }
-
-        //       const userId = supabaseSession.user.id;
-
-        //       // Find or create session for this user
-        //       let sessionService = sessionsServicesByUserId.get(userId) satisfies SessionInterpreter | undefined;
-        //       let sessionId: SnowflakeId | undefined;
-        //       if (!sessionService) {
-        //         sessionService = interpret(
-        //           createSessionMachine({ world })
-        //         );
-        //         sessionService.start();
-        //         sessionService.send({
-        //           type: "INITIALIZE",
-        //           userId: supabaseSession.user.id,
-        //           userId: id
-        //         })
-        //         sessionsServicesByUserId.set(userId, sessionService);
-        //       } else {
-        //         sessionService.send({ type: "ADD_CONNECTION", userId: id })
-        //         sessionId = sessionService.id;
-        //       }
-
-        //       const entity: UserEntity = {
-        //         id,
-        //         schema: "user",
-        //         location,
-        //         deviceId: deviceId || generateSnowflakeId(),
-        //         // sessionId
-        //       }
-        //       world.add(entity);
-
-        //       return {
-        //         entity,
-        //         supabaseSession,
-        //       };
-        //     },
-        //   },
-        // },
-        // Initialized: {},
-        // Error: {},
       },
     },
     {

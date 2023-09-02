@@ -1,8 +1,8 @@
-import { StrikersTeam } from '@schema/types';
+import { StrikersFieldSide } from '@schema/types';
 import { FC } from 'react';
 interface Props {
   cardId: string;
-  team: StrikersTeam;
+  team: StrikersFieldSide;
 }
 
 export const PlayerMeeple: FC<Props> = ({ cardId, team }) => {

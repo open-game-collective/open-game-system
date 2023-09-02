@@ -1,7 +1,7 @@
-import { Entity, RouteProps } from '@explorers-club/schema';
+import { Entity, EntityEvent, RouteProps } from '@explorers-club/schema';
 import { World } from 'miniplex';
 import { atom, type Atom } from 'nanostores';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, from } from 'rxjs';
 import { AnyEventObject, EventObject } from 'xstate';
 export * from './forms';
 export * from './hooks';
@@ -210,6 +210,21 @@ export function getValueFromPath(obj: any, path: string): any {
 
   return currentValue;
 }
+
+export const fromEntity = <TEntity extends Entity>(entity: TEntity) => {
+  return new Observable<{
+    entity: TEntity;
+    event: Parameters<Parameters<TEntity['subscribe']>[0]>[0];
+  }>((observer) => {
+    // Subscribe to yourObject and get the unsubscribe function
+    const unsubscribe = entity.subscribe((event) => {
+      observer.next({ entity, event });
+    });
+
+    // Return the unsubscribe function as the teardown logic
+    return unsubscribe;
+  });
+};
 
 export const fromWorld = (world: World<Entity>) => {
   const subject = new Subject<Entity>();

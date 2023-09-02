@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { SnowflakeIdSchema } from '../common';
 import { EntityBaseSchema } from '../entity/base';
 import {
+  LogEventTypeLiteral,
   MessageEventTypeLiteral,
   StrikersEffectSchemaTypeLiteral,
   StrikersGameIdLiteral,
@@ -23,6 +24,8 @@ import {
   ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 } from '@schema/commands';
+import { Observable } from 'rxjs';
+import { StrikersGameEvent } from '..';
 
 // Define literals for each formation name
 const Formation442Literal = z.literal('4-4-2');
@@ -100,29 +103,80 @@ export const LineupStateValueSchema = z.enum([
 
 const CardIdSchema = z.string();
 
-// const PlayerIdSchema = z.string();
-
-export const StrikersSideSchema = z.enum(['home', 'away']);
-export type StrikersSide = z.infer<typeof StrikersSideSchema>;
+/**
+ * Indiciates which side of the field the team starts on
+ * i.e. a team starts on side A and shoots towards the goal on side B.
+ *
+ * From a players perspective, A is on the left, B is on the right
+ */
+export const StrikersFieldSideSchema = z.enum(['A', 'B']);
+export const StrikersTeamSideSchema = z.enum(['home', 'away']);
 
 export const TilePositionSchema = z.custom<HexCoordinates>();
 
 const StaminaSchema = z.number();
 
+const TurnStartedBlockSchema = z.object({
+  type: z.literal('TurnStarted'),
+  turnId: SnowflakeIdSchema,
+  timestamp: z.date(),
+});
+
+export const StrikersMessageContentBlockSchema = z.union([
+  TurnStartedBlockSchema,
+  StartGameBlockSchema,
+  MultipleChoiceBlockSchema,
+  PlainMessageBlockSchema,
+]);
+
+const StrikersSelectActionEventSchema = EventBaseSchema(
+  z.literal('SELECT_ACTION'),
+  z.object({
+    action: StrikersActionSchema,
+  })
+);
+
+const StrikersSelectCardEventSchema = EventBaseSchema(
+  z.literal('SELECT_CARD'),
+  z.object({
+    cardId: CardIdSchema,
+  })
+);
+export type StrikersSelectCardEvent = z.infer<
+  typeof StrikersSelectCardEventSchema
+>;
+
+export const StrikersGameMessageEventSchema = EventBaseSchema(
+  MessageEventTypeLiteral,
+  z.object({
+    contents: z.array(StrikersMessageContentBlockSchema),
+  })
+);
+
+export const StrikersGameEventSchema = z.discriminatedUnion('type', [
+  StrikersGameMessageEventSchema,
+  StrikersSelectActionEventSchema,
+  StrikersSelectCardEventSchema,
+]);
+
 export const StrikersGameStateSchema = z.object({
-  ballPosition: TilePositionSchema,
-  possession: StrikersSideSchema,
+  ballPosition: TilePositionSchema.optional(),
+  possession: StrikersFieldSideSchema.optional(),
   tilePositionsByCardId: z.record(CardIdSchema, TilePositionSchema),
-  homeSideCardIds: z.array(CardIdSchema),
-  awaySideCardIds: z.array(CardIdSchema),
+  sideACardIds: z.array(CardIdSchema),
+  sideBCardIds: z.array(CardIdSchema),
   staminaByCardId: z.record(CardIdSchema, StaminaSchema),
 });
+
+const StrikersChannelSchema =
+  z.custom<Observable<z.infer<typeof StrikersGameEventSchema>>>();
 
 const StrikersGameEntityPropSchema = z.object({
   schema: StrikersGameSchemaTypeLiteral,
   gameId: StrikersGameIdLiteral,
   config: StrikersGameConfigDataSchema,
   gameState: StrikersGameStateSchema,
+  channel: StrikersChannelSchema,
   turnsIds: z.array(SnowflakeIdSchema),
   lineupService: z
     .object({
@@ -379,11 +433,11 @@ const StrikersTurnEntityPropsSchema = z.object({
   stagedGameState: StrikersGameStateSchema,
   startedAt: z.date(),
   gameEntityId: SnowflakeIdSchema,
-  side: StrikersSideSchema,
+  side: StrikersFieldSideSchema,
   playerId: SnowflakeIdSchema,
   totalActionCount: z.number(),
   modifiers: z.array(ModifierSchema),
-  effects: z.array(SnowflakeIdSchema),
+  effectsIds: z.array(SnowflakeIdSchema),
 });
 
 const StrikersEffectEntityPropsSchema = z.object({
@@ -500,7 +554,7 @@ export const StrikersEffectContextSchema = z.object({
 export const StrikersTileCoordinateSchema = z.custom<string>((val: any) => {
   // Use a regex to test the validity of the string format
   // This regex matches a single letter (A-Z) followed by a number (1-20)
-  return /^[A-Z](?:[1-9]|1[0-9]|20)$/.test(val as string);
+  return /^[A-Z](?:[1-9]|1[0-9]|2[0-9]|3[0-6])$/.test(val as string);
 }, 'Invalid StrikersTileCoordinate format. It should be A-Z for columns and 1-20 for rows. Example: A1, C10, Z20.');
 export type StrikersTileCoordinate = z.infer<
   typeof StrikersTileCoordinateSchema
@@ -537,40 +591,3 @@ export const StrikersPlayerEntitySchema = EntityBaseSchema(
 export const StrikersPlayerContextSchema = z.object({
   foo: z.string(),
 });
-
-// const TurnStartMessageEventSchema = z.object({
-//   type: z.literal('TURN_START'),
-// });
-const TurnStartedBlockSchema = z.object({
-  type: z.literal('TurnStarted'),
-  turnId: SnowflakeIdSchema,
-  timestamp: z.date(),
-});
-
-// const ChooseFormationBlockSchema = z.object({
-//   type: z.literal('ChooseFormation'),
-// });
-
-// const SubmittedFormationBlockSchema = z.object({
-//   type: z.literal('SubmittedFormation'),
-//   formation: FormationLiteral,
-// });
-
-export const StrikersMessageContentBlockSchema = z.union([
-  TurnStartedBlockSchema,
-  StartGameBlockSchema,
-  MultipleChoiceBlockSchema,
-  PlainMessageBlockSchema,
-]);
-
-export const StrikersGameEventSchema = EventBaseSchema(
-  MessageEventTypeLiteral,
-  z.object({
-    recipientId: SnowflakeIdSchema.optional(),
-    contents: z.array(StrikersMessageContentBlockSchema),
-  })
-);
-
-// export const StrikersGameEventSchema = z.discriminatedUnion('type', [
-//   StrikersGameMessageEventSchema,
-// ]);

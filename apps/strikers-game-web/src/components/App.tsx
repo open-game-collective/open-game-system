@@ -67,6 +67,7 @@ const MainPanel = () => {
         border: '4px dashed blue',
         height: isMainPanelFocused ? '50%' : '80%',
         flexBasis: '50%',
+        flexDirection: 'column-reverse',
         // flexGrow: isMainSceneFocused ? 1 : 0,
 
         // '@bp2': {

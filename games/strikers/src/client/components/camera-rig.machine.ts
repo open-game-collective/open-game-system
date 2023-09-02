@@ -1,9 +1,10 @@
 import { SomeRequired } from '@explorers-club/utils';
 import { CameraControls } from '@react-three/drei';
+import { FieldHex } from '@strikers/lib/field-hex';
 import { ISheet } from '@theatre/core';
 import { assign } from '@xstate/immer';
 import { Grid, Hex, HexCoordinates } from 'honeycomb-grid';
-import { MathUtils, Sphere, Vector3 } from 'three';
+import { Sphere } from 'three';
 import { Interpreter, StateMachine, createMachine } from 'xstate';
 import { z } from 'zod';
 import { getSphereForHexes } from './camera-rig.utils';
@@ -11,7 +12,7 @@ import { getSphereForHexes } from './camera-rig.utils';
 const SheetSchema = z.custom<ISheet>();
 const SphereSchema = z.custom<Sphere>();
 const HexCoordinatesSchema = z.custom<HexCoordinates>();
-const GridSchema = z.custom<Grid<Hex>>();
+const GridSchema = z.custom<Grid<FieldHex>>();
 const HeadingSchema = z.number().min(0).max(360).default(270);
 const CameraTiltSchema = z.union([
   z.number().min(-90).max(90).default(90),
@@ -148,7 +149,7 @@ export type CameraRigTypeState =
   | CameraRigFocusTypeState;
 
 export const createCameraRigMachine = (
-  grid: Grid<Hex>,
+  grid: Grid<FieldHex>,
   cameraControls: CameraControls
 ) =>
   createMachine<CameraRigBaseContext, CameraRigEvent, CameraRigTypeState>(

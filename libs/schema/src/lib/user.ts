@@ -4,6 +4,10 @@ import { EntityBaseSchema } from '../entity/base';
 import { UserSchemaTypeLiteral } from '../literals';
 import { ChatContextSchema, ChatStateValueSchema } from '../services/chat';
 import { ChatInterpreter } from '..';
+import {
+  ConnectCommandSchema,
+  DisconnectCommandSchema,
+} from '@schema/commands';
 
 export const DevicePushSubscriptionSchema = z.object({
   deviceId: SnowflakeIdSchema,
@@ -67,6 +71,8 @@ export const UserCommandSchema = z.union([
   CreateProfileCommandSchema,
   EnterChannelCommandSchema,
   RegisterPushSubscriptionCommandSchema,
+  ConnectCommandSchema,
+  DisconnectCommandSchema,
 ]);
 
 export const UserStateValueSchema = z.object({

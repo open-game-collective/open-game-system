@@ -6,8 +6,6 @@ import { Vector3 } from 'three';
 export function convertStrikersTileCoordinateToRowCol(
   coordinate: StrikersTileCoordinate
 ) {
-  // As per the zod schema, we know at this point that the format is correct.
-
   // Extract the letter and number parts
   const letter = coordinate[0];
   const number = parseInt(coordinate.substring(1));

@@ -66,11 +66,12 @@ import {
   StrikersPlayerEntitySchema,
   StrikersPlayerStateValueSchema,
   // StrikersLineupCommandSchema,
-  StrikersSideSchema,
+  StrikersFieldSideSchema,
   StrikersTurnCommandSchema,
   StrikersTurnContextSchema,
   StrikersTurnEntitySchema,
   StrikersTurnStateValueSchema,
+  StrikersTeamSideSchema,
 } from './games/strikers';
 import {
   BananaTradersGameCommandSchema,
@@ -215,7 +216,7 @@ export type SessionStateSchema = StateSchemaFromStateValue<SessionStateValue>;
 export type SessionMachine = StateMachine<
   SessionContext,
   SessionStateSchema,
-  SessionCommand
+  WithSenderId<SessionCommand>
 >;
 
 export type RoomEntity = z.infer<typeof RoomEntitySchema>;
@@ -678,7 +679,8 @@ export type StrikersCardSettings = z.infer<typeof StrikersCardSettingsSchema>;
 export type StrikersGameplaySettings = z.infer<
   typeof StrikersGameplaySettingsSchema
 >;
-export type StrikersTeam = z.infer<typeof StrikersSideSchema>;
+export type StrikersFieldSide = z.infer<typeof StrikersFieldSideSchema>;
+export type StrikersTeamSide = z.infer<typeof StrikersTeamSideSchema>;
 export type StrikersGameState = z.infer<typeof StrikersGameStateSchema>;
 export type StrikersPlayerPosition = z.infer<
   typeof StrikersRosterPositionSchema

@@ -58,8 +58,8 @@ export const createStrikersGame = (
 
   const config = {
     lobbyConfig,
-    homePlayerIds: [p1PlayerEntity.id],
-    awayPlayerIds: [p2PlayerEntity.id],
+    homeTeamPlayerIds: [p1PlayerEntity.id],
+    awayTeamPlayerIds: [p2PlayerEntity.id],
     playerIds: [p1PlayerEntity.id, p2PlayerEntity.id], // for convenience, expect to never change
     gameplaySettings,
     cardSettings,
@@ -80,11 +80,10 @@ export const createStrikersGame = (
     gameId: 'strikers',
     config,
     gameState: {
-      ballPosition: [0, 0],
-      possession: 'home',
+      ballPosition: undefined,
       tilePositionsByCardId: {},
-      homeSideCardIds: [],
-      awaySideCardIds: [],
+      sideACardIds: [],
+      sideBCardIds: [],
       staminaByCardId: {},
     },
     turnsIds: [],

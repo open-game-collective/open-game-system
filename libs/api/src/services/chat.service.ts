@@ -38,7 +38,8 @@ export const createChatMachine = <TMessage extends ChannelEvent>({
                 if (!context.channelEntityIds[event.channelId]) {
                   const entity = createEntity<MessageChannelEntity>({
                     schema: 'message_channel',
-                    messages: [],
+                    messageIds: [],
+                    eventsById: {},
                     channelId: event.channelId,
                     userId: userEntity.id,
                   });

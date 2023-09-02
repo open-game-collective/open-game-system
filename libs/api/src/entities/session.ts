@@ -3,10 +3,13 @@ import {
   SessionCommand,
   SessionContext,
   SessionTypeState,
+  WithSenderId,
 } from '@explorers-club/schema';
-import { assert } from '@explorers-club/utils';
+import { assert, fromEntity } from '@explorers-club/utils';
 import { World } from 'miniplex';
 import { createMachine } from 'xstate';
+import { entitiesById } from '..';
+import { filter } from 'rxjs';
 
 export const createSessionMachine = ({
   world,
@@ -20,6 +23,11 @@ export const createSessionMachine = ({
     'expected session entity but found ' + entity.schema
   );
 
+  // the state is just the number of connectionids
+  // so in strikers
+  // so here we could create a machine that would be liek
+  // fromEntity(entity).pipe(
+  //  )
   return createMachine({
     id: 'SessionMachine',
     context: {
@@ -27,10 +35,20 @@ export const createSessionMachine = ({
     },
     schema: {
       context: {} as SessionContext,
-      events: {} as SessionCommand,
+      events: {} as WithSenderId<SessionCommand>,
     },
     type: 'parallel',
     on: {
+      // CONNECT: {
+      //   actions: (_, event) => {
+      //     console.log('SESSION CONNECT', event);
+      //   },
+      // },
+      // DISCONNECT: {
+      //   actions: (_, event) => {
+      //     console.log('SESSION DISCONNECT', event);
+      //   },
+      // },
       NEW_CONNECTION: {
         actions: (_, event) => {
           entity.connectionIds = [...entity.connectionIds, event.connectionId];
@@ -45,11 +63,6 @@ export const createSessionMachine = ({
           No: {},
         },
       },
-      // Unitialized: {
-      //   on: {
-      //     INITIALIZE: 'Initializing',
-      //   },
-      // },
       Initialized: {},
       Error: {},
     },

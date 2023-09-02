@@ -28,6 +28,7 @@ import {
 } from '@strikers/lib/utils';
 import { StrikersTileCoordinate } from '@schema/games/strikers';
 import { Unarray } from '@explorers-club/utils';
+import { FieldHex } from '@strikers/lib/field-hex';
 
 export default {
   component: CameraRigProvider,
@@ -37,7 +38,7 @@ type DecoratorFn<T> = Unarray<StoryObj<T>['decorators']>;
 type Dectorator = DecoratorFn<typeof CameraRigProvider>;
 
 const gridStore = atom(
-  new Grid(defineHex(), rectangle({ width: 36, height: 26 }))
+  new Grid(FieldHex, rectangle({ width: 36, height: 26 }))
 );
 
 // const res = Array.from(gridStore.get()).map((hex) => {

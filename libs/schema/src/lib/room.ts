@@ -165,7 +165,6 @@ export const RoomMessageEventSchema = EventBaseSchema(
   MessageEventTypeLiteral,
   z.object({
     senderId: SnowflakeIdSchema,
-    recipientId: SnowflakeIdSchema.optional(),
     contents: z.array(MessageContentBlockSchema),
   })
 );

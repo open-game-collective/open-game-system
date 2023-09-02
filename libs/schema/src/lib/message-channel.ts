@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { SnowflakeIdSchema } from '../common';
 import { EntityBaseSchema } from '../entity/base';
-import { ChannelEventSchema } from '../events/channel';
+import { ChannelEventSchema, MessageEventSchema } from '../events/channel';
 import {
   MessageChannelSchemaTypeLiteral,
   MessageEventTypeLiteral,
@@ -23,10 +23,11 @@ export const MessageTemplateSchema = PlainMessageTemplateSchema;
 
 const MessageChannelEntityPropsSchema = z.object({
   schema: MessageChannelSchemaTypeLiteral,
-  messages: z.array(ChannelEventSchema),
+  messageIds: z.array(SnowflakeIdSchema),
+  eventsById: z.record(ChannelEventSchema),
   userId: SnowflakeIdSchema,
   channelId: SnowflakeIdSchema,
-  tsOffset: z.number().optional(),
+  tsOffset: z.number().optional(), // not used yet? todo split out offsets
 });
 
 const TypingCommandSchema = z.object({

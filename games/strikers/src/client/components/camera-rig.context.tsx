@@ -1,9 +1,5 @@
-import { SomeRequired, assert, assertProp } from '@explorers-club/utils';
 import { CameraControls } from '@react-three/drei';
-import { ISheet } from '@theatre/core';
-import { assign } from '@xstate/immer';
 import { useInterpret } from '@xstate/react';
-import { Grid, Hex, HexCoordinates, Traverser } from 'honeycomb-grid';
 import {
   FC,
   ReactNode,
@@ -13,20 +9,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import {
-  Box3,
-  Sphere,
-  MathUtils,
-  Matrix4,
-  PerspectiveCamera,
-  Vector3,
-} from 'three';
-import { Interpreter, StateMachine, createMachine } from 'xstate';
-import { z } from 'zod';
 import { GridContext } from '../context/grid.context';
-import { rotateBox } from '../utils';
 import {
-  CameraAnchor,
   CameraRigInterpreter,
   createCameraRigMachine,
 } from './camera-rig.machine';

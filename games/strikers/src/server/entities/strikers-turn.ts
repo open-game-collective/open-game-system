@@ -5,6 +5,15 @@ import {
   generateSnowflakeId,
 } from '@api/index';
 import {
+  CubeCoordinates,
+  Direction,
+  OffsetCoordinates,
+  isOffset,
+  isTuple,
+  line,
+  tupleToCube,
+} from 'honeycomb-grid';
+import {
   Entity,
   StrikersEffectEntity,
   WithSenderId,
@@ -14,37 +23,44 @@ import {
   assertEntitySchema,
   assertEventType,
 } from '@explorers-club/utils';
-import { BlockCommandSchema } from '@schema/common';
 import { CardId } from '@schema/game-configuration/strikers';
 import {
   StrikersAction,
   StrikersActionSchema,
-  StrikersEffectDataSchema,
-  StrikersSide,
-  StrikersTileCoordinate,
   StrikersTileCoordinateSchema,
 } from '@schema/games/strikers';
 import {
   BlockCommand,
+  StrikersFieldSide,
   StrikersGameEntity,
   StrikersGameEvent,
   StrikersGameEventInput,
   StrikersGameState,
-  StrikersPlayerEntity,
   StrikersTurnCommand,
   StrikersTurnContext,
   StrikersTurnEntity,
 } from '@schema/types';
+import { convertStrikersTileCoordinateToRowCol } from '@strikers/lib/utils';
+import { offsetToStrikersTile } from '@strikers/utils';
 import { assign } from '@xstate/immer';
 import { compare } from 'fast-json-patch';
-import { HexCoordinates } from 'honeycomb-grid';
+import {
+  Grid,
+  Hex,
+  HexCoordinates,
+  Orientation,
+  distance,
+  rectangle,
+  spiral,
+} from 'honeycomb-grid';
 import { produce } from 'immer';
 import { World } from 'miniplex';
 import { Observable, ReplaySubject } from 'rxjs';
 import { createMachine } from 'xstate';
 import { z } from 'zod';
 import * as effects from '../effects';
-import { convertStrikersTileCoordinateToRowCol } from '@strikers/lib/utils';
+
+const grid = new Grid(Hex, rectangle({ width: 36, height: 26 }));
 
 export const createStrikersTurnMachine = ({
   world,
@@ -162,8 +178,11 @@ export const createStrikersTurnMachine = ({
                               on: {
                                 MULTIPLE_CHOICE_SELECT: {
                                   target: 'PlayerSelected',
-                                  actions: 'assignSelectedCardId',
-                                  cond: (_, event) => event.blockIndex === 1,
+                                  actions: [
+                                    'assignSelectedCardId',
+                                    'sendCardSelectedEvent',
+                                  ],
+                                  cond: 'didSelectPlayerTarget',
                                 },
                               },
                             },
@@ -181,23 +200,40 @@ export const createStrikersTurnMachine = ({
                                 },
                                 InputtingTarget: {
                                   on: {
-                                    MULTIPLE_CHOICE_SELECT: {
-                                      target: 'Ready',
-                                      actions: 'assignSelectedTarget',
-                                      cond: (_, event) =>
-                                        event.blockIndex === 2,
-                                    },
+                                    MULTIPLE_CHOICE_SELECT: [
+                                      {
+                                        target: 'SendingTargetSelectMessage',
+                                        actions: [
+                                          'clearLastMessage',
+                                          'assignSelectedCardId',
+                                          'sendCardSelectedEvent',
+                                        ],
+                                        cond: 'didSelectPlayerTarget',
+                                      },
+                                      {
+                                        target: 'Ready',
+                                        actions: 'assignSelectedTarget',
+                                        cond: 'didSelectMoveTarget',
+                                      },
+                                    ],
                                   },
                                 },
                                 Ready: {
                                   on: {
                                     CONFIRM: {
-                                      target: 'Complete',
+                                      target: 'Submitting',
                                     },
                                   },
                                 },
+                                Submitting: {
+                                  invoke: {
+                                    src: 'createMoveEffect',
+                                    onDone: 'Complete',
+                                    onError: 'Error',
+                                  },
+                                },
+                                Error: {},
                                 Complete: {
-                                  entry: 'createMoveEffect',
                                   type: 'final',
                                 },
                               },
@@ -256,7 +292,20 @@ export const createStrikersTurnMachine = ({
                           },
                         },
                         Complete: {
-                          entry: 'createPassEffect',
+                          initial: 'Submitting',
+                          states: {
+                            Submitting: {
+                              invoke: {
+                                src: 'createPassEffect',
+                                onDone: 'Complete',
+                                onError: 'Error',
+                              },
+                            },
+                            Error: {},
+                            Complete: {
+                              type: 'final',
+                            },
+                          },
                           type: 'final',
                         },
                       },
@@ -285,7 +334,20 @@ export const createStrikersTurnMachine = ({
                           },
                         },
                         Complete: {
-                          entry: 'createShotEffect',
+                          initial: 'Submitting',
+                          states: {
+                            Submitting: {
+                              invoke: {
+                                src: 'createShotEffect',
+                                onDone: 'Complete',
+                                onError: 'Error',
+                              },
+                            },
+                            Error: {},
+                            Complete: {
+                              type: 'final',
+                            },
+                          },
                           type: 'final',
                         },
                       },
@@ -309,6 +371,26 @@ export const createStrikersTurnMachine = ({
     },
     {
       actions: {
+        sendCardSelectedEvent: ({ selectedCardId }) => {
+          // todo... only send to player whos turn it currently is?
+          assert(selectedCardId, 'expected selectedCardId when sending event');
+
+          const playerId =
+            entity.side === 'A'
+              ? gameEntity.config.homeTeamPlayerIds[0]
+              : gameEntity.config.awayTeamPlayerIds[0];
+          const playerEntity = entitiesById.get(playerId);
+          assertEntitySchema(playerEntity, 'strikers_player');
+
+          const event = {
+            type: 'SELECT_CARD' as const,
+            cardId: selectedCardId,
+            recipientId: playerEntity.userId,
+          };
+
+          gameChannelSubject.next(event);
+        },
+
         assignSelectedCardId: assign((context, event) => {
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
           context.selectedCardId = event.value;
@@ -320,19 +402,36 @@ export const createStrikersTurnMachine = ({
           context.selectedTarget = target;
         }),
 
+        clearLastMessage: assign((context) => {
+          const messageId =
+            context.actionMessageIds[context.actionMessageIds.length - 1];
+          const message = messagesById.get(messageId);
+          delete context.selectedCardId;
+          const messageEvent = {
+            id: messageId,
+            type: 'MESSAGE',
+            contents: message.contents.slice(0, -1),
+          };
+
+          gameChannelSubject.next(messageEvent);
+        }),
+
         clearSelections: assign((context) => {
           const messageId =
             context.actionMessageIds[context.actionMessageIds.length - 1];
           const message = messagesById.get(messageId);
           delete context.selectedCardId;
 
-          gameChannelSubject.next({
+          const messageEvent = {
             id: messageId,
             type: 'MESSAGE',
             contents: [message.contents[0]],
-          });
-        }),
+          };
 
+          gameChannelSubject.next(messageEvent);
+        }),
+      },
+      services: {
         createMoveEffect: async ({ selectedCardId, selectedTarget }) => {
           assert(selectedCardId, 'expected selectedCardId');
           assert(selectedTarget, 'expected selectedTarget');
@@ -343,7 +442,11 @@ export const createStrikersTurnMachine = ({
             gameEntity.gameState.tilePositionsByCardId[selectedCardId];
 
           const nextGameState = produce(gameEntity.gameState, (draft) => {
-            draft.ballPosition = toPosition;
+            // draft.ballPosition = toPosition;
+            draft.tilePositionsByCardId = {
+              ...draft.tilePositionsByCardId,
+              [selectedCardId]: toPosition,
+            };
           });
           const patches = compare(gameEntity.gameState, nextGameState);
 
@@ -361,52 +464,7 @@ export const createStrikersTurnMachine = ({
             },
           });
           world.add(effectEntity);
-          entity.effects.push(effectEntity.id);
-          gameEntity.gameState = nextGameState;
-
-          return entity;
-        },
-
-        createPassEffect: async ({ selectedTarget }) => {
-          assert(selectedTarget, 'expected selectedTarget');
-          const toPosition =
-            convertStrikersTileCoordinateToRowCol(selectedTarget);
-
-          const fromCardId = getCardIdWithPossession(gameEntity.gameState);
-          assert(fromCardId, 'expected fromCardId when creating pass effect');
-
-          const fromPosition = gameEntity.gameState.ballPosition;
-          assert(
-            fromPosition,
-            'expected fromPosition when creating pass effect'
-          );
-          const toCardId = getCardIdAtPosessionOnTeam(
-            gameEntity.gameState,
-            toPosition,
-            gameEntity.gameState.possession
-          );
-
-          const nextGameState = produce(gameEntity.gameState, (draft) => {
-            draft.ballPosition = toPosition;
-          });
-          const patches = compare(gameEntity.gameState, nextGameState);
-
-          const { createEntity } = await import('@api/ecs');
-          const effectEntity = createEntity<StrikersEffectEntity>({
-            schema: 'strikers_effect',
-            patches,
-            parentId: entity.id,
-            category: 'ACTION',
-            data: {
-              type: 'PASS',
-              fromCardId,
-              fromPosition,
-              toPosition,
-              toCardId,
-            },
-          });
-          world.add(effectEntity);
-          entity.effects.push(effectEntity.id);
+          entity.effectsIds.push(effectEntity.id);
           gameEntity.gameState = nextGameState;
 
           return entity;
@@ -438,18 +496,67 @@ export const createStrikersTurnMachine = ({
             },
           });
           world.add(effectEntity);
-          entity.effects.push(effectEntity.id);
+          entity.effectsIds.push(effectEntity.id);
           gameEntity.gameState = nextGameState;
 
           return entity;
         },
-      },
-      services: {
+        createPassEffect: async ({ selectedTarget }) => {
+          assert(selectedTarget, 'expected selectedTarget');
+          const toPosition =
+            convertStrikersTileCoordinateToRowCol(selectedTarget);
+
+          const fromCardId = getCardIdWithPossession(gameEntity.gameState);
+          assert(fromCardId, 'expected fromCardId when creating pass effect');
+
+          const fromPosition = gameEntity.gameState.ballPosition;
+          assert(
+            fromPosition,
+            'expected fromPosition when creating pass effect'
+          );
+          assert(
+            gameEntity.gameState.possession,
+            'expected team to have possession when creating pass effect'
+          );
+
+          const toCardId = getCardIdAtPositionOnTeam(
+            gameEntity.gameState,
+            toPosition,
+            gameEntity.gameState.possession
+          );
+
+          const nextGameState = produce(gameEntity.gameState, (draft) => {
+            draft.ballPosition = toPosition;
+          });
+          const patches = compare(gameEntity.gameState, nextGameState);
+
+          const { createEntity } = await import('@api/ecs');
+          const effectEntity = createEntity<StrikersEffectEntity>({
+            schema: 'strikers_effect',
+            patches,
+            parentId: entity.id,
+            category: 'ACTION',
+            data: {
+              type: 'PASS',
+              fromCardId,
+              fromPosition,
+              toPosition,
+              toCardId,
+            },
+          });
+          world.add(effectEntity);
+          entity.effectsIds.push(effectEntity.id);
+          gameEntity.gameState = nextGameState;
+
+          return entity;
+        },
+
         sendSelectActionMessage: async () => {
+          const { side } = entity;
           const playerId =
-            entity.side === 'home'
-              ? gameEntity.config.homePlayerIds[0]
-              : gameEntity.config.awayPlayerIds[0];
+            entity.side === 'A'
+              ? gameEntity.config.homeTeamPlayerIds[0]
+              : gameEntity.config.awayTeamPlayerIds[0];
           const playerEntity = entitiesById.get(playerId);
           assertEntitySchema(playerEntity, 'strikers_player');
 
@@ -457,14 +564,14 @@ export const createStrikersTurnMachine = ({
 
           const availableActions = getAvailableActions({
             gameEntity,
-            playerEntity,
+            side,
           });
           const actionCount = getStartedActionCount({ entity });
 
           const remainingActionCount =
             entity.totalActionCount - actionCount + 1;
 
-          gameChannelSubject.next({
+          const messageEvent = {
             id,
             type: 'MESSAGE',
             recipientId: playerEntity.userId,
@@ -481,7 +588,8 @@ export const createStrikersTurnMachine = ({
                 }),
               },
             ],
-          });
+          };
+          gameChannelSubject.next(messageEvent);
 
           return id;
         },
@@ -491,13 +599,9 @@ export const createStrikersTurnMachine = ({
 
           const message = messagesById.get(messageId);
           const cardIds =
-            entity.side === 'home'
-              ? gameEntity.gameState.homeSideCardIds
-              : gameEntity.gameState.awaySideCardIds;
-          // entity.states.Status
-
-          const selectedAction = getCurrentSelectedAction(entity);
-          const { cardsById } = gameEntity.config;
+            entity.side === 'A'
+              ? gameEntity.gameState.sideACardIds
+              : gameEntity.gameState.sideBCardIds;
 
           const contents = [
             ...message.contents,
@@ -514,11 +618,13 @@ export const createStrikersTurnMachine = ({
             },
           ];
 
-          gameChannelSubject.next({
+          const messageEvent = {
             id: messageId,
             type: 'MESSAGE',
             contents,
-          });
+          };
+
+          gameChannelSubject.next(messageEvent);
         },
         sendTargetSelectMessage: async (context, event, { meta }) => {
           const { action } = SendTargetSelectMessageMetaSchema.parse(meta);
@@ -528,7 +634,7 @@ export const createStrikersTurnMachine = ({
           const message = messagesById.get(messageId);
 
           let text: string;
-          let targets: StrikersTileCoordinate[];
+          let targets: HexCoordinates[];
 
           if (action === 'PASS') {
             text = 'Select pass destination';
@@ -555,78 +661,63 @@ export const createStrikersTurnMachine = ({
             type: 'MultipleChoice',
             showConfirm: true,
             text,
-            options: targets.map((target) => ({
-              name: target,
-              value: target,
-            })),
+            options: targets.map((target) => {
+              const tile = offsetToStrikersTile(new Hex(target));
+              return {
+                name: tile,
+                value: tile,
+              };
+            }),
           } as const;
 
           const contents = [...message.contents, block];
 
-          gameChannelSubject.next({
+          const messageEvent = {
             id: messageId,
             type: 'MESSAGE',
             contents,
-          });
-        },
-        runEffect: async (
-          context: StrikersTurnContext,
-          event: WithSenderId<StrikersTurnCommand>,
-          invokeMeta
-        ) => {
-          const data = StrikersEffectDataSchema.parse(invokeMeta.data);
-          const { createEntity } = await import('@api/ecs');
-          const effectEntity = createEntity<StrikersEffectEntity>({
-            schema: 'strikers_effect',
-            patches: [],
-            parentId: undefined,
-            category: 'ACTION',
-            data,
-          });
+          };
 
-          entity.effects.push(effectEntity.id);
-
-          await new Promise((resolve) => {
-            entity.subscribe((e) => {
-              if (effectEntity.states.Status === 'Resolved') {
-                resolve(null);
-              }
-            });
-          });
-
-          return entity;
+          gameChannelSubject.next(messageEvent);
         },
       },
       guards: {
-        didSelectTarget: (context, event, meta) => {
-          assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-
-          const currentAction = getCurrentSelectedAction(entity);
-
-          return currentAction === 'PASS'
-            ? event.blockIndex === 1
-            : event.blockIndex == 2;
+        didSelectPlayerTarget: (_, event) => {
+          return event.blockIndex === 1;
         },
-        didSelectPassAction: (context, event, meta) => {
-          console.log({ meta });
+        didSelectMoveTarget: (_, event) => {
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-          const action = getSelectedAction(event);
+          return event.blockIndex === 2;
+        },
+        didSelectPassAction: (_, event, meta) => {
+          assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
 
-          return event.blockIndex === 0 && action === 'PASS';
+          if (event.blockIndex !== 0) {
+            return false;
+          }
+
+          const action = getSelectedAction(event);
+          return action === 'PASS';
         },
         didSelectMoveAction: (_, event, meta) => {
-          console.log({ meta });
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-          const action = getSelectedAction(event);
 
-          return event.blockIndex === 0 && action === 'MOVE';
+          if (event.blockIndex !== 0) {
+            return false;
+          }
+
+          const action = getSelectedAction(event);
+          return action === 'MOVE';
         },
         didSelectShootAction: (_, event, meta) => {
-          console.log({ meta });
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-          const action = getSelectedAction(event);
 
-          return event.blockIndex === 0 && action === 'SHOOT';
+          if (event.blockIndex !== 0) {
+            return false;
+          }
+
+          const action = getSelectedAction(event);
+          return action === 'SHOOT';
         },
         hasActionsRemaining: () => {
           const actionCount = getStartedActionCount({ entity });
@@ -638,11 +729,11 @@ export const createStrikersTurnMachine = ({
 };
 
 const getStartedActionCount = (props: { entity: StrikersTurnEntity }) => {
-  const entities = props.entity.effects
-    .map(entitiesById.get)
+  const entities = props.entity.effectsIds
+    .map((id) => entitiesById.get(id))
     .filter((entity) => {
       assertEntitySchema(entity, 'strikers_effect');
-      return entity.category === 'ACTION' && entity.states.Status;
+      return entity.category === 'ACTION';
     });
   return entities.length;
 };
@@ -663,12 +754,65 @@ function rollTwentySidedDie(): number {
  * @returns the list of actions that the player can take
  * one of {MOVE, PASS, SHOOT}
  */
-const getAvailableActions = (props: {
+const getAvailableActions = ({
+  gameEntity,
+  side,
+}: {
   gameEntity: StrikersGameEntity;
-  playerEntity: StrikersPlayerEntity;
+  side: StrikersFieldSide;
 }) => {
-  // todo: imlementation
-  return ['MOVE', 'PASS', 'SHOOT'] as StrikersAction[];
+  // moving is always possible
+  const actions: StrikersAction[] = ['MOVE'];
+
+  // The team with the ball can always pass
+  if (gameEntity.gameState.possession === side) {
+    actions.push('PASS');
+  }
+
+  // shooting is only possible if the player with the ball
+  // has a non-zero chance to store.
+  if (canShoot(gameEntity, side)) {
+    actions.push('SHOOT');
+  }
+
+  return actions;
+};
+
+const canShoot = (
+  gameEntity: StrikersGameEntity,
+  fieldSide: StrikersFieldSide
+) => {
+  const { gameState } = gameEntity;
+  const { possession } = gameState;
+
+  // if the specified side doesn't currently have possession
+  if (fieldSide !== possession) {
+    return false;
+  }
+
+  const shooter = getCardIdWithPossession(gameState);
+  if (!shooter) {
+    return;
+  }
+
+  const rollNeeded = getRollNeededToScore(gameState);
+  return !!rollNeeded;
+};
+
+/**
+ * Given a game state, returns the roll needed in order
+ * for the player with the he ball to be able to score
+ * on a shot
+ *
+ * Returns undefined if the player cannot score.
+ */
+const getRollNeededToScore: (
+  gameState: StrikersGameState
+) => number | undefined = (gameState) => {
+  const shooter = getCardIdWithPossession(gameState);
+
+  // todo calculate based on distance to goal
+  return undefined;
 };
 
 // /**
@@ -684,19 +828,6 @@ const getAvailableActions = (props: {
 //   return "NE"
 // };
 
-/**
- * Given the current game instance and the current players
- * turn, return a list of tile positions that the player
- * is allowed to pass to
- */
-// const getPassTargets = (props: {
-//   gameEntity: StrikersGameEntity;
-//   playerEntity: StrikersPlayerEntity;
-// }) => {
-//   // todo: imlementation
-//   return ['MOVE', 'PASS', 'SHOOT'] as StrikersAction[];
-// };
-
 const actionNames: Record<StrikersAction, string> = {
   MOVE: 'Move',
   PASS: 'Pass',
@@ -704,21 +835,9 @@ const actionNames: Record<StrikersAction, string> = {
 };
 
 const getSelectedAction = (event: BlockCommand) => {
-  const command = BlockCommandSchema.parse(event);
   assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
 
   return StrikersActionSchema.parse(event.value);
-};
-
-const getCurrentSelectedActionState = (entity: StrikersTurnEntity) => {
-  if (typeof entity.states.Status === 'object') {
-    if (typeof entity.states.Status.Actions === 'object') {
-      if (typeof entity.states.Status.Actions.InputtingAction === 'object') {
-        return entity.states.Status.Actions.InputtingAction;
-      }
-    }
-  }
-  return undefined;
 };
 
 const getCurrentSelectedAction = (entity: StrikersTurnEntity) => {
@@ -743,53 +862,149 @@ const getCurrentSelectedAction = (entity: StrikersTurnEntity) => {
 const getMoveTargets: (props: {
   cardId: CardId;
   gameEntity: StrikersGameEntity;
-}) => StrikersTileCoordinate[] = (props) => {
-  // todo - to get the actual values
-  // traverseral around the grid at the spot where the cardId
-  // is then conver talll the surrounding cells to StrikersTileCoordinates
-  return ['G2', 'G3', 'F4', 'F3', 'H5'];
-};
+}) => HexCoordinates[] = (props) => {
+  const start = props.gameEntity.gameState.tilePositionsByCardId[props.cardId];
+  assert(start, 'expected to find position for cardId +' + props.cardId);
 
-// const getCardIdsByTile = (
-//   state: StrikersGameState,
-//   coordinate: HexCoordinates
-// ) => {
-//   return Object.entries(state.tilePositionsByCardId)
-//     .filter(
-//       // does this equality work?
-//       ([cardId, position]) => position === coordinate
-//     )
-//     .map(([cardId]) => cardId);
-// };
+  const targets = grid.traverse(spiral({ radius: 1, start }));
+  const out = targets.toArray().map((f) => {
+    return [f.row, f.col, offsetToStrikersTile(f)];
+  });
+  return targets.toArray();
+};
 
 const getCardIdWithPossession = (state: StrikersGameState) => {
-  return getCardIdAtPosessionOnTeam(
-    state,
-    state.ballPosition,
-    state.possession
-  );
+  if (!state.possession || !state.ballPosition) {
+    return undefined;
+  }
+
+  return getCardIdAtPositionOnTeam(state, state.ballPosition, state.possession);
 };
 
-const getCardIdAtPosessionOnTeam = (
+const getCardIdAtPositionOnTeam = (
   state: StrikersGameState,
   position: HexCoordinates,
-  side: StrikersSide
+  side: StrikersFieldSide
 ) => {
-  const cardIds =
-    side === 'home' ? state.homeSideCardIds : state.awaySideCardIds;
+  const cardIds = side === 'A' ? state.sideACardIds : state.sideBCardIds;
   return cardIds.find((cardId) => {
-    state.tilePositionsByCardId[cardId] === position;
+    console.log(
+      position,
+      state.tilePositionsByCardId[cardId],
+      equals(position, state.tilePositionsByCardId[cardId])
+    );
+    return equals(state.tilePositionsByCardId[cardId], position);
   });
 };
 
-const getPassTargets: (props: {
-  gameEntity: StrikersGameEntity;
-}) => StrikersTileCoordinate[] = (props) => {
-  // todo - to get the actual values
-  // traverseral around the grid at the spot where the cardId
-  // is then conver talll the surrounding cells to StrikersTileCoordinates
-  return ['A2', 'B2', 'B4', 'C3', 'C5'];
+// Deduplicate function
+
+const getPassTargets = ({ gameEntity }: { gameEntity: StrikersGameEntity }) => {
+  const { gameState } = gameEntity;
+  const { possession } = gameState;
+  const { sideACardIds, sideBCardIds } = gameState;
+  const possessionCardId = getCardIdWithPossession(gameEntity.gameState);
+  const cardIds = possession === 'A' ? sideACardIds : sideBCardIds;
+
+  if (!possessionCardId || !cardIds.includes(possessionCardId)) {
+    return [];
+  }
+
+  const cardWithPossessionPosition =
+    gameState.tilePositionsByCardId[possessionCardId];
+  assert(
+    cardWithPossessionPosition,
+    'expected card with posession to have a position'
+  );
+
+  const targetPositions = cardIds.reduce((set, cardId) => {
+    set.add(gameState.tilePositionsByCardId[cardId]);
+    return set;
+  }, new Set<HexCoordinates>());
+
+  grid
+    .traverse([
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.NE,
+        length: 6,
+      }),
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.NW,
+        length: 6,
+      }),
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.SE,
+        length: 6,
+      }),
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.SW,
+        length: 6,
+      }),
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.W,
+        length: 6,
+      }),
+      line({
+        start: cardWithPossessionPosition,
+        direction: Direction.E,
+        length: 6,
+      }),
+    ])
+    .forEach((hex) => {
+      targetPositions.add(hex);
+    });
+
+  return [...targetPositions];
+
+  // return grid.traverse(
+  //   spiral({ start: cardWithPossessionPosition, radius: 6 })
+  // );
 };
+
+// const getMoveTargets = ({
+//   gameEntity,
+//   cardId,
+// }: {
+//   gameEntity: StrikersGameEntity;
+//   cardId: string;
+// }) => {
+//   const { gameState } = gameEntity;
+
+//   const cardPosition = gameState.tilePositionsByCardId[cardId];
+//   assert(cardPosition, 'expected card to have a position');
+
+//   const validMoveTargets = [];
+
+//   // Create a traverser for the surrounding hexes
+//   const moveTraverser = spiral({ start: cardPosition, radius: 1 });
+
+//   // for (const adjacentPosition of grid.traverse(moveTraverser)) {
+//   //   // Check if the position is not occupied by a player from the same team
+//   //   const occupyingCardId = gameState.tilePositionsByCardId[adjacentPosition];
+//   //   if (!occupyingCardId || isOpponent(gameEntity, cardId, occupyingCardId)) {
+//   //     validMoveTargets.push({
+//   //       position: adjacentPosition,
+//   //     });
+//   //   }
+//   // }
+
+//   return validMoveTargets;
+// };
+
+// Constants for pass range
+const MIN_PASS_RANGE = 1; // Minimum distance for a valid pass
+const MAX_PASS_RANGE = 4; // Maximum distance for a valid pass
+
+// // Replace 'yourHexSettings' with the actual hex settings you use in your game
+// const yourHexSettings = {
+//   offset: 'odd', // Replace with your hex offset
+//   orientation: 'pointy', // Replace with your hex orientation
+// };
 
 const SendTargetSelectMessageMetaSchema = z.object({
   action: z.enum(['MOVE', 'PASS']),
@@ -798,3 +1013,27 @@ const SendTargetSelectMessageMetaSchema = z.object({
 type SendTargetSelectMessageMeta = z.infer<
   typeof SendTargetSelectMessageMetaSchema
 >;
+
+/**
+ * Copied from honeycomb, for some reason not able to import?
+ * @param a
+ * @param b
+ */
+function equals(a: HexCoordinates, b: HexCoordinates) {
+  if (isOffset(a) && isOffset(b)) {
+    return a.col === b.col && a.row === b.row;
+  }
+
+  // can't use isOffset() because that also checks in the prototype chain and that would always return true for hexes
+  if (Object.hasOwn(a, 'col') || Object.hasOwn(b, 'col')) {
+    throw new Error(
+      `Can't compare coordinates where one are offset coordinates. Either pass two offset coordinates or two axial/cube coordinates. Received: ${JSON.stringify(
+        a
+      )} and ${JSON.stringify(b)}`
+    );
+  }
+
+  const cubeA = (isTuple(a) ? tupleToCube(a) : a) as CubeCoordinates;
+  const cubeB = (isTuple(b) ? tupleToCube(b) : b) as CubeCoordinates;
+  return cubeA.q === cubeB.q && cubeA.r === cubeB.r;
+}

@@ -12,11 +12,12 @@ import { assert, assertEntitySchema } from '@explorers-club/utils';
 import { Formation } from '@schema/games/strikers';
 import type {
   SnowflakeId,
+  StrikersFieldSide,
   StrikersGameEventInput,
-  StrikersGameStateValue,
   StrikersTurnEntity,
 } from '@schema/types';
 import { deepClone } from 'fast-json-patch';
+import { Hex, HexCoordinates } from 'honeycomb-grid';
 import { World } from 'miniplex';
 import { ReplaySubject } from 'rxjs';
 import { DoneInvokeEvent, createMachine } from 'xstate';
@@ -31,6 +32,8 @@ export const createStrikersGameMachine = ({
   entity: Entity;
   channel: ReplaySubject<any>;
 }) => {
+  // create grid from game state
+
   assert(entity.schema === 'strikers_game', 'expected strikers_game entity');
   // const initialBoard = arrangeBoard(entity.config.cards);
 
@@ -88,6 +91,7 @@ export const createStrikersGameMachine = ({
                   initial: 'NormalTime',
                   states: {
                     NormalTime: {
+                      entry: ['placeStartingPossession'],
                       invoke: {
                         src: 'runTurn',
                         onDone: [
@@ -173,6 +177,24 @@ export const createStrikersGameMachine = ({
       predictableActionArguments: true,
     },
     {
+      actions: {
+        placeStartingPossession: (context, event, meta) => {
+          const { gameState } = entity;
+          const centerCardId = findCenterCardId(
+            gameState.possession === 'A'
+              ? gameState.sideACardIds
+              : gameState.sideBCardIds,
+            gameState.tilePositionsByCardId
+          );
+
+          const MIDFIELD_B = { col: 18, row: 13 };
+          // default to away team, can add logic later
+          entity.gameState = {
+            ...gameState,
+            ballPosition: gameState.tilePositionsByCardId[centerCardId],
+          };
+        },
+      },
       guards: {
         hasTimeRemainingInHalf: (context, event, meta) => {
           // todo
@@ -192,6 +214,8 @@ export const createStrikersGameMachine = ({
           const { createEntity } = await import('@api/ecs');
 
           const index = entity.turnsIds.length % 2;
+          let side: StrikersFieldSide = index === 0 ? 'B' : 'A';
+
           const playerId = entity.config.playerIds[index];
           assert(playerId, 'expected playerId but not foudn');
 
@@ -199,21 +223,23 @@ export const createStrikersGameMachine = ({
             schema: 'strikers_turn',
             startedAt: new Date(),
             gameEntityId: entity.id,
-            side: 'home',
+            side,
             playerId,
             totalActionCount: entity.config.gameplaySettings.actionsPerTurn,
             stagedGameState: deepClone(entity.gameState), // todo might need to deep cline?
             modifiers: [],
-            effects: [],
+            effectsIds: [],
           });
           world.add(turnEntity);
-          entity.turnsIds.push(turnEntity.id);
+          entity.turnsIds = [...entity.turnsIds, turnEntity.id];
 
           const playerEntity = entitiesById.get(playerId);
           assertEntitySchema(playerEntity, 'strikers_player');
           const userEntity = entitiesById.get(playerEntity.userId);
           assertEntitySchema(userEntity, 'user');
 
+          // maybe we dont need to do this?
+          // or maybe this is how we will send private state / message
           userEntity.send({
             type: 'ENTER_CHANNEL',
             channelId: turnEntity.id,
@@ -221,7 +247,7 @@ export const createStrikersGameMachine = ({
 
           const id = generateSnowflakeId();
 
-          gameChannel.next({
+          const messageEvent = {
             id,
             type: 'MESSAGE',
             contents: [
@@ -232,7 +258,9 @@ export const createStrikersGameMachine = ({
               },
             ],
             senderId: entity.id,
-          });
+          };
+
+          gameChannel.next(messageEvent);
 
           await waitForCondition(
             turnEntity,
@@ -332,3 +360,25 @@ export const createStrikersGameMachine = ({
 
 //   return [columns[team][position], row];
 // }
+
+function findCenterCardId(
+  cardIds: string[],
+  tilePositionsByCardId: Record<string, HexCoordinates>
+) {
+  const MID_X = 36 / 2;
+  const MID_Y = 26 / 2;
+
+  return cardIds.reduce((closestCardId, currentCardId) => {
+    const closestCoord = tilePositionsByCardId[closestCardId];
+    const { row, col } = new Hex(closestCoord);
+    const closestDistance = Math.sqrt(
+      Math.pow(col - MID_X, 2) + Math.pow(row - MID_Y, 2)
+    );
+
+    const currentDistance = Math.sqrt(
+      Math.pow(col - MID_X, 2) + Math.pow(row - MID_Y, 2)
+    );
+
+    return currentDistance < closestDistance ? currentCardId : closestCardId;
+  }, cardIds[0]);
+}

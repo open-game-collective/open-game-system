@@ -2,19 +2,28 @@ import { SunsetSky } from '@3d/sky';
 import { Canvas } from '@react-three/fiber';
 import { Meta, StoryObj } from '@storybook/react';
 import { Goal } from './goal';
-import { Grid, defineHex, rectangle } from 'honeycomb-grid';
+import { Direction, Grid, defineHex, rectangle } from 'honeycomb-grid';
 import { useControls } from 'leva';
 import { atom } from 'nanostores';
 import { useContext, useEffect, useState } from 'react';
 import { Vector3 } from 'three';
 import { CameraRigContext, CameraRigProvider } from './camera-rig.context';
-import { Field } from './field';
+import { Field, FieldControls } from './field';
 import { cameraStore } from './field-camera';
 import { FieldCell } from './field-cell';
 import { useStore } from '@nanostores/react';
+import { GridContext } from '../context/grid.context';
+import { FieldHex } from '@strikers/lib/field-hex';
+import { sheetStore } from '../context/theatre.context';
+import { SheetProvider } from '@theatre/r3f';
+import { CameraRigControls } from './camera-rig-controls';
+import { convertStrikersTileCoordinateToRowCol } from '@strikers/lib/utils';
 
 const gridStore = atom(
-  new Grid(defineHex(), rectangle({ width: 26, height: 20 }))
+  new Grid(
+    FieldHex,
+    rectangle({ width: 36, height: 26, direction: Direction.E })
+  )
 );
 
 type Story = StoryObj<typeof Field>;
@@ -22,8 +31,6 @@ type Story = StoryObj<typeof Field>;
 export default {
   component: Field,
 };
-
-const HexTile = defineHex();
 
 export const Default: Story = {
   decorators: [
@@ -34,9 +41,15 @@ export const Default: Story = {
           style={{ background: '#eee', aspectRatio: '1' }}
           camera={{ position: new Vector3(0, 1000, 1000) }}
         >
-          <CameraRigProvider grid={gridStore.get()}>
-            <StoryComponent />
-          </CameraRigProvider>
+          <SheetProvider sheet={sheetStore.get()}>
+            <GridContext.Provider value={gridStore.get()}>
+              <CameraRigProvider>
+                <FieldControls />
+                <CameraRigControls />
+                <StoryComponent />
+              </CameraRigProvider>
+            </GridContext.Provider>
+          </SheetProvider>
         </Canvas>
       );
     },
@@ -50,7 +63,7 @@ export const Default: Story = {
     const grid = useStore(gridStore);
 
     for (const hex of grid) {
-      console.log([hex.row, hex.col]);
+      console.log([hex.row, hex.col, hex.q, hex.r]);
     }
 
     return (
@@ -58,27 +71,31 @@ export const Default: Story = {
         <gridHelper />
         <ambientLight />
         <pointLight />
-        <Field grid={grid}>
-          <FieldCell tilePosition={[15, 15]}>
+        <Field>
+          <FieldCell tilePosition={convertStrikersTileCoordinateToRowCol('A1')}>
             <mesh>
               <boxBufferGeometry args={[1, 1, 1]} />
-              <meshStandardMaterial color={0xff0000} />
+              <meshStandardMaterial color={'blue'} />
             </mesh>
           </FieldCell>
-          <FieldCell tilePosition={[0, 0]}>
+          <FieldCell
+            tilePosition={convertStrikersTileCoordinateToRowCol('Z36')}
+          >
             <mesh>
               <boxBufferGeometry args={[1, 1, 1]} />
-              <meshStandardMaterial color={0xf0ff00} />
+              <meshStandardMaterial color={'red'} />
             </mesh>
           </FieldCell>
-          <FieldCell tilePosition={[5, 5]}>
+          <FieldCell
+            tilePosition={convertStrikersTileCoordinateToRowCol('M18')}
+          >
             <mesh>
               <boxBufferGeometry args={[1, 1, 1]} />
-              <meshStandardMaterial color={0xf0ff00} />
+              <meshStandardMaterial color={'yellow'} />
             </mesh>
           </FieldCell>
-          <Goal side="home" />
-          <Goal side="away" />
+          <Goal side="A" />
+          <Goal side="B" />
         </Field>
         <SunsetSky />
       </>
