@@ -1,34 +1,30 @@
 import { SunsetSky } from '@3d/sky';
 import { AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Canvas, Color } from '@react-three/fiber';
-import { Grid, defineHex, rectangle, spiral } from 'honeycomb-grid';
+import { Grid, rectangle } from 'honeycomb-grid';
 
+import { Grid as GridHelper } from '@react-three/drei';
 import { StoryObj } from '@storybook/react';
-import { button, buttonGroup, folder, useControls } from 'leva';
+import { getProject } from '@theatre/core';
+import { SheetProvider } from '@theatre/r3f';
+import { useSelector } from '@xstate/react';
+import { button, buttonGroup, useControls } from 'leva';
 import { atom } from 'nanostores';
 import { memo, useContext, useEffect } from 'react';
-import { MathUtils, Vector3 } from 'three';
-import { CameraRigControls } from './camera-rig-controls';
+import { Vector3 } from 'three';
 import { GridContext } from '../context/grid.context';
-import { Grid as GridHelper } from '@react-three/drei';
+import { CameraRigControls } from './camera-rig-controls';
 import { CameraRigContext, CameraRigProvider } from './camera-rig.context';
 import { Field } from './field';
-import { FieldCell } from './field-cell';
 import { Goal } from './goal';
-import { SheetProvider } from '@theatre/r3f';
-import { getProject } from '@theatre/core';
-import { useSelector } from '@xstate/react';
-import { DEG2RAD } from 'three/src/math/MathUtils';
 // import { StrikersTileCoordinate } from '@schema/games/strikers';
-import { getSphereForHexes } from './camera-rig.utils';
-import {
-  gridToOffsetCoordiantes,
-  gridHexToWorldPosition,
-  gridPointToWorldPosition,
-} from '@strikers/lib/utils';
-import { GridCoordinates } from '@schema/games/strikers';
 import { Unarray } from '@explorers-club/utils';
+import { AlphaNumCoordinates } from '@schema/games/strikers';
 import { FieldHex } from '@strikers/lib/field-hex';
+import {
+  alphaNumToOffsetCoordiantes,
+  gridHexToWorldPosition,
+} from '@strikers/lib/utils';
 
 export default {
   component: CameraRigProvider,
@@ -246,10 +242,10 @@ function DummyBox({
   coordinate,
   color,
 }: {
-  coordinate: GridCoordinates;
+  coordinate: AlphaNumCoordinates;
   color?: Color;
 }) {
-  const gridCoordinate = gridToOffsetCoordiantes(coordinate);
+  const gridCoordinate = alphaNumToOffsetCoordiantes(coordinate);
   const worldPosition = gridHexToWorldPosition(gridCoordinate, gridStore.get());
 
   return (
