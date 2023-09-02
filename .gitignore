@@ -45,3 +45,4 @@ Thumbs.db
 .cloudflared
 
 apps/strikers-game-web/public/static*
+apps/opengame-org-web/public/static*
