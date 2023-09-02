@@ -7,7 +7,12 @@
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "executor": "@nxtensions/astro:build",
-      "options": {}
+      "options": {},
+      "dependsOn": [
+        {
+          "target": "copy-static"
+        }
+      ]
     },
     "dev": {
       "executor": "@nxtensions/astro:dev",
