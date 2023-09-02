@@ -71,6 +71,14 @@
           "codeCoverage": true
         }
       }
+    },
+    "start": {
+      "executor": "@nx/js:node",
+      "options": {
+        "watch": false,
+        "buildTarget": "api-server:build",
+        "host": "0.0.0.0"
+      }
     }
   },
   "tags": []
