@@ -18,7 +18,7 @@ import { CardId } from '@schema/game-configuration/strikers';
 import {
   StrikersAction,
   StrikersActionSchema,
-  StrikersTileCoordinateSchema,
+  AlphaNumCoordinatesSchema,
 } from '@schema/games/strikers';
 import {
   BlockCommand,
@@ -31,7 +31,7 @@ import {
   StrikersTurnContext,
   StrikersTurnEntity,
 } from '@schema/types';
-import { convertStrikersTileCoordinateToRowCol } from '@strikers/lib/utils';
+import { alphaNumToOffsetCoordiantes } from '@strikers/lib/utils';
 import { offsetToStrikersTile } from '@strikers/utils';
 import { assign } from '@xstate/immer';
 import { compare } from 'fast-json-patch';
@@ -434,7 +434,7 @@ export const createStrikersTurnMachine = ({
 
         assignSelectedTarget: assign((context, event) => {
           assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-          const target = StrikersTileCoordinateSchema.parse(event.value);
+          const target = AlphaNumCoordinatesSchema.parse(event.value);
           context.selectedTarget = target;
         }),
 
@@ -472,7 +472,7 @@ export const createStrikersTurnMachine = ({
           assert(selectedCardId, 'expected selectedCardId');
           assert(selectedTarget, 'expected selectedTarget');
           const toPosition =
-            convertStrikersTileCoordinateToRowCol(selectedTarget);
+            alphaNumToOffsetCoordiantes(selectedTarget);
 
           const fromPosition =
             gameEntity.gameState.tilePositionsByCardId[selectedCardId];
@@ -550,7 +550,7 @@ export const createStrikersTurnMachine = ({
         createPassEffect: async ({ selectedTarget }) => {
           assert(selectedTarget, 'expected selectedTarget');
           const toPosition =
-            convertStrikersTileCoordinateToRowCol(selectedTarget);
+            alphaNumToOffsetCoordiantes(selectedTarget);
 
           const fromCardId = getCardIdWithPossession(gameEntity.gameState);
           assert(fromCardId, 'expected fromCardId when creating pass effect');

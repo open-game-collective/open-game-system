@@ -1,7 +1,8 @@
-import { StrikersTeamSide } from '@explorers-club/schema';
+import { StrikersFieldSide, StrikersTeamSide } from '@explorers-club/schema';
 import { Text } from '@react-three/drei';
 import { FC, ReactNode, useContext } from 'react';
 import { StrikersContext } from '../context/strikers.context';
+import { useEntitySelector } from '@hooks/useEntitySelector';
 
 export const CardMeeple: FC<{ cardId: string; team: StrikersTeamSide }> = ({
   cardId,
@@ -11,21 +12,31 @@ export const CardMeeple: FC<{ cardId: string; team: StrikersTeamSide }> = ({
   const card = gameEntity.config.cardsById[cardId];
 
   const nameplateText = `${card.abbreviation} #${card.jerseyNum}`;
+
+  const fieldSide = useEntitySelector(
+    gameEntity,
+    (entity) => (entity.gameState.sideACardIds.includes(cardId) ? 'A' : 'B'),
+    [cardId]
+  );
+
   // todo visualize the nameplateText "above" the mesh in this component
 
   return (
     <group>
-      <CardMeepleModel team={team} />
+      <CardMeepleModel teamSide={team} fieldSide={fieldSide} />
       <CardMeepleNameplate>{nameplateText}</CardMeepleNameplate>
     </group>
   );
 };
 
-export const CardMeepleModel: FC<{ team: StrikersTeamSide }> = ({ team }) => {
+export const CardMeepleModel: FC<{
+  teamSide: StrikersTeamSide;
+  fieldSide: StrikersFieldSide;
+}> = ({ teamSide, fieldSide }) => {
   return (
-    <mesh>
-      <cylinderBufferGeometry attach="geometry" args={[1, 1, 1, 6, 1]} />
-      <meshBasicMaterial color={team === 'home' ? 'blue' : 'red'} />
+    <mesh position={[fieldSide === 'B' ? 0.5 : -0.5, 0, 0]}>
+      <cylinderBufferGeometry attach="geometry" args={[0.5, 0.5, 0.5, 6, 1]} />
+      <meshBasicMaterial color={teamSide === 'home' ? 'blue' : 'red'} />
     </mesh>
   );
 };

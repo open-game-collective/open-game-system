@@ -12,7 +12,7 @@ export const HomeMeeple = {
       <Canvas style={{ background: '#eee', aspectRatio: '1' }}>
         <OrbitControls />
         <ambientLight />
-        <PlayerMeeple cardId={'1234'} team={'home'} />
+        <PlayerMeeple team={'A'} />
       </Canvas>
     );
   },
@@ -24,7 +24,7 @@ export const AwayMeeple = {
       <Canvas style={{ background: '#eee', aspectRatio: '1' }}>
         <OrbitControls />
         <ambientLight />
-        <PlayerMeeple cardId={'1234'} team={'away'} />
+        <PlayerMeeple team={'B'} />
       </Canvas>
     );
   },

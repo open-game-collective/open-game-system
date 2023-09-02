@@ -17,7 +17,10 @@ import { FieldHex } from '@strikers/lib/field-hex';
 import { sheetStore } from '../context/theatre.context';
 import { SheetProvider } from '@theatre/r3f';
 import { CameraRigControls } from './camera-rig-controls';
-import { convertStrikersTileCoordinateToRowCol } from '@strikers/lib/utils';
+import { alphaNumToOffsetCoordiantes } from '@strikers/lib/utils';
+import { PlayerMeeple } from './player-meeple';
+import { CardMeeple, CardMeepleModel } from './card-meeple';
+import { Ball } from './ball';
 
 const gridStore = atom(
   new Grid(
@@ -72,27 +75,20 @@ export const Default: Story = {
         <ambientLight />
         <pointLight />
         <Field>
-          <FieldCell tilePosition={convertStrikersTileCoordinateToRowCol('A1')}>
-            <mesh>
-              <boxBufferGeometry args={[1, 1, 1]} />
-              <meshStandardMaterial color={'blue'} />
-            </mesh>
+          <FieldCell tilePosition={alphaNumToOffsetCoordiantes('A1')}>
+            <CardMeepleModel fieldSide="A" teamSide="home" />
           </FieldCell>
-          <FieldCell
-            tilePosition={convertStrikersTileCoordinateToRowCol('Z36')}
-          >
-            <mesh>
-              <boxBufferGeometry args={[1, 1, 1]} />
-              <meshStandardMaterial color={'red'} />
-            </mesh>
+          <FieldCell tilePosition={alphaNumToOffsetCoordiantes('Z36')}>
+            <CardMeepleModel fieldSide="B" teamSide="away" />
           </FieldCell>
-          <FieldCell
-            tilePosition={convertStrikersTileCoordinateToRowCol('M18')}
-          >
-            <mesh>
-              <boxBufferGeometry args={[1, 1, 1]} />
-              <meshStandardMaterial color={'yellow'} />
-            </mesh>
+          <FieldCell tilePosition={alphaNumToOffsetCoordiantes('M18')}>
+            <CardMeepleModel fieldSide="A" teamSide="home" />
+          </FieldCell>
+          <FieldCell tilePosition={alphaNumToOffsetCoordiantes('M18')}>
+            <CardMeepleModel fieldSide="B" teamSide="away" />
+          </FieldCell>
+          <FieldCell tilePosition={alphaNumToOffsetCoordiantes('M18')}>
+            <Ball />
           </FieldCell>
           <Goal side="A" />
           <Goal side="B" />

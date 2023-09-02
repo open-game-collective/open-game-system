@@ -1,28 +1,28 @@
-import { StrikersTileCoordinate } from '@schema/games/strikers';
+import { GridCoordinates } from '@schema/games/strikers';
 import { Point } from 'honeycomb-grid';
 import { Vector3 } from 'three';
 import {
-  convertStrikersTileCoordinateToRowCol,
+  gridToOffsetCoordiantes,
   gridPointToWorldPosition,
   worldPositionToGridPoint,
 } from './utils';
 
 describe('convertStrikersTileCoordinateToRowCol', () => {
   it('should correctly convert A1 to row 0 and col 0', () => {
-    const input: StrikersTileCoordinate = 'A1';
-    const result = convertStrikersTileCoordinateToRowCol(input);
+    const input: GridCoordinates = 'A1';
+    const result = gridToOffsetCoordiantes(input);
     expect(result).toEqual({ row: 0, col: 0 });
   });
 
   it('should correctly convert B5 to row 1 and col 4', () => {
-    const input: StrikersTileCoordinate = 'B5';
-    const result = convertStrikersTileCoordinateToRowCol(input);
+    const input: GridCoordinates = 'B5';
+    const result = gridToOffsetCoordiantes(input);
     expect(result).toEqual({ row: 1, col: 4 });
   });
 
   it('should correctly convert Z20 to row 25 and col 19', () => {
-    const input: StrikersTileCoordinate = 'Z20';
-    const result = convertStrikersTileCoordinateToRowCol(input);
+    const input: GridCoordinates = 'Z20';
+    const result = gridToOffsetCoordiantes(input);
     expect(result).toEqual({ row: 25, col: 19 });
   });
 });

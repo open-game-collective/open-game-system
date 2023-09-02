@@ -22,11 +22,11 @@ import { DEG2RAD } from 'three/src/math/MathUtils';
 // import { StrikersTileCoordinate } from '@schema/games/strikers';
 import { getSphereForHexes } from './camera-rig.utils';
 import {
-  convertStrikersTileCoordinateToRowCol,
+  gridToOffsetCoordiantes,
   gridHexToWorldPosition,
   gridPointToWorldPosition,
 } from '@strikers/lib/utils';
-import { StrikersTileCoordinate } from '@schema/games/strikers';
+import { GridCoordinates } from '@schema/games/strikers';
 import { Unarray } from '@explorers-club/utils';
 import { FieldHex } from '@strikers/lib/field-hex';
 
@@ -246,10 +246,10 @@ function DummyBox({
   coordinate,
   color,
 }: {
-  coordinate: StrikersTileCoordinate;
+  coordinate: GridCoordinates;
   color?: Color;
 }) {
-  const gridCoordinate = convertStrikersTileCoordinateToRowCol(coordinate);
+  const gridCoordinate = gridToOffsetCoordiantes(coordinate);
   const worldPosition = gridHexToWorldPosition(gridCoordinate, gridStore.get());
 
   return (
