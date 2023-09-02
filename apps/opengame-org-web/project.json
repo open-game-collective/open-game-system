@@ -7,11 +7,17 @@
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "executor": "@nxtensions/astro:build",
-      "options": {}
+      "options": {},
+      "dependsOn": [
+        {
+          "target": "copy-static"
+        }
+      ]
     },
     "dev": {
       "executor": "@nxtensions/astro:dev",
-      "options": {}
+      "options": {},
+      "dependsOn": ["copy-static"]
     },
     "preview": {
       "dependsOn": [
@@ -28,6 +34,12 @@
     },
     "sync": {
       "executor": "@nxtensions/astro:sync"
+    },
+    "copy-static": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["cp -r static/ apps/opengame-org-web/public/static"]
+      }
     },
     "start": {
       "executor": "@nx/web:file-server",
