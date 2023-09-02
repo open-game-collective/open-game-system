@@ -11,7 +11,8 @@
         "outputPath": "dist/libs/astro",
         "main": "libs/astro/src/index.ts",
         "tsConfig": "libs/astro/tsconfig.lib.json",
-        "assets": ["libs/astro/*.md"]
+        "assets": ["libs/astro/*.md"],
+        "updateBuildableProjectDepsInPackageJson": true
       }
     }
   },
