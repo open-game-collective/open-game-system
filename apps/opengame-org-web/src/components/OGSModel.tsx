@@ -34,26 +34,34 @@ export function OGSModel(props: JSX.IntrinsicElements['group']) {
         receiveShadow
         geometry={nodes.Curve.geometry}
         material={materials['SVGMat.001']}
-      />
+      >
+        <meshBasicMaterial attach="material" color={'#000'} />
+      </mesh>
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.Curve001.geometry}
         material={materials['SVGMat.002']}
         position={[0, 0.015, 0]}
-      />
+      >
+        <meshBasicMaterial attach="material" color={'#444'} />
+      </mesh>
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.Curve002.geometry}
         material={materials['SVGMat.003']}
-      />
+      >
+        <meshBasicMaterial attach="material" color={'#777'} />
+      </mesh>
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.Curve003.geometry}
         material={materials['SVGMat.004']}
-      />
+      >
+        <meshBasicMaterial attach="material" color={'#777'} />
+      </mesh>
     </group>
   );
 }
