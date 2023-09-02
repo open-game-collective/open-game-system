@@ -26,6 +26,10 @@ export const FieldCell: FC<Props> = ({ children, tilePosition }) => {
 
   return (
     <group position={position} onPointerUp={handlePointerUp}>
+      <mesh>
+        <cylinderBufferGeometry attach="geometry" args={[1, 1, 1, 6, 1]} />
+        <meshBasicMaterial color={'black'} wireframe={true} />
+      </mesh>
       {children}
     </group>
   );

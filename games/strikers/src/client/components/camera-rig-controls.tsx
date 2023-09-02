@@ -1,4 +1,4 @@
-import { convertStrikersTileCoordinateToRowCol } from '@strikers/lib/utils';
+import { gridToOffsetCoordiantes } from '@strikers/lib/utils';
 import { button, buttonGroup, folder, useControls } from 'leva';
 import { spiral } from 'honeycomb-grid';
 import { useContext } from 'react';
@@ -106,7 +106,7 @@ export function CameraRigControls() {
             type: 'POSITION',
             target: grid.traverse(
               spiral({
-                start: convertStrikersTileCoordinateToRowCol(val),
+                start: gridToOffsetCoordiantes(val),
                 radius: get('grid.radius'),
               })
             ),
