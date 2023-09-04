@@ -6,6 +6,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 WORKDIR /usr/src/app
 
 COPY package*.json ./
+COPY tools ./tools
 RUN npm ci --legacy-peer-deps
 COPY . .
 CMD [ "npx", "nx", "run", "hls-server:start:production" ]
