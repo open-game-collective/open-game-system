@@ -5,9 +5,24 @@
   "projectType": "application",
   "targets": {
     "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "nx run hls-server:server-build",
+          "nx run hls-server:copy-dockerfile"
+        ],
+        "parallel": false
+      }
+    },
+    "server-build": {
       "executor": "@nx/esbuild:esbuild",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
+      "dependsOn": [
+        {
+          "target": "copy-dockerfile"
+        }
+      ],
       "options": {
         "platform": "node",
         "outputPath": "dist/apps/hls-server",
@@ -34,6 +49,14 @@
             }
           }
         }
+      }
+    },
+    "copy-dockerfile": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "mkdir -p dist/apps/hls-server && cp -r apps/hls-server/Dockerfile dist/apps/hls-server"
+        ]
       }
     },
     "serve": {

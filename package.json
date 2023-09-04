@@ -99,6 +99,7 @@
     "observable-hooks": "^4.2.1",
     "openapi-typescript": "^5.4.1",
     "path-to-regexp": "^6.2.1",
+    "puppeteer": "^21.1.1",
     "puppeteer-stream": "^3.0.7",
     "qrcode": "^1.5.3",
     "r3f-perf": "^7.1.2",
