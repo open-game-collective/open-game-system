@@ -8,4 +8,4 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-CMD [ "node", "src/main.js" ]
+CMD [ "npx", "nx", "run" "hls-server:start:production" ]
