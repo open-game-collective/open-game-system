@@ -9,9 +9,9 @@ type AnyFunction = (...args: any[]) => any;
 
 var server = http.createServer();
 
-const executablePath =
-  process.env.CHROME_EXECUTABLE_PATH ||
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+// const executablePath =
+//   process.env.CHROME_EXECUTABLE_PATH ||
+//   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 const getOrCreateStream = (() => {
   const loadingMap = new Map<string, boolean>();
@@ -39,7 +39,7 @@ const getOrCreateStream = (() => {
     let resolved = false;
 
     const browser = await launch({
-      executablePath,
+      // executablePath,
       args: ['--headless=new'],
       defaultViewport: {
         width: 1024,
