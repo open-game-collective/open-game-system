@@ -37,10 +37,12 @@ const getOrCreateStream = (() => {
 
     loadingMap.set(id, true);
     let resolved = false;
+    console.log('launching browser');
 
     const browser = await launch({
       // executablePath,
       channel: 'chrome',
+      // https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md see for details about no-sandbox, might need to adjust Dockerfile
       args: ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox'],
       defaultViewport: {
         width: 1024,
@@ -48,8 +50,11 @@ const getOrCreateStream = (() => {
       },
     });
 
+    console.log('creating page');
     const page = await browser.newPage();
+    console.log('navigating');
     await page.goto(`https://dl6.webmfiles.org/big-buck-bunny_trailer.webm`);
+    console.log('navigated');
 
     // For some reason screencast fails if started too early
     await new Promise<null>((resolve) => {
@@ -58,8 +63,10 @@ const getOrCreateStream = (() => {
       }, 2000);
     });
 
+    console.log('getting stream');
     stream = await getStream(page, { audio: true, video: true });
     streamMap.set(id, stream);
+    console.log('sending stream to ffmpeg');
     const m3u8path = `./tmp/${id}.m3u8`;
 
     await new Promise((resolve) => {
