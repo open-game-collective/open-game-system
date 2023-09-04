@@ -9,6 +9,10 @@ type AnyFunction = (...args: any[]) => any;
 
 var server = http.createServer();
 
+const executablePath =
+  process.env.CHROME_EXECUTABLE_PATH ||
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+
 const getOrCreateStream = (() => {
   const loadingMap = new Map<string, boolean>();
   const streamMap = new Map<string, Transform>();
@@ -35,8 +39,7 @@ const getOrCreateStream = (() => {
     let resolved = false;
 
     const browser = await launch({
-      executablePath:
-        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      executablePath,
       args: ['--headless=new'],
       defaultViewport: {
         width: 1024,
@@ -44,7 +47,6 @@ const getOrCreateStream = (() => {
       },
     });
 
-    console.log('going to page');
     const page = await browser.newPage();
     await page.goto(`https://dl6.webmfiles.org/big-buck-bunny_trailer.webm`);
 
@@ -112,7 +114,6 @@ new HLSServer(server, {
   provider: {
     exists: async function (req, callback) {
       const [id, ext] = req.filePath.split('.');
-      console.log(req.filePath, id, ext);
 
       if (ext === 'm3u8') {
         await getOrCreateStream(id);
@@ -122,14 +123,12 @@ new HLSServer(server, {
     },
     getManifestStream: async function (req, callback) {
       const m3u8path = `./tmp/${req.filePath}`;
-      console.log('getting manifest', { m3u8path });
       const stream = fs.createReadStream(m3u8path);
       callback(null, stream);
     },
     getSegmentStream: function (req, callback) {
       // returns the correct .ts file
       const segmentPath = `./tmp/${req.filePath}`;
-      console.log('getting segment', segmentPath);
       const stream = fs.createReadStream(segmentPath);
       callback(null, stream);
     },
