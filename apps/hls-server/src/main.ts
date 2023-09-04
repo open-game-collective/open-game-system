@@ -41,7 +41,7 @@ const getOrCreateStream = (() => {
     const browser = await launch({
       // executablePath,
       channel: 'chrome',
-      args: ['--headless=new'],
+      args: ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox'],
       defaultViewport: {
         width: 1024,
         height: 768,
