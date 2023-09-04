@@ -9,4 +9,4 @@ COPY package*.json ./
 COPY tools ./tools
 RUN npm ci --legacy-peer-deps
 COPY . .
-CMD [ "npx", "nx", "run", "hls-server:start:production" ]
+CMD [ "npx", "nx", "run", "hls-server:serve:production" ]
