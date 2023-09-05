@@ -1,4 +1,3 @@
-import { assert } from '@explorers-club/utils';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
 import HLSServer from 'hls-server';
@@ -133,8 +132,8 @@ new HLSServer(server, {
   provider: {
     exists: async function (req, callback) {
       const { token, ext } = getFileInfo(req.url);
-      const streamId = getStreamId(token);
-      assert(streamId, 'expected to find streamId in token from url');
+      const streamId = getStreamId(token)!;
+      // assert(streamId, 'expected to find streamId in token from url');
 
       let exists = false;
       if (ext === 'm3u8') {
@@ -149,8 +148,8 @@ new HLSServer(server, {
     },
     getManifestStream: async function (req, callback) {
       const { token } = getFileInfo(req.url);
-      const streamId = getStreamId(token);
-      assert(streamId, 'expected to find streamId in token from url');
+      const streamId = getStreamId(token)!;
+      // assert(streamId, 'expected to find streamId in token from url');
 
       const m3u8path = `./tmp/${streamId}.m3u8`;
       const stream = fs.createReadStream(m3u8path);
@@ -158,8 +157,8 @@ new HLSServer(server, {
     },
     getSegmentStream: function (req, callback) {
       const { token } = getFileInfo(req.url);
-      const streamId = getStreamId(token);
-      assert(streamId, 'expected to find streamId in token from url');
+      const streamId = getStreamId(token)!;
+      // assert(streamId, 'expected to find streamId in token from url');
 
       const segmentPath = `./tmp/${streamId}.ts`;
       const stream = fs.createReadStream(segmentPath);
@@ -171,8 +170,8 @@ server.listen(process.env.PORT || 3333);
 
 // todo fix type on request to have not optional url
 const getFileInfo = (url?: string) => {
-  assert(url, 'expected url');
-  const { pathname } = new URL(url);
+  // assert(url, 'expected url');
+  const { pathname } = new URL(url!);
   const [_, fileName] = pathname.split('/');
   const [token, ext] = fileName.split(/.m3u8|.ts/); // only support .m3u8 and .ts
 
