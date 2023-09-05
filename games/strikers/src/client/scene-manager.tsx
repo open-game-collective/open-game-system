@@ -7,7 +7,7 @@ import type {
 import { assertEntitySchema } from '@explorers-club/utils';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
 import { useEntitySelector } from '@hooks/useEntitySelector';
-import { useMyUserId } from '@hooks/userCurrentUserId';
+import { useMyUserId } from '@hooks/useMyUserId';
 import { useStore } from '@nanostores/react';
 import { FieldHex } from '@strikers/lib/field-hex';
 import { Grid, rectangle } from 'honeycomb-grid';

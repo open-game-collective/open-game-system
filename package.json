@@ -187,6 +187,7 @@
     "@types/cors": "^2.8.13",
     "@types/d3": "^7.4.0",
     "@types/express": "4.17.14",
+    "@types/fluent-ffmpeg": "^2.1.21",
     "@types/google.maps": "^3.53.4",
     "@types/googlemaps": "^3.43.3",
     "@types/jest": "29.4.4",

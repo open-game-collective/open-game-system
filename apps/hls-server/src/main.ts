@@ -1,41 +1,51 @@
-import HLSServer from 'hls-server';
+import { assert } from '@explorers-club/utils';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
+import HLSServer from 'hls-server';
 import http from 'http';
-import { launch, getStream } from 'puppeteer-stream';
+import * as JWT from 'jsonwebtoken';
+import { getStream, launch } from 'puppeteer-stream';
 import { Transform } from 'stream';
+
+const getStreamId = (accessToken: string) => {
+  const parsedAccessToken = JWT.verify(accessToken, 'my_private_key');
+  if (
+    typeof parsedAccessToken === 'object' &&
+    parsedAccessToken &&
+    'stream_id' in parsedAccessToken &&
+    typeof parsedAccessToken['stream_id'] === 'string'
+  ) {
+    return parsedAccessToken.stream_id;
+  }
+  return null;
+};
 
 type AnyFunction = (...args: any[]) => any;
 
 var server = http.createServer();
-
-// const executablePath =
-//   process.env.CHROME_EXECUTABLE_PATH ||
-//   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 const getOrCreateStream = (() => {
   const loadingMap = new Map<string, boolean>();
   const streamMap = new Map<string, Transform>();
   const callbacksMap = new Map<string, AnyFunction[]>();
 
-  return async (id: string) => {
-    let stream = streamMap.get(id);
-    console.log({ id, stream: !!stream });
+  return async (streamId: string) => {
+    let stream = streamMap.get(streamId);
     if (stream) {
       return stream;
     }
 
     // if already loading, add as callback then wait til its resolved
-    if (loadingMap.get(id)) {
-      if (!callbacksMap.get(id)) {
-        callbacksMap.set(id, []);
+    if (loadingMap.get(streamId)) {
+      if (!callbacksMap.get(streamId)) {
+        callbacksMap.set(streamId, []);
       }
 
-      await new Promise((resolve) => callbacksMap.get(id).push(resolve));
-      return streamMap.get(id);
+      await new Promise((resolve) => callbacksMap.get(streamId)!.push(resolve));
+      return streamMap.get(streamId);
     }
 
-    loadingMap.set(id, true);
+    loadingMap.set(streamId, true);
     let resolved = false;
     console.log('launching browser');
 
@@ -45,16 +55,17 @@ const getOrCreateStream = (() => {
       // https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md see for details about no-sandbox, might need to adjust Dockerfile
       args: ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox'],
       defaultViewport: {
-        width: 1024,
-        height: 768,
+        width: 1920,
+        height: 1080,
       },
     });
 
     console.log('creating page');
     const page = await browser.newPage();
-    console.log('navigating');
-    await page.goto(`https://dl6.webmfiles.org/big-buck-bunny_trailer.webm`);
-    console.log('navigated');
+    // set user agent (override the default headless User Agent)
+    await page.setUserAgent('OGS HLS-Server v0.0.1');
+
+    // await page.goto(STRIKERS_GAME_WEB_URL);
 
     // For some reason screencast fails if started too early
     await new Promise<null>((resolve) => {
@@ -65,9 +76,9 @@ const getOrCreateStream = (() => {
 
     console.log('getting stream');
     stream = await getStream(page, { audio: true, video: true });
-    streamMap.set(id, stream);
+    streamMap.set(streamId, stream);
     console.log('sending stream to ffmpeg');
-    const m3u8path = `./tmp/${id}.m3u8`;
+    const m3u8path = `./tmp/${streamId}.m3u8`;
 
     await new Promise((resolve) => {
       ffmpeg(stream)
@@ -107,13 +118,13 @@ const getOrCreateStream = (() => {
         .run();
     });
 
-    const callbacks = callbacksMap.get(id);
+    const callbacks = callbacksMap.get(streamId);
     if (callbacks) {
-      callbacksMap.get(id).forEach((callback) => callback(stream));
-      callbacksMap.delete(id);
+      callbacksMap.get(streamId)!.forEach((callback) => callback(stream));
+      callbacksMap.delete(streamId);
     }
 
-    loadingMap.set(id, false);
+    loadingMap.set(streamId, false);
     return stream;
   };
 })();
@@ -121,25 +132,45 @@ const getOrCreateStream = (() => {
 new HLSServer(server, {
   provider: {
     exists: async function (req, callback) {
-      const [id, ext] = req.filePath.split('.');
+      const { token, ext } = getFileInfo(req.url);
+      const streamId = getStreamId(token);
+      assert(streamId, 'expected to find streamId in token from url');
 
       if (ext === 'm3u8') {
-        await getOrCreateStream(id);
+        await getOrCreateStream(streamId);
       }
 
       callback(null, true); // file exists and is ready to start streaming
     },
     getManifestStream: async function (req, callback) {
-      const m3u8path = `./tmp/${req.filePath}`;
+      const { token } = getFileInfo(req.url);
+      const streamId = getStreamId(token);
+      assert(streamId, 'expected to find streamId in token from url');
+
+      const m3u8path = `./tmp/${streamId}.m3u8`;
       const stream = fs.createReadStream(m3u8path);
       callback(null, stream);
     },
     getSegmentStream: function (req, callback) {
-      // returns the correct .ts file
-      const segmentPath = `./tmp/${req.filePath}`;
+      const { token } = getFileInfo(req.url);
+      const streamId = getStreamId(token);
+      assert(streamId, 'expected to find streamId in token from url');
+
+      const segmentPath = `./tmp/${streamId}.ts`;
       const stream = fs.createReadStream(segmentPath);
       callback(null, stream);
     },
   },
 });
 server.listen(process.env.PORT || 3333);
+
+// todo fix type on request to have not optional url
+const getFileInfo = (url?: string) => {
+  assert(url, 'expected url');
+  const { pathname } = new URL(url);
+  const [_, fileName] = pathname.split('/');
+  const [token, ext] = fileName.split('.');
+
+  const streamId = getStreamId(token);
+  return { fileName, token, ext, streamId };
+};

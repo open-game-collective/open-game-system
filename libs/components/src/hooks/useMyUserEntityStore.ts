@@ -1,6 +1,6 @@
 import type { UserEntity } from '@explorers-club/schema';
 import { useCreateEntityStore } from '@hooks/useCreateEntityStore';
-import { useMyUserId } from './userCurrentUserId';
+import { useMyUserId } from './useMyUserId';
 
 export const useMyUserEntityStore = () => {
   const myUserId = useMyUserId();

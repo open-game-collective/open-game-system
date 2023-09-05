@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const UserSchemaTypeLiteral = z.literal('user');
+export const StreamSchemaTypeLiteral = z.literal('stream');
 export const SessionSchemaTypeLiteral = z.literal('session');
 export const WorkflowSchemaTypeLiteral = z.literal('workflow');
 export const ConnectionSchemaTypeLiteral = z.literal('connection');

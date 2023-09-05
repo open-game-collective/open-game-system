@@ -1,35 +1,37 @@
+import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
-import { isMobileDevice } from '@explorers-club/utils';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { IconButton } from '@atoms/IconButton';
-import { Image } from '@atoms/Image';
 import { ScrollAreaRoot } from '@atoms/ScrollArea';
-import { Text } from '@atoms/Text';
+import { LayoutContext } from '@context/LayoutContext';
+import { WorldContext } from '@context/WorldProvider';
+import { trpc } from '@explorers-club/api-client';
+import type { UserEntity } from '@explorers-club/schema';
 import { styled } from '@explorers-club/styles';
+import { assert, isMobileDevice } from '@explorers-club/utils';
+import { useMyUserEntity } from '@hooks/useMyUserEntity';
+import { useStore } from '@nanostores/react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Cross2Icon, OpenInNewWindowIcon } from '@radix-ui/react-icons';
+import { Cross2Icon } from '@radix-ui/react-icons';
 import {
   ScrollAreaScrollbar,
   ScrollAreaThumb,
   ScrollAreaViewport,
 } from '@radix-ui/react-scroll-area';
 import * as Tabs from '@radix-ui/react-tabs';
+import { map } from 'nanostores';
 import {
   ForwardedRef,
+  createContext,
   forwardRef,
   useCallback,
   useContext,
   useEffect,
   useState,
 } from 'react';
-import { useStore } from '@nanostores/react';
-import { LayoutContext } from '@context/LayoutContext';
-import { Box } from '@atoms/Box';
-import { trpc } from '@explorers-club/api-client';
-// import { selectNavIsOpen } from './app.selectors';
 
 export const Menu = () => {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
@@ -69,7 +71,7 @@ const ModalContainer = forwardRef((_, ref: ForwardedRef<HTMLDivElement>) => {
         top: 0,
         bottom: 0,
         right: 0,
-        zIndex: isOpen ? 100 : -9999,
+        zIndex: isOpen ? 1000 : -9999,
       }}
     />
   );
@@ -94,54 +96,73 @@ const TabButton = styled(Button, {
 //   box-shadow: inset 0 -1px 0 0 currentColor, 0 1px 0 0 currentColor;
 // }
 
+const defaultMenu$ = map({
+  userEntity: {} as UserEntity,
+});
+
+const MenuContext = createContext({} as typeof defaultMenu$);
+
 const MenuDrawerContent = () => {
+  const userEntity = useMyUserEntity();
+  if (!userEntity) {
+    return <>Loading</>;
+  }
+
+  const [menuContext$] = useState(
+    map({
+      userEntity,
+    })
+  );
+
   return (
-    <StyledDialogContent>
-      <Tabs.Root defaultValue="games" style={{ height: '100%' }}>
-        <Flex direction="column" gap="3" style={{ height: '100%' }}>
-          <Flex justify={'between'} css={{ p: '$3' }}>
-            <Tabs.List>
-              <Tabs.Trigger value="games" asChild>
-                <TabButton ghost size="3">
-                  My Games
-                </TabButton>
-              </Tabs.Trigger>
-              <Tabs.Trigger value="lobby" asChild>
-                <TabButton ghost size="3">
-                  Lobby
-                </TabButton>
-              </Tabs.Trigger>
-              <Tabs.Trigger value="shop" asChild>
-                <TabButton ghost size="3">
-                  Shop
-                </TabButton>
-              </Tabs.Trigger>
-              <Tabs.Trigger value="account" asChild>
-                <TabButton ghost size="3">
-                  Account
-                </TabButton>
-              </Tabs.Trigger>
-            </Tabs.List>
-            <Dialog.Close asChild>
-              <IconButton size="3">
-                <Cross2Icon />
-              </IconButton>
-            </Dialog.Close>
+    <MenuContext.Provider value={menuContext$}>
+      <StyledDialogContent>
+        <Tabs.Root defaultValue="games" style={{ height: '100%' }}>
+          <Flex direction="column" gap="3" style={{ height: '100%' }}>
+            <Flex justify={'between'} css={{ p: '$3' }}>
+              <Tabs.List>
+                <Tabs.Trigger value="games" asChild>
+                  <TabButton ghost size="3">
+                    My Games
+                  </TabButton>
+                </Tabs.Trigger>
+                <Tabs.Trigger value="lobby" asChild>
+                  <TabButton ghost size="3">
+                    Lobby
+                  </TabButton>
+                </Tabs.Trigger>
+                <Tabs.Trigger value="streams" asChild>
+                  <TabButton ghost size="3">
+                    Streams
+                  </TabButton>
+                </Tabs.Trigger>
+                <Tabs.Trigger value="account" asChild>
+                  <TabButton ghost size="3">
+                    Account
+                  </TabButton>
+                </Tabs.Trigger>
+              </Tabs.List>
+              <Dialog.Close asChild>
+                <IconButton size="3">
+                  <Cross2Icon />
+                </IconButton>
+              </Dialog.Close>
+            </Flex>
+            <ScrollAreaRoot css={{ background: 'red' }}>
+              <ScrollAreaViewport>
+                <GamesTabContent />
+                <LobbyTabContent />
+                <StreamsTabContent />
+                <AccountTabContent />
+              </ScrollAreaViewport>
+              <ScrollAreaScrollbar orientation="vertical">
+                <ScrollAreaThumb />
+              </ScrollAreaScrollbar>
+            </ScrollAreaRoot>
           </Flex>
-          <ScrollAreaRoot css={{ background: 'red' }}>
-            <ScrollAreaViewport>
-              <GamesTabContent />
-              <LobbyTabContent />
-              <ShopTabContent />
-              <AccountTabContent />
-            </ScrollAreaViewport>
-            <ScrollAreaScrollbar orientation="vertical">
-              <ScrollAreaThumb />
-            </ScrollAreaScrollbar>
-          </ScrollAreaRoot>
-        </Flex>
-      </Tabs.Root>
-    </StyledDialogContent>
+        </Tabs.Root>
+      </StyledDialogContent>
+    </MenuContext.Provider>
   );
 };
 
@@ -163,28 +184,30 @@ const LobbyTabContent = () => {
   );
 };
 
-const ShopTabContent = () => {
+const StreamsTabContent = () => {
+  // get the userEntity here
+  const { entityStoreRegistry, entitiesById } = useContext(WorldContext);
+  const menu$ = useContext(MenuContext);
+  const { userEntity } = useStore(menu$, { keys: ['userEntity'] });
+
+  const handlePressCreateStream = useCallback(() => {
+    const sessionEntity = entityStoreRegistry.mySessionEntity.get();
+    assert(sessionEntity, 'expected sessionEntity');
+
+    const userEntity = entitiesById.get(sessionEntity.userId) as
+      | UserEntity
+      | undefined;
+    assert(userEntity, 'expected userEntity');
+
+    userEntity.send({
+      type: 'CREATE_STREAM',
+    });
+  }, [entityStoreRegistry, entitiesById]);
+
   return (
-    <Tabs.Content value="shop">
+    <Tabs.Content value="streams">
       <Flex direction="column" gap="3">
-        <Card
-          css={{
-            background: `linear-gradient($primary4, $primary7)`,
-            border: '2px solid $primary6',
-          }}
-        >
-          <Image
-            css={{ aspectRatio: 1, width: '100%' }}
-            src="https://cdn.discordapp.com/attachments/1039255735390978120/1082663770159071272/pigment-dyed-cap-black-stone-front-640601d4ccad3.png"
-          />
-        </Card>
-        <a href="https://merch.explorers.club" target="_blank">
-          <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-            <Text>
-              Open Merch Store <OpenInNewWindowIcon />
-            </Text>
-          </Card>
-        </a>
+        <Button onClick={handlePressCreateStream}>Create Stream</Button>
       </Flex>
     </Tabs.Content>
   );
@@ -315,7 +338,6 @@ const DesktopQrCode = () => {
 const GamesTabContent = () => {
   //   const send = useAppSend();
   const handlePressStart = useCallback(() => {
-    console.log('START!');
     // send({ type: 'START_ROOM' });
   }, []);
 
@@ -352,5 +374,5 @@ const GamesTabContent = () => {
 const MenuDrawerOverlay = styled(Dialog.Overlay, {
   position: 'fixed',
   inset: 0,
-  backgroundColor: 'rgba(0,0,0,.7)',
+  backgroundColor: 'white',
 });

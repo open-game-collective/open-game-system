@@ -23,23 +23,22 @@ import {
 import { MessageChannelEntitySchema } from '@schema/lib/message-channel';
 import { RoomCommandSchema, RoomEntitySchema } from '@schema/lib/room';
 import { SessionCommandSchema, SessionEntitySchema } from '@schema/lib/session';
+import { StreamEntitySchema } from '@schema/lib/stream';
 import { TriggerEntitySchema } from '@schema/lib/trigger';
-import {
-  UserCommandSchema,
-  UserEntitySchema,
-} from '@schema/lib/user';
+import { UserCommandSchema, UserEntitySchema } from '@schema/lib/user';
 import { z } from 'zod';
 
 export const EntityCommandSchema = z.union([
   ConnectionCommandSchema,
   SessionCommandSchema,
   RoomCommandSchema,
-  UserCommandSchema
+  UserCommandSchema,
   // StrikersGameCommandSchema,
 ]);
 
 export const EntitySchemas = {
   user: UserEntitySchema,
+  stream: StreamEntitySchema,
   room: RoomEntitySchema,
   session: SessionEntitySchema,
   connection: ConnectionEntitySchema,
@@ -62,6 +61,7 @@ export const EntitySchema = z.discriminatedUnion('schema', [
   SessionEntitySchema,
   RoomEntitySchema,
   UserEntitySchema,
+  StreamEntitySchema,
   TriggerEntitySchema,
   MessageChannelEntitySchema,
   StrikersGameEntitySchema,
