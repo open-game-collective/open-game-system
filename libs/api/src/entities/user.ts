@@ -31,11 +31,18 @@ import { createEntity } from '@api/ecs';
 import { entityRouter } from '@api/router/entity';
 
 const configurationSchema = z.object({
+  PUBLIC_STRIKERS_GAME_WEB_URL: z.string(),
   PUBLIC_VAPID_PUBLIC_KEY: z.string(),
+  PUBLIC_HLS_SERVER_URL: z.string(),
   VAPID_PRIVATE_KEY: z.string(),
 });
 
-const configuration = configurationSchema.parse(process.env);
+const {
+  PUBLIC_STRIKERS_GAME_WEB_URL,
+  PUBLIC_HLS_SERVER_URL,
+  PUBLIC_VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY,
+} = configurationSchema.parse(process.env);
 
 export const createUserMachine = ({
   world,
@@ -69,10 +76,12 @@ export const createUserMachine = ({
             }
 
             const streamId = generateSnowflakeId();
+
+            // const page = `${PUBLIC_STRIKERS_GAME_WEB_URL}/${entity.name}`;
+
             const token = jwt.sign(
               {
-                foo: 'bar',
-                // todo other context/data here
+                foo: "",
               },
               'my_private_key',
               {
@@ -231,8 +240,8 @@ export const createUserMachine = ({
           const options = {
             vapidDetails: {
               subject: 'mailto:push@strikers.game',
-              publicKey: configuration.PUBLIC_VAPID_PUBLIC_KEY,
-              privateKey: configuration.VAPID_PRIVATE_KEY,
+              publicKey: PUBLIC_VAPID_PUBLIC_KEY,
+              privateKey: VAPID_PRIVATE_KEY,
             },
           };
 
