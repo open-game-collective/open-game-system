@@ -133,7 +133,7 @@ new HLSServer(server, {
   provider: {
     exists: async function (req, callback) {
       const { token, ext } = getFileInfo(req.url);
-      const streamId = getStreamId(token);
+      const streamId = getStreamId(token)!;
       // assert(streamId, 'expected to find streamId in token from url');
 
       let exists = false;
