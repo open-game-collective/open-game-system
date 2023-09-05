@@ -1,7 +1,5 @@
+import { createEntity } from '@api/ecs';
 import { createChatMachine } from '@api/services/chat.service';
-import * as jwt from 'jsonwebtoken';
-import { faker } from '@faker-js/faker';
-import * as webpush from 'web-push';
 import {
   ConnectionEntity,
   Entity,
@@ -15,31 +13,27 @@ import {
   assert,
   assertEntitySchema,
   assertEventType,
-  noop,
 } from '@explorers-club/utils';
-import { World } from 'miniplex';
-import { assign, createMachine, spawn } from 'xstate';
-import { assign as assignImmer } from '@xstate/immer';
-import { entitiesById, generateSnowflakeId } from '..';
+import { faker } from '@faker-js/faker';
 import {
   DevicePushSubscription,
   DevicePushSubscriptionSchema,
-  RegisterPushSubscriptionCommandSchema,
 } from '@schema/lib/user';
+import * as jwt from 'jsonwebtoken';
+import { World } from 'miniplex';
+import * as webpush from 'web-push';
+import { assign, createMachine, spawn } from 'xstate';
 import { z } from 'zod';
-import { createEntity } from '@api/ecs';
-import { entityRouter } from '@api/router/entity';
+import { entitiesById, generateSnowflakeId } from '..';
 
 const configurationSchema = z.object({
   PUBLIC_STRIKERS_GAME_WEB_URL: z.string(),
   PUBLIC_VAPID_PUBLIC_KEY: z.string(),
-  PUBLIC_HLS_SERVER_URL: z.string(),
   VAPID_PRIVATE_KEY: z.string(),
 });
 
 const {
   PUBLIC_STRIKERS_GAME_WEB_URL,
-  PUBLIC_HLS_SERVER_URL,
   PUBLIC_VAPID_PUBLIC_KEY,
   VAPID_PRIVATE_KEY,
 } = configurationSchema.parse(process.env);
@@ -68,7 +62,10 @@ export const createUserMachine = ({
       },
       on: {
         CREATE_STREAM: {
-          actions: () => {
+          actions: (_, { roomId }) => {
+            const roomEntity = entitiesById.get(roomId);
+            assertEntitySchema(roomEntity, 'room');
+
             if (!entity.name) {
               // just choose a name
               // todo assert that user has one here instead
@@ -77,11 +74,10 @@ export const createUserMachine = ({
 
             const streamId = generateSnowflakeId();
 
-            // const page = `${PUBLIC_STRIKERS_GAME_WEB_URL}/${entity.name}`;
-
+            const url = `${PUBLIC_STRIKERS_GAME_WEB_URL}/${roomEntity.slug}`;
             const token = jwt.sign(
               {
-                foo: "",
+                url,
               },
               'my_private_key',
               {
@@ -95,7 +91,7 @@ export const createUserMachine = ({
               id: streamId,
               schema: 'stream',
               hostId: entity.id,
-              name: entity.name,
+              roomId,
               token,
             });
             world.add(streamEntity);

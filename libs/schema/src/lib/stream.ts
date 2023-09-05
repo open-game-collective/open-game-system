@@ -5,9 +5,9 @@ import { z } from 'zod';
 
 const StreamEntityPropsSchema = z.object({
   schema: StreamSchemaTypeLiteral,
+  roomId: SnowflakeIdSchema,
   hostId: SnowflakeIdSchema,
   token: z.string(),
-  name: z.string(),
 });
 
 // The HLS server will send these commands over HTTP

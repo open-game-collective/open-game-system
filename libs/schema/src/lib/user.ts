@@ -64,6 +64,7 @@ const CreateProfileCommandSchema = z.object({
 
 const CreateStreamCommandSchema = z.object({
   type: z.literal('CREATE_STREAM'),
+  roomId: SnowflakeIdSchema,
 });
 
 export const EnterChannelCommandSchema = z.object({

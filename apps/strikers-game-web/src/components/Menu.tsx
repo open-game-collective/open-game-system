@@ -40,6 +40,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useCurrentChannelId } from '@hooks/useCurrentChannelId';
 
 export const Menu = () => {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
@@ -195,6 +196,8 @@ const LobbyTabContent = () => {
 const StreamsTabContent = () => {
   // get the userEntity here
   const { entityStoreRegistry, entitiesById } = useContext(WorldContext);
+  const channelId = useCurrentChannelId();
+
   const menu$ = useContext(MenuContext);
   const { userEntity } = useStore(menu$, { keys: ['userEntity'] });
 
@@ -206,6 +209,7 @@ const StreamsTabContent = () => {
   const handlePressCreateStream = useCallback(() => {
     const sessionEntity = entityStoreRegistry.mySessionEntity.get();
     assert(sessionEntity, 'expected sessionEntity');
+    assert(channelId, 'expected channelId');
 
     const userEntity = entitiesById.get(sessionEntity.userId) as
       | UserEntity
@@ -214,8 +218,9 @@ const StreamsTabContent = () => {
 
     userEntity.send({
       type: 'CREATE_STREAM',
+      roomId: channelId,
     });
-  }, [entityStoreRegistry, entitiesById]);
+  }, [entityStoreRegistry, entitiesById, channelId]);
 
   return (
     <Tabs.Content value="streams">
@@ -232,7 +237,6 @@ const StreamsTabContent = () => {
 const PUBLIC_HLS_SERVER_URL = 'http://127.0.0.1';
 
 const Stream: FC<{ streamId: string }> = ({ streamId }) => {
-  const streamName = useEntityIdProp<StreamEntity, 'name'>(streamId, 'name');
   const streamToken = useEntityIdProp<StreamEntity, 'token'>(streamId, 'token');
   // const hostId = useEntityIdProp<StreamEntity>(streamId, 'hostId');
   const streamUrl = `${PUBLIC_HLS_SERVER_URL}/${streamToken}.m3u8`;
@@ -260,11 +264,10 @@ const Stream: FC<{ streamId: string }> = ({ streamId }) => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [streamUrlRef, streamName, streamUrl, setShowCopied, timeoutRef]);
+  }, [streamUrlRef, streamUrl, setShowCopied, timeoutRef]);
 
   return (
     <Box>
-      <Heading>{streamName}</Heading>
       <input disabled type="text" value={streamUrl} ref={streamUrlRef} />
       <Flex align="center" gap="2">
         <Button onClick={handlePressCopyUrl}>Copy URL</Button>
