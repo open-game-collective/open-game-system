@@ -136,11 +136,16 @@ new HLSServer(server, {
       const streamId = getStreamId(token);
       assert(streamId, 'expected to find streamId in token from url');
 
+      let exists = false;
       if (ext === 'm3u8') {
         await getOrCreateStream(streamId);
+        exists = true;
+      } else if (ext === 'ts') {
+        // todo check for file
+        exists = true;
       }
 
-      callback(null, true); // file exists and is ready to start streaming
+      callback(null, exists);
     },
     getManifestStream: async function (req, callback) {
       const { token } = getFileInfo(req.url);
@@ -169,7 +174,7 @@ const getFileInfo = (url?: string) => {
   assert(url, 'expected url');
   const { pathname } = new URL(url);
   const [_, fileName] = pathname.split('/');
-  const [token, ext] = fileName.split('.');
+  const [token, ext] = fileName.split(/.m3u8|.ts/); // only support .m3u8 and .ts
 
   const streamId = getStreamId(token);
   return { fileName, token, ext, streamId };

@@ -6,6 +6,7 @@ import { z } from 'zod';
 const StreamEntityPropsSchema = z.object({
   schema: StreamSchemaTypeLiteral,
   hostId: SnowflakeIdSchema,
+  token: z.string(),
   name: z.string(),
 });
 

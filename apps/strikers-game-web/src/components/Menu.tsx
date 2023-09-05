@@ -1,4 +1,5 @@
 import { Box } from '@atoms/Box';
+import { Text } from '@atoms/Text';
 import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
@@ -9,9 +10,14 @@ import { ScrollAreaRoot } from '@atoms/ScrollArea';
 import { LayoutContext } from '@context/LayoutContext';
 import { WorldContext } from '@context/WorldProvider';
 import { trpc } from '@explorers-club/api-client';
-import type { UserEntity } from '@explorers-club/schema';
+import type { StreamEntity, UserEntity } from '@explorers-club/schema';
 import { styled } from '@explorers-club/styles';
 import { assert, isMobileDevice } from '@explorers-club/utils';
+import { useEntityIdProp } from '@hooks/useEntityIdProp';
+import {
+  useEntitySelector,
+  useEntitySelectorDeepEqual,
+} from '@hooks/useEntitySelector';
 import { useMyUserEntity } from '@hooks/useMyUserEntity';
 import { useStore } from '@nanostores/react';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -24,12 +30,14 @@ import {
 import * as Tabs from '@radix-ui/react-tabs';
 import { map } from 'nanostores';
 import {
+  FC,
   ForwardedRef,
   createContext,
   forwardRef,
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -190,6 +198,11 @@ const StreamsTabContent = () => {
   const menu$ = useContext(MenuContext);
   const { userEntity } = useStore(menu$, { keys: ['userEntity'] });
 
+  const streamIds = useEntitySelectorDeepEqual(
+    userEntity,
+    (entity) => entity.streamIds
+  );
+
   const handlePressCreateStream = useCallback(() => {
     const sessionEntity = entityStoreRegistry.mySessionEntity.get();
     assert(sessionEntity, 'expected sessionEntity');
@@ -207,9 +220,57 @@ const StreamsTabContent = () => {
   return (
     <Tabs.Content value="streams">
       <Flex direction="column" gap="3">
+        {streamIds.map((streamId) => (
+          <Stream key={streamId} streamId={streamId} />
+        ))}
         <Button onClick={handlePressCreateStream}>Create Stream</Button>
       </Flex>
     </Tabs.Content>
+  );
+};
+
+const PUBLIC_HLS_SERVER_URL = 'http://127.0.0.1';
+
+const Stream: FC<{ streamId: string }> = ({ streamId }) => {
+  const streamName = useEntityIdProp<StreamEntity, 'name'>(streamId, 'name');
+  const streamToken = useEntityIdProp<StreamEntity, 'token'>(streamId, 'token');
+  // const hostId = useEntityIdProp<StreamEntity>(streamId, 'hostId');
+  const streamUrl = `${PUBLIC_HLS_SERVER_URL}/${streamToken}.m3u8`;
+
+  const [showCopied, setShowCopied] = useState(false);
+  const streamUrlRef = useRef<HTMLInputElement | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handlePressCopyUrl = useCallback(() => {
+    const el = streamUrlRef.current;
+    assert(el, 'expected ref to streamUrl element');
+    // Select the text field
+    el.select();
+    el.setSelectionRange(0, 99999); // For mobile devices
+
+    navigator.clipboard.writeText(streamUrl);
+    setShowCopied(true);
+
+    timeoutRef.current = setTimeout(() => {
+      setShowCopied(false);
+    }, 5000);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [streamUrlRef, streamName, streamUrl, setShowCopied, timeoutRef]);
+
+  return (
+    <Box>
+      <Heading>{streamName}</Heading>
+      <input disabled type="text" value={streamUrl} ref={streamUrlRef} />
+      <Flex align="center" gap="2">
+        <Button onClick={handlePressCopyUrl}>Copy URL</Button>
+        {showCopied && <Text>copied!</Text>}
+      </Flex>
+    </Box>
   );
 };
 

@@ -1,9 +1,12 @@
 import { createChatMachine } from '@api/services/chat.service';
+import * as jwt from 'jsonwebtoken';
+import { faker } from '@faker-js/faker';
 import * as webpush from 'web-push';
 import {
   ConnectionEntity,
   Entity,
   NotificationPayload,
+  StreamEntity,
   UserCommand,
   UserContext,
   WithSenderId,
@@ -17,13 +20,15 @@ import {
 import { World } from 'miniplex';
 import { assign, createMachine, spawn } from 'xstate';
 import { assign as assignImmer } from '@xstate/immer';
-import { entitiesById } from '..';
+import { entitiesById, generateSnowflakeId } from '..';
 import {
   DevicePushSubscription,
   DevicePushSubscriptionSchema,
   RegisterPushSubscriptionCommandSchema,
 } from '@schema/lib/user';
 import { z } from 'zod';
+import { createEntity } from '@api/ecs';
+import { entityRouter } from '@api/router/entity';
 
 const configurationSchema = z.object({
   PUBLIC_VAPID_PUBLIC_KEY: z.string(),
@@ -55,6 +60,39 @@ export const createUserMachine = ({
         events: {} as WithSenderId<UserCommand>, // warning sendinerId not present for initialize
       },
       on: {
+        CREATE_STREAM: {
+          actions: () => {
+            if (!entity.name) {
+              // just choose a name
+              // todo assert that user has one here instead
+              entity.name = faker.person.firstName();
+            }
+
+            const streamId = generateSnowflakeId();
+            const token = jwt.sign(
+              {
+                foo: 'bar',
+                // todo other context/data here
+              },
+              'my_private_key',
+              {
+                subject: streamId,
+                expiresIn: '30d',
+                jwtid: 'STREAM',
+              }
+            );
+
+            const streamEntity = createEntity<StreamEntity>({
+              id: streamId,
+              schema: 'stream',
+              hostId: entity.id,
+              name: entity.name,
+              token,
+            });
+            world.add(streamEntity);
+            entity.streamIds = [...entity.streamIds, streamId];
+          },
+        },
         DISCONNECT: {
           actions: (context, event) => {
             console.log('dc user', event);
