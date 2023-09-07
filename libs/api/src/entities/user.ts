@@ -62,7 +62,10 @@ export const createUserMachine = ({
       },
       on: {
         CREATE_STREAM: {
-          actions: (_, { roomId }) => {
+          actions: (_, { roomId, senderId }) => {
+            const connectionEntity = entitiesById.get(senderId);
+            assertEntitySchema(connectionEntity, 'connection');
+
             const roomEntity = entitiesById.get(roomId);
             assertEntitySchema(roomEntity, 'room');
 
@@ -78,12 +81,14 @@ export const createUserMachine = ({
             const token = jwt.sign(
               {
                 url,
+                sessionId: connectionEntity.sessionId,
+                // schema: 'session',
+                // scope: ['stream.view'],
               },
               'my_private_key',
               {
                 subject: streamId,
                 expiresIn: '30d',
-                jwtid: 'STREAM',
               }
             );
 

@@ -234,7 +234,7 @@ const StreamsTabContent = () => {
   );
 };
 
-const PUBLIC_HLS_SERVER_URL = 'http://127.0.0.1';
+const PUBLIC_HLS_SERVER_URL = 'http://127.0.0.1:3333';
 
 const Stream: FC<{ streamId: string }> = ({ streamId }) => {
   const streamToken = useEntityIdProp<StreamEntity, 'token'>(streamId, 'token');

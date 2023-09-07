@@ -1,4 +1,7 @@
 // import { assert } from '@explorers-club/utils';
+import crypto from 'crypto';
+import { generateSnowflakeId } from '@api/ids';
+import { assert } from '@explorers-club/utils';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
 import HLSServer from 'hls-server';
@@ -6,21 +9,19 @@ import http from 'http';
 import * as JWT from 'jsonwebtoken';
 import { getStream, launch } from 'puppeteer-stream';
 import { Transform } from 'stream';
+import { z } from 'zod';
 
-const getStreamId = (accessToken: string) => {
-  const parsedAccessToken = JWT.verify(accessToken, 'my_private_key');
-  if (
-    typeof parsedAccessToken === 'object' &&
-    parsedAccessToken &&
-    'stream_id' in parsedAccessToken &&
-    typeof parsedAccessToken['stream_id'] === 'string'
-  ) {
-    return parsedAccessToken.stream_id;
+export const envSchema = z.object({
+  PUBLIC_STRIKERS_GAME_WEB_URL: z.string(),
+});
+
+const { PUBLIC_STRIKERS_GAME_WEB_URL } = envSchema.parse(process.env);
+
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv extends z.infer<typeof envSchema> {}
   }
-  return null;
-};
-
-type AnyFunction = (...args: any[]) => any;
+}
 
 var server = http.createServer();
 
@@ -29,9 +30,20 @@ const getOrCreateStream = (() => {
   const streamMap = new Map<string, Transform>();
   const callbacksMap = new Map<string, AnyFunction[]>();
 
-  return async (streamId: string) => {
+  return async ({
+    token,
+    streamId,
+    sessionId,
+    streamUrl,
+  }: {
+    token: string;
+    streamId: string;
+    sessionId: string;
+    streamUrl: string;
+  }) => {
     let stream = streamMap.get(streamId);
     if (stream) {
+      console.log('stream already exists!');
       return stream;
     }
 
@@ -65,7 +77,67 @@ const getOrCreateStream = (() => {
     // set user agent (override the default headless User Agent)
     await page.setUserAgent('OGS HLS-Server v0.0.1');
 
-    // await page.goto(STRIKERS_GAME_WEB_URL);
+    const refreshToken = JWT.sign(
+      {
+        sessionId,
+        deviceId: generateSnowflakeId(),
+      },
+      'my_private_key',
+      {
+        subject: streamId,
+        audience: 'STRIKERS_GAME_WEB',
+        issuer: 'HLS_SERVER',
+        expiresIn: '30d',
+      }
+    );
+
+    // await page
+    // Set a cookie
+    const domain = PUBLIC_STRIKERS_GAME_WEB_URL.replace('https://', ''); // Make sure the domain matches the site you navigated to
+    await page.setCookie({
+      name: 'refreshToken',
+      value: refreshToken,
+      domain, // Make sure the domain matches the site you navigated to
+      expires: Date.now() / 1000 + 90 * 24 * 60 * 60, // 90 days
+      // There are other optional properties too, like secure, httpOnly, etc.
+    });
+
+    // const accessToken = JWT.sign(
+    //   {
+    //     url,
+    //     sessionId: connectionEntity.sessionId,
+    //     // schema: 'session',
+    //     // scope: ['stream.view'],
+    //   },
+    //   'my_private_key',
+    //   {
+    //     subject: streamId,
+    //     expiresIn: '30d',
+    //   }
+    // );
+
+    // const accessToken = JWT.sign(
+    //   {
+    //     url: streamUrl,
+    //     // roles
+    //   },
+    //   'my_private_key',
+    //   {
+    //     subject: connectionId,
+    //     issuer: 'strikers-game-web',
+    //     // audience: "", // todo https://api.opengame.org
+    //     expiresIn: '30d',
+    //     jwtid: 'ONE_TIME_TOKEN',
+    //   }
+    // );
+
+    // await page.setExtraHTTPHeaders({
+    //   Authorization: `Bearer ${accessToken}`,
+    // });
+
+    // todo how do we set either a cooking or 'Authorization: Bearing {TOKEN}' header
+
+    await page.goto(streamUrl);
 
     // For some reason screencast fails if started too early
     await new Promise<null>((resolve) => {
@@ -73,12 +145,12 @@ const getOrCreateStream = (() => {
         resolve(null);
       }, 2000);
     });
-
     console.log('getting stream');
+
     stream = await getStream(page, { audio: true, video: true });
     streamMap.set(streamId, stream);
-    console.log('sending stream to ffmpeg');
-    const m3u8path = `./tmp/${streamId}.m3u8`;
+    const m3u8path = getManifestFilepath(token);
+    console.log('sending to ffmpeg');
 
     await new Promise((resolve) => {
       ffmpeg(stream)
@@ -132,36 +204,30 @@ const getOrCreateStream = (() => {
 new HLSServer(server, {
   provider: {
     exists: async function (req, callback) {
-      const { token, ext } = getFileInfo(req.url);
-      const streamId = getStreamId(token)!;
-      // assert(streamId, 'expected to find streamId in token from url');
-
-      let exists = false;
+      const { baseFilename, ext } = getFileInfo(req.url);
       if (ext === 'm3u8') {
-        await getOrCreateStream(streamId);
-        exists = true;
+        const { token, streamUrl, streamId, sessionId } =
+          getStreamInfoFromToken(baseFilename);
+        await getOrCreateStream({ token, streamId, streamUrl, sessionId });
+        callback(null, true);
       } else if (ext === 'ts') {
-        // todo check for file
-        exists = true;
+        const filePath = getSegmentFilepath(baseFilename);
+        fs.exists(filePath, (exists) => {
+          callback(null, exists);
+        });
+      } else {
+        callback(new Error('unhandled file type' + ext), false);
       }
-
-      callback(null, exists);
     },
     getManifestStream: async function (req, callback) {
-      const { token } = getFileInfo(req.url);
-      const streamId = getStreamId(token)!;
-      // assert(streamId, 'expected to find streamId in token from url');
-
-      const m3u8path = `./tmp/${streamId}.m3u8`;
+      const { baseFilename, ext } = getFileInfo(req.url);
+      const m3u8path = getManifestFilepath(baseFilename);
       const stream = fs.createReadStream(m3u8path);
       callback(null, stream);
     },
     getSegmentStream: function (req, callback) {
-      const { token } = getFileInfo(req.url);
-      const streamId = getStreamId(token)!;
-      // assert(streamId, 'expected to find streamId in token from url');
-
-      const segmentPath = `./tmp/${streamId}.ts`;
+      const { baseFilename, ext } = getFileInfo(req.url);
+      const segmentPath = getSegmentFilepath(baseFilename);
       const stream = fs.createReadStream(segmentPath);
       callback(null, stream);
     },
@@ -170,12 +236,70 @@ new HLSServer(server, {
 server.listen(process.env.PORT || 3333);
 
 // todo fix type on request to have not optional url
-const getFileInfo = (url?: string) => {
-  // assert(url, 'expected url');
-  const { pathname } = new URL(url!);
-  const [_, fileName] = pathname.split('/');
-  const [token, ext] = fileName.split(/.m3u8|.ts/); // only support .m3u8 and .ts
-
+const getStreamInfoFromToken = (token: string) => {
   const streamId = getStreamId(token);
-  return { fileName, token, ext, streamId };
+  const streamUrl = getStreamUrl(token);
+  const sessionId = getSessionId(token);
+  assert(streamId, 'expected streamId when parsing token from ' + token);
+  assert(streamUrl, 'expected streamUrl when parsing token from ' + token);
+  assert(sessionId, 'expected sessionId when parsing token from ' + token);
+  return { token, streamId, streamUrl, sessionId };
 };
+
+// todo fix not able to import from utils
+// function assert<T>(expression: T, errorMessage: string): asserts expression {
+//   if (!expression) {
+//     throw new Error(errorMessage);
+//   }
+// }
+
+const getFileInfo = (pathname?: string) => {
+  assert(pathname, 'expected pathname');
+  const [_, fileName] = pathname.split('/');
+  const [baseFilename, ext] = fileName
+    .match(/(.*?)(?:\.([^\.]+))?$/)
+    ?.slice(1) || ['', ''];
+  return { baseFilename, ext };
+};
+
+const getSessionId = (token: string) => {
+  const parsed = JWT.verify(token, 'my_private_key');
+  if (
+    typeof parsed === 'object' &&
+    parsed &&
+    'sessionId' in parsed &&
+    typeof parsed['sessionId'] === 'string'
+  ) {
+    return parsed.sessionId;
+  }
+  return null;
+};
+
+const getStreamUrl = (token: string) => {
+  const parsed = JWT.verify(token, 'my_private_key');
+  if (
+    typeof parsed === 'object' &&
+    parsed &&
+    'url' in parsed &&
+    typeof parsed['url'] === 'string'
+  ) {
+    return parsed.url;
+  }
+  return null;
+};
+
+const getStreamId = (token: string) => {
+  const parsed = JWT.verify(token, 'my_private_key');
+  return parsed.sub as string;
+};
+
+type AnyFunction = (...args: any[]) => any;
+
+function getManifestFilepath(token: string): string {
+  const hash = crypto.createHash('sha256').update(token).digest('hex');
+  return `./tmp/${hash}.m3u8`;
+}
+
+function getSegmentFilepath(filename: string): string {
+  return `./tmp/${filename}.ts`;
+}

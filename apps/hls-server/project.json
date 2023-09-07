@@ -5,35 +5,22 @@
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nx/esbuild:esbuild",
+      "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "platform": "node",
+        "target": "node",
+        "compiler": "tsc",
         "outputPath": "dist/apps/hls-server",
-        "format": ["cjs"],
-        "bundle": false,
         "main": "apps/hls-server/src/main.ts",
         "tsConfig": "apps/hls-server/tsconfig.app.json",
         "assets": ["apps/hls-server/src/assets"],
-        "generatePackageJson": true,
-        "esbuildOptions": {
-          "sourcemap": true,
-          "outExtension": {
-            ".js": ".js"
-          }
-        }
+        "isolatedConfig": true,
+        "webpackConfig": "apps/hls-server/webpack.config.js"
       },
       "configurations": {
         "development": {},
-        "production": {
-          "esbuildOptions": {
-            "sourcemap": false,
-            "outExtension": {
-              ".js": ".js"
-            }
-          }
-        }
+        "production": {}
       }
     },
     "serve": {

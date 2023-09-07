@@ -1,12 +1,14 @@
 import { generateSnowflakeId } from '@api/ids';
-import * as jose from 'jose';
+import type { ApiRouter } from '@api/index';
+import { transformer } from '@api/transformer';
+import { assert } from '@explorers-club/utils';
 import type { RouteProps, SnowflakeId } from '@schema/types';
+import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import type { AstroCookies, MiddlewareResponseHandler } from 'astro';
 import { defineMiddleware, sequence } from 'astro/middleware';
+import * as jose from 'jose';
+import * as JWT from 'jsonwebtoken';
 import { getRouteProps } from './routing';
-import type { ApiRouter } from '@api/index';
-import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
-import { transformer } from '@api/transformer';
 
 const alg = 'HS256';
 export interface MiddlewareProps {
@@ -21,11 +23,11 @@ const authHandler: MiddlewareResponseHandler = defineMiddleware(
 
     const routeProps = getRouteProps(url);
 
-    const { accessToken, connectionId } = await initAccessToken(
+    const { accessToken, connectionId } = await initAccessToken({
       cookies,
       routeProps,
-      url.href
-    );
+      url: url.href,
+    });
 
     locals.accessToken = accessToken;
     locals.connectionId = connectionId;
@@ -34,93 +36,72 @@ const authHandler: MiddlewareResponseHandler = defineMiddleware(
   }
 );
 
-// export const onRequest: MiddlewareResponseHandler = (context, next) => {
-//   const { cookies, url, locals } = context;
-//   const routeProps = getRouteProps(url);
-//   console.log({ routeProps });
-
-//   let deviceId = cookies.get('deviceId').value;
-//   let sessionId = cookies.get('sessionId').value;
-//   let accessToken = cookies.get('accessToken').value;
-
-//   console.log({ deviceId });
-//   if (!deviceId) {
-//     deviceId = generateSnowflakeId();
-//     cookies.set('deviceId', deviceId, {
-//       maxAge: 99999999999999,
-//     });
-//   }
-//   console.log({ deviceId });
-
-//   if (!sessionId) {
-//     sessionId = generateSnowflakeId();
-//     cookies.set('sessionId', sessionId, {
-//       maxAge: 30 * 24 * 60 * 60, // 30 days
-//     });
-//   }
-//   console.log({ sessionId });
-
-//   const { accessToken, connectionId } = initAccessToken(
-//     cookies,
-//     routeProps,
-//     url.href
-//   );
-//   console.log({ accessToken, connectionId });
-
-//   locals.accessToken = accessToken;
-//   locals.connectionId = connectionId;
-
-//   return next();
-// };
-
 export const onRequest = sequence(authHandler);
 
-const initAccessToken = async (
-  cookies: AstroCookies,
-  routeProps: RouteProps,
-  url: string
-) => {
-  let deviceId = cookies.get('deviceId').value;
-  let sessionId = cookies.get('sessionId').value;
+const initAccessToken = async ({
+  cookies,
+  routeProps,
+  url,
+}: {
+  cookies: AstroCookies;
+  routeProps: RouteProps;
+  url: string;
+}) => {
+  let refreshToken = cookies.get('refreshToken').value;
   let accessToken = cookies.get('accessToken').value;
 
-  if (!deviceId) {
-    deviceId = generateSnowflakeId();
-    cookies.set('deviceId', deviceId, {
-      maxAge: 99999999999999,
-    });
-  }
-
-  if (!sessionId) {
-    sessionId = generateSnowflakeId();
-    cookies.set('sessionId', sessionId, {
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-    });
-  }
+  let deviceId;
+  let sessionId;
 
   const connectionId = generateSnowflakeId();
 
-  // if (!accessToken) {
-  //   accessToken = '';
-  // }
+  // If no refresh token, make one with
+  // a fresh sessionId id and deviceId
+  if (!refreshToken) {
+    deviceId = generateSnowflakeId();
+    sessionId = generateSnowflakeId();
+    const refreshJwt = new jose.SignJWT({
+      deviceId,
+      sessionId,
+    })
+      .setProtectedHeader({ alg })
+      .setSubject(connectionId)
+      .setAudience('STRIKERS_GAME_WEB')
+      .setExpirationTime('90d')
+      .setIssuedAt()
+      .setIssuer('STRIKERS_GAME_WEB');
+    const secret = new TextEncoder().encode('my_private_key');
+    refreshToken = await refreshJwt.sign(secret);
+
+    cookies.set('refreshToken', refreshToken, {
+      maxAge: 30 * 24 * 60 * 60, // 90 days
+    });
+    // Otherwise if refreshToken,
+    // parse it, get the sessionId and deviceId and make
+    // a new accessToken / connection
+  } else {
+    console.log({ refreshToken });
+    // if the refresh token is expired, create a new one
+    const parsed = JWT.verify(refreshToken, 'my_private_key', {
+      audience: 'STRIKERS_GAME_WEB',
+    });
+    console.log({ parsed });
+    assert(
+      typeof parsed === 'object',
+      'expected JWT parsed payload to be object'
+    );
+
+    deviceId = parsed.deviceId;
+    sessionId = parsed.sessionId;
+
+    assert(deviceId, "expected 'deviceId' from refreshToken");
+    assert(sessionId, "expected 'sessionId' from refreshToken");
+
+    // todo refresh the refresh token here
+  }
 
   if (!accessToken) {
-    // const payload = {
-    //   deviceId,
-    //   sessionId,
-    //   initialRouteProps: routeProps,
-    //   url,
-    //   jwtid: 'ACCESS_TOKEN', // JWT ID
-    //   sub: connectionId, // Subject
-    // };
-    // const secret = 'my_private_key'; // You should store this securely
-    // accessToken = jwt.encode(payload, secret, undefined, {
-    //   header: {
-    //     exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // Expires in 1 day
-    //     iss: 'explorers-game-web', // Issuer
-    //   },
-    // });
-    const jwt = new jose.SignJWT({
+    const accessJwt = new jose.SignJWT({
       deviceId,
       sessionId,
       initialRouteProps: routeProps,
@@ -129,10 +110,10 @@ const initAccessToken = async (
       .setProtectedHeader({ alg })
       .setSubject(connectionId)
       .setExpirationTime('1d')
-      .setJti('ACCESS_TOKEN')
-      .setIssuer('STORYBOOK');
+      .setIssuedAt()
+      .setIssuer('STRIKERS_GAME_WEB');
     const secret = new TextEncoder().encode('my_private_key');
-    accessToken = await jwt.sign(secret);
+    accessToken = await accessJwt.sign(secret);
 
     cookies.set('accessToken', accessToken, {
       maxAge: 24 * 60 * 60, // 24 hours
@@ -167,23 +148,3 @@ const initAccessToken = async (
 
   return { accessToken, connectionId };
 };
-
-// todo do we still need refreshToken now? when?
-
-// if (!refreshToken) {
-//   refreshToken = JWT.sign(
-//     {
-//       deviceId,
-//     },
-//     'my_private_key',
-//     {
-//       subject: randomUUID(),
-//       expiresIn: '30d',
-//       // issuer: 'explorers-game-web',
-//       jwtid: 'REFRESH_TOKEN',
-//     }
-//   );
-//   cookies.set('refreshToken', refreshToken, {
-//     maxAge: 30 * 24 * 60 * 60,
-//   });
-// }
