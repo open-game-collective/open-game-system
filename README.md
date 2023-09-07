@@ -17,11 +17,13 @@ Ensure you have `node` 16+ running with `npm` and `npx` in your local environmen
 
 The following local variables are required when running the application.
 
+```
 PUBLIC_API_WS_SERVER_URL=wss://my-dev-env-3001.opengame.org
 PUBLIC_API_HTTP_SERVER_URL=https://my-dev-env-3001.opengame.org/trpc
 PUBLIC_HLS_SERVER_URL=https://my-dev-env-3333.opengame.org/
 PUBLIC_STRIKERS_GAME_WEB_URL=https://my-dev-env-3000.opengame.org
 PUBLIC_VAPID_PUBLIC_KEY=BDf_JKlIjFR59lVYAo_AqP3FPeTwf9lVYFPeT-ozuaijg4BTAo_AqP30iNJyRuC-IN3YdA
 VAPID_PRIVATE_KEY=UpB1CcUpSUq39kiKwHVJDFTmDPbpSUq39eetxsIXJ67R4
+```
 
 Consider using `cloudflared` to set up a tunnel to local ports. Request to have your client added to a subdomain for *.dev.opengame.org.
