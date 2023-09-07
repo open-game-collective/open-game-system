@@ -28,6 +28,15 @@
     },
     "sync": {
       "executor": "@nxtensions/astro:sync"
+    },
+    "serve": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "host": "0.0.0.0",
+        "buildTarget": "chromecast-receiver-web:build:production",
+        "parallel": false,
+        "staticFilePath": "dist/apps/chromecast-receiver-web"
+      }
     }
   },
   "tags": []
