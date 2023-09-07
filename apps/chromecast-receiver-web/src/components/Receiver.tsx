@@ -11,5 +11,9 @@ export default function Receiver() {
   //     isCartOpen.set(true);
   //     addCartItem(item);
   //   }
-  return <div>hi</div>;
+  return (
+    <div>
+      <img src="/ogs_final.svg" alt="ome game collective" />
+    </div>
+  );
 }
