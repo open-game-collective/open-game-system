@@ -33,7 +33,7 @@
       "executor": "@nx/web:file-server",
       "options": {
         "host": "0.0.0.0",
-        "buildTarget": "chromecast-receiver-web:build:production",
+        "buildTarget": "chromecast-receiver-web:build",
         "parallel": false,
         "staticFilePath": "dist/apps/chromecast-receiver-web"
       }
