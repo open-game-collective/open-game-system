@@ -1,10 +1,13 @@
 export default function Receiver() {
-  console.log('HELLO!');
+  const context = cast.framework.CastReceiverContext.getInstance();
+  const playerManager = context.getPlayerManager();
+
+  context.start();
+  console.log('HELLO!', context, playerManager);
   //   function addToCart(e: SubmitEvent) {
   //     e.preventDefault();
   //     isCartOpen.set(true);
   //     addCartItem(item);
   //   }
-
   return <div>hi</div>;
 }
