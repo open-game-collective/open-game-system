@@ -1,10 +1,8 @@
 // See explanation at https://trpc.io/docs/context#inner-and-outer-context
 // Inner context is context which doesn't depend on the request (e.g. DB)
-import { Database } from '@explorers-club/database';
 import { ConnectionEntity, SnowflakeId } from '@explorers-club/schema';
 import { assert } from '@explorers-club/utils';
 import { ConnectionAccessTokenPropsSchema } from '@schema/common';
-import { createClient } from '@supabase/supabase-js';
 import { type inferAsyncReturnType } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { IncomingMessage } from 'http';

@@ -93,6 +93,7 @@
       "@screens/*": ["libs/components/src/screens/*"],
       "@state/*": ["libs/components/src/state/*"],
       "@storybook-decorators/*": ["libs/components/src/decorators/*"],
+      "@stream/*": ["libs/stream/src/*"],
       "@strikers/*": ["games/strikers/src/*"],
       "@templates/*": ["libs/components/src/templates/*"]
     }

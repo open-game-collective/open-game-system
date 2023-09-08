@@ -23,12 +23,20 @@ declare global {
   }
 }
 
+// Create a mediasoup Worker.
+const worker = await mediasoup.createWorker({
+  rtcMinPort: mediasoupConfig.worker.rtcMinPort,
+  rtcMaxPort: mediasoupConfig.worker.rtcMaxPort
+});
+
+
 var server = http.createServer();
 
 const getOrCreateStream = (() => {
   const loadingMap = new Map<string, boolean>();
   const streamMap = new Map<string, Transform>();
   const callbacksMap = new Map<string, AnyFunction[]>();
+  let portIndex = 5200; // holds a port for rtp to use for the stream
 
   return async ({
     token,
@@ -57,8 +65,10 @@ const getOrCreateStream = (() => {
       return streamMap.get(streamId);
     }
 
+    // a streamId we havent seen before, load it
     loadingMap.set(streamId, true);
     let resolved = false;
+    portIndex = portIndex + 2; // tracks ports so that each stream has its own rtp port from ffmpeg, increment by 2
     console.log('launching browser');
 
     const browser = await launch({
@@ -149,44 +159,25 @@ const getOrCreateStream = (() => {
 
     stream = await getStream(page, { audio: true, video: true });
     streamMap.set(streamId, stream);
-    const m3u8path = getManifestFilepath(token);
+    // const m3u8path = getManifestFilepath(token);
+    const rtpUrl = `rtp://127.0.0.1:${portIndex}`;
     console.log('sending to ffmpeg');
 
     await new Promise((resolve) => {
       ffmpeg(stream)
         .outputOptions([
           '-fflags nobuffer',
+          '-r 24',
+          '-g 24',
+          '-f rtp',
           //   "-vcodec libx264",
           //   "-preset superfast",
           //   "-pix_fmt yuv420p",
-          '-r 24',
-          '-g 24',
-          '-hls_time 1',
-          '-hls_list_size 3',
-          '-hls_flags delete_segments',
-          '-f hls',
         ])
-        // .on('start', function (commandLine) {
-        //   console.log('STARTED!', commandLine);
-        //   //   resolve(null);
-        // })
         .on('progress', function (progressData) {
-          if (!resolved) {
-            fs.exists(m3u8path, (exists) => {
-              if (exists && !resolved) {
-                resolved = true;
-                resolve(null);
-              }
-            });
-          }
+          console.log({ progressData });
         })
-        // .on('stderr', function (stdErrLine) {
-        //   console.log('An error occurred: ' + stdErrLine);
-        // })
-        // .on('error', function (err) {
-        //   console.log('An error occurred: ' + err.message);
-        // })
-        .output(m3u8path)
+        .output(rtpUrl)
         .run();
     });
 
