@@ -1,0 +1,8 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { App } from '../components/App';
+---
+
+<Layout title="Open Game System">
+  <App client:only="react" />
+</Layout>
