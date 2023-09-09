@@ -1,33 +1,42 @@
+import { transformer } from '@api/transformer';
+import * as mediasoupClient from 'mediasoup-client';
 import type { StreamRouter } from '@stream/router';
 import { createTRPCProxyClient, createWSClient, wsLink } from '@trpc/client';
-import { useState } from 'preact/hooks';
-import { useEffect } from 'react';
+import { useEffect } from 'preact/hooks';
 
 export default function Receiver() {
   // create persistent WebSocket connection
-  const [wsClient] = useState(
-    createWSClient({
+  // const [wsClient] = useState(
+  // );
+
+
+  useEffect(() => {
+    const wsClient = createWSClient({
       url: `ws://localhost:3334`,
-    })
-  );
-  // configure TRPCClient to use WebSockets transport
-  const [client] = useState(
-    createTRPCProxyClient<StreamRouter>({
+    });
+    const client = createTRPCProxyClient<StreamRouter>({
       links: [
         wsLink({
           client: wsClient,
         }),
       ],
-    })
-  );
-
-  useEffect(() => {
-    client.onAdd.subscribe(undefined, {
-      onData(value) {
-        console.log({ value });
-      },
+      transformer,
     });
-  }, [client]);
+    client.state.subscribe(
+      { id: 'foo' },
+      {
+        onData(value) {
+          console.log({ value });
+        },
+      }
+    );
+    // client.
+    // client.onAdd.subscribe(undefined, {
+    //   onData(value) {
+    //     console.log({ value });
+    //   },
+    // });
+  }, []);
 
   return (
     <div
