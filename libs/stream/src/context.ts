@@ -5,7 +5,7 @@ import { types } from 'mediasoup';
 
 export type CreateContextOptions = {
   worker: types.Worker<types.AppData>;
-  // router: types.Router<types.AppData>;
+  connectionId: string;
 };
 
 export const createContextInner = async (ctx: CreateContextOptions) => {

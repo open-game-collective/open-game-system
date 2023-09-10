@@ -1,16 +1,22 @@
+import { TRPCContext } from '@stream/context';
 import { initTRPC } from '@trpc/server';
 import { observable } from '@trpc/server/observable';
 import ffmpeg from 'fluent-ffmpeg';
-import { AppData, Router, Worker } from 'mediasoup/node/lib/types';
-// import { map, type MapStore } from 'nanostores';
-// import type { MapStore } from 'nanostores';
-// import { map } from 'nanostores';
+import { produce } from 'immer';
+import {
+  AppData,
+  Consumer,
+  DtlsParameters,
+  PlainTransport,
+  Producer,
+  Router,
+  RtpCapabilities,
+  Transport,
+  Worker,
+} from 'mediasoup/node/lib/types';
 import { getStream, launch } from 'puppeteer-stream';
-import { z } from 'zod';
-// import { assert } from '@explorers-club/utils';
-import { TRPCContext } from '@stream/context';
 import transformer from 'superjson';
-// import { generateSnowflakeId } from '@api/ids';
+import { z } from 'zod';
 
 const envSchema = z.object({
   PUBLIC_STRIKERS_GAME_WEB_URL: z.string(),
@@ -28,26 +34,46 @@ const t = initTRPC.context<TRPCContext>().create({
 
 const StreamIdSchema = z.string();
 
-const PeerSchema = z.object({
+const StreamClientSchema = z.object({
   joinTs: z.date(),
   lastSeenTs: z.date(),
-  media: z.any(),
+  media: z.record(
+    z.object({
+      paused: z.boolean(),
+    })
+  ),
   consumerLayers: z.any(),
   stats: z.any(),
+  transport: z.custom<Transport<AppData>>().optional(),
 });
-
-const PeersSchema = z.array(PeerSchema);
-type Peers = z.infer<typeof PeersSchema>;
 
 type StreamInfo = {
   id: z.infer<typeof StreamIdSchema>;
-  peers: Peers;
+  clients: Record<string, z.infer<typeof StreamClientSchema>>;
+  consumers: Record<string, Consumer<AppData>>;
+  audioProducer: Producer<AppData>;
+  audioTransport: PlainTransport<AppData>;
+  videoProducer: Producer<AppData>;
+  videoTransport: PlainTransport<AppData>;
   router: Router<AppData>;
 };
 
-// type StreamInfoMap = MapStore<StreamInfo>;
-
 const streamInfoMap = new Map<string, StreamInfo>();
+
+type StreamInfoUpdater = (draft: StreamInfo) => void;
+
+const updateStreamInfo = (streamId: string, updater: StreamInfoUpdater) => {
+  const currentStreamInfo = streamInfoMap.get(streamId);
+
+  if (!currentStreamInfo) {
+    throw new Error(`StreamInfo for streamId ${streamId} not found`);
+  }
+
+  const updatedStreamInfo = produce(currentStreamInfo, updater);
+  streamInfoMap.set(streamId, updatedStreamInfo);
+
+  return streamInfoMap.get(streamId)!;
+};
 
 type PublicStreamState = {
   id: string;
@@ -64,8 +90,9 @@ const getStreamInfo = async ({
   worker: Worker<AppData>;
 }) => {
   // Check if stream info is already available.
-  if (streamInfoMap.has(id)) {
-    return streamInfoMap.get(id);
+  let streamInfo = streamInfoMap.get(id);
+  if (streamInfo) {
+    return streamInfo;
   }
 
   // If another request is already creating the stream, wait for it.
@@ -76,7 +103,7 @@ const getStreamInfo = async ({
       }
       streamCreationCallbacks.get(id)!.push(resolve);
     });
-    return streamInfoMap.get(id);
+    return streamInfoMap.get(id)!;
   }
 
   streamCreationInProgress.add(id);
@@ -104,9 +131,6 @@ const getStreamInfo = async ({
     comedia: true,
   });
   const audioRtpPort = audioTransport.tuple.localPort;
-  // => 3301
-
-  // Read the transport local RTCP port.
   const audioRtcpPort = audioTransport.rtcpTuple?.localPort;
   assert(audioRtcpPort, 'expected audioRtcpPort');
 
@@ -115,7 +139,6 @@ const getStreamInfo = async ({
     rtcpMux: false,
     comedia: true,
   });
-
   const videoRtpPort = videoTransport.tuple.localPort;
   const videoRtcpPort = videoTransport.rtcpTuple?.localPort;
   assert(videoRtcpPort, 'expected videoRtcpprt');
@@ -139,6 +162,7 @@ const getStreamInfo = async ({
 
   const videoProducer = await videoTransport.produce({
     kind: 'video',
+    // paused: true,
     rtpParameters: {
       codecs: [
         {
@@ -156,37 +180,18 @@ const getStreamInfo = async ({
     // executablePath,
     channel: 'chrome',
     // https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md see for details about no-sandbox, might need to adjust Dockerfile
-    args: ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox'],
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    // args: ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox'],
     defaultViewport: {
       width: 1920,
       height: 1080,
     },
   });
   const page = await browser.newPage();
-  // const refreshToken = JWT.sign(
-  //   {
-  //     sessionId: '',
-  //     deviceId: '',
-  //   },
-  //   'my_private_key',
-  //   {
-  //     subject: '',
-  //     audience: 'STRIKERS_GAME_WEB',
-  //     issuer: 'HLS_SERVER',
-  //     expiresIn: '30d',
-  //   }
-  // );
-  // const domain = PUBLIC_STRIKERS_GAME_WEB_URL.replace('https://', ''); // Make sure the domain matches the site you navigated to
-  // await page.setCookie({
-  //   name: 'refreshToken',
-  //   value: refreshToken,
-  //   domain, // Make sure the domain matches the site you navigated to
-  //   expires: Date.now() / 1000 + 90 * 24 * 60 * 60, // 90 days
-  //   // There are other optional properties too, like secure, httpOnly, etc.
-  // });
-  // set user agent (override the default headless User Agent)
-  await page.setUserAgent('OGS HLS-Server v0.0.1');
-  await page.goto('https://opengame.org');
+  await page.setUserAgent('OGS StreamServer v0.0.1');
+  await page.goto(
+    'https://app-opengame-org-web-open-game-system-pr-21.up.railway.app/'
+  );
 
   // For some reason screencast fails if started too early
   await new Promise<null>((resolve) => {
@@ -200,6 +205,7 @@ const getStreamInfo = async ({
   await new Promise((resolve) => {
     ffmpeg(stream)
       // .withNativeFramerate()
+      .inputOptions(['-re'])
       .outputOptions([
         '-map 0:a:0',
         '-acodec libopus',
@@ -228,10 +234,15 @@ const getStreamInfo = async ({
       );
   });
 
-  const streamInfo = {
+  streamInfo = {
     id,
-    peers: [],
+    clients: {},
+    consumers: {},
     router,
+    audioProducer,
+    audioTransport,
+    videoProducer,
+    videoTransport,
   };
   streamInfoMap.set(id, streamInfo);
 
@@ -245,10 +256,169 @@ const getStreamInfo = async ({
 
   streamCreationInProgress.delete(id);
 
-  return streamInfoMap.get(id);
+  return streamInfo;
 };
 
 export const streamRouter = t.router({
+  /**
+   * Called from inside a client's `transport.on('connect')` event handler
+   */
+  connectTransport: t.procedure
+    .input(
+      z.object({
+        streamId: StreamIdSchema,
+        dtlsParameters: z.custom<DtlsParameters>(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { dtlsParameters, streamId } = input;
+      const { worker } = ctx;
+
+      const streamInfo = await getStreamInfo({ id: streamId, worker });
+
+      // updateStreamInfo(streamId, (draft) => {
+      //   draft.clients.find((client) => client.transport)
+      // })
+
+      const { transport } = streamInfo.clients[ctx.connectionId];
+
+      // const transport = streamInfo?.transports[input.transportId];
+      assert(transport, 'expected transport');
+      await transport.connect({ dtlsParameters });
+
+      return { connected: true };
+    }),
+
+  /**
+   * Create a mediasoup transport object and send back info needed
+   * to create a transport object on the client side
+   */
+  createTransport: t.procedure
+    .input(z.object({ streamId: StreamIdSchema }))
+    .mutation(async ({ input, ctx }) => {
+      const { streamId } = input;
+      const { worker, connectionId } = ctx;
+      const { router } = await getStreamInfo({ id: streamId, worker });
+      const transport = await router.createWebRtcTransport({
+        listenIps: [{ ip: '127.0.0.1' }],
+        enableUdp: true,
+        enableTcp: true,
+        preferUdp: true,
+        // initialAvailableOutgoingBitrate: initialAvailableOutgoingBitrate,
+        appData: { peerId: connectionId, clientDirection: 'recv' },
+      });
+      updateStreamInfo(streamId, (draft) => {
+        draft.clients[ctx.connectionId].transport = transport;
+      });
+      const { iceParameters, iceCandidates, dtlsParameters } = transport;
+
+      // let transport = await createWebRtcTransport({ peerId, direction });
+      return {
+        transportOptions: {
+          id: transport.id,
+          iceParameters,
+          iceCandidates,
+          dtlsParameters,
+        },
+      };
+    }),
+
+  resumeConsumer: t.procedure
+    .input(z.object({ streamId: StreamIdSchema, consumerId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const { worker } = ctx;
+      const { consumerId, streamId } = input;
+
+      const streamInfo = await getStreamInfo({ id: streamId, worker });
+      const consumer = streamInfo.consumers[consumerId];
+      assert(consumer, 'expected consumer');
+      // todo assert this consumer is owned by this connectionId
+
+      await consumer.resume();
+      return { resumed: true };
+    }),
+
+  /**
+   * Create a mediasoup consumer object, hook it up to the audio
+   * and video producers for the given streamId and send back info
+   * needed to create a consumer object on the client side.
+   *
+   * always start consumers paused, client will request media
+   * to resume when the conneciton completes
+   */
+  receiveTracks: t.procedure
+    .input(
+      z.object({
+        id: StreamIdSchema,
+        rtpCapabilities: z.custom<RtpCapabilities>(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { worker, connectionId } = ctx;
+      const { id, rtpCapabilities } = input;
+
+      const { clients, audioProducer, videoProducer } = await getStreamInfo({
+        id,
+        worker,
+      });
+
+      const clientInfo = clients[connectionId];
+      assert(clientInfo, 'expected clientInfo when trying to get tracks');
+
+      const { transport } = clientInfo;
+
+      assert(transport, 'transport for client not found');
+
+      const consumer = await transport.consume({
+        producerId: videoProducer.id,
+        rtpCapabilities,
+        paused: true, // see note above about always starting paused
+        appData: { peerId: ctx.connectionId },
+      });
+
+      // need both 'transportclose' and 'producerclose' event handlers,
+      // to make sure we close and clean up consumers in all
+      // circumstances
+      consumer.on('transportclose', () => {
+        // log(`consumer's transport closed`, consumer.id);
+        // closeConsumer(consumer);
+      });
+      consumer.on('producerclose', () => {
+        // log(`consumer's producer closed`, consumer.id);
+        // closeConsumer(consumer);
+      });
+
+      updateStreamInfo(id, (draft) => {
+        draft.consumers[consumer.id] = consumer;
+        draft.clients[connectionId].consumerLayers[consumer.id] = {
+          currentLayer: null,
+          clientSelectedLayer: null,
+        };
+      });
+
+      // update above data structure when layer changes.
+      consumer.on('layerschange', (layers) => {
+        updateStreamInfo(id, (draft) => {
+          draft.clients[connectionId].consumerLayers[consumer.id].currentLayer =
+            layers && layers.spatialLayer;
+        });
+      });
+
+      const { kind, rtpParameters, type, producerPaused } = consumer;
+
+      return {
+        audioTrack: {},
+        videoTrack: {
+          id: consumer.id,
+          producerId: videoProducer.id,
+          kind,
+          rtpParameters,
+          type,
+          producerPaused,
+        },
+      };
+    }),
+
   /**
    * JoinStream mutation
    *
@@ -262,16 +432,25 @@ export const streamRouter = t.router({
         id: StreamIdSchema,
       })
     )
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { id } = input;
       // launch ffmpeg here...
       const { worker } = ctx;
-      console.log({ worker });
-      getStreamInfo({ id, worker }).then(() => {
-        console.log('GOT STREAM!');
+      // console.log({ worker });
+
+      const streamInfo = await getStreamInfo({ id, worker });
+      const now = new Date();
+      updateStreamInfo(id, (draft) => {
+        draft.clients[ctx.connectionId] = {
+          joinTs: now,
+          lastSeenTs: now,
+          media: {},
+          consumerLayers: {},
+          stats: {},
+        };
       });
 
-      return {};
+      return { routerRtpCapabilities: streamInfo.router.rtpCapabilities };
     }),
 
   /**
@@ -288,7 +467,6 @@ export const streamRouter = t.router({
     .subscription(({ input, ctx }) => {
       const { id } = input;
       const { worker } = ctx;
-      console.log({ worker });
 
       // return an `observable` with a callback which is triggered immediately
       return observable<PublicStreamState>((emit) => {
@@ -296,23 +474,11 @@ export const streamRouter = t.router({
           emit.next({
             id,
           });
-          console.log('GOT STREAM!', streamInfo);
+          console.log('GOT STREAM!');
         });
         return () => {};
       });
     }),
-  // sendTrack: t.procedure
-  //   .input(
-  //     z.object({
-  //       id: z.string().uuid().optional(),
-  //       text: z.string().min(1),
-  //     })
-  //   )
-  //   .mutation(async (opts) => {
-  //     const post = { ...opts.input }; /* [..] add to db */
-  //     // ee.emit('add', post);
-  //     return post;
-  //   }),
 });
 
 export type StreamRouter = typeof streamRouter;
