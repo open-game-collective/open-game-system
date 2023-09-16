@@ -1,5 +1,5 @@
+/// <reference types="chrome"/>
 import { Box } from '@atoms/Box';
-import { Text } from '@atoms/Text';
 import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
@@ -7,18 +7,18 @@ import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { IconButton } from '@atoms/IconButton';
 import { ScrollAreaRoot } from '@atoms/ScrollArea';
+import { Text } from '@atoms/Text';
 import { LayoutContext } from '@context/LayoutContext';
 import { WorldContext } from '@context/WorldProvider';
 import { trpc } from '@explorers-club/api-client';
 import type { StreamEntity, UserEntity } from '@explorers-club/schema';
 import { styled } from '@explorers-club/styles';
 import { assert, isMobileDevice } from '@explorers-club/utils';
+import { useCurrentChannelId } from '@hooks/useCurrentChannelId';
 import { useEntityIdProp } from '@hooks/useEntityIdProp';
-import {
-  useEntitySelector,
-  useEntitySelectorDeepEqual,
-} from '@hooks/useEntitySelector';
+import { useEntitySelectorDeepEqual } from '@hooks/useEntitySelector';
 import { useMyUserEntity } from '@hooks/useMyUserEntity';
+import { useScript } from '@hooks/useScript';
 import { useStore } from '@nanostores/react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Cross2Icon } from '@radix-ui/react-icons';
@@ -28,7 +28,7 @@ import {
   ScrollAreaViewport,
 } from '@radix-ui/react-scroll-area';
 import * as Tabs from '@radix-ui/react-tabs';
-import { map } from 'nanostores';
+import { atom, map } from 'nanostores';
 import {
   FC,
   ForwardedRef,
@@ -37,10 +37,12 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
-import { useCurrentChannelId } from '@hooks/useCurrentChannelId';
+
+const RECEIVER_APPLICATION_ID = '807AD5E9';
 
 export const Menu = () => {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
@@ -193,7 +195,15 @@ const LobbyTabContent = () => {
   );
 };
 
+const cast$ = map({
+  castApiAvailable: undefined as undefined | boolean,
+  initialized: false,
+});
+
 const StreamsTabContent = () => {
+  useScript(
+    '//www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1'
+  );
   // get the userEntity here
   const { entityStoreRegistry, entitiesById } = useContext(WorldContext);
   const channelId = useCurrentChannelId();
@@ -221,6 +231,35 @@ const StreamsTabContent = () => {
       roomId: channelId,
     });
   }, [entityStoreRegistry, entitiesById, channelId]);
+
+  useLayoutEffect(() => {
+    // @ts-ignore
+    window['__onGCastApiAvailable'] = function (loaded: boolean) {
+      cast$.setKey('castApiAvailable', loaded);
+
+      const sessionRequest = new chrome.cast.SessionRequest(
+        RECEIVER_APPLICATION_ID
+      );
+
+      const apiConfig = new chrome.cast.ApiConfig(
+        sessionRequest,
+        (session) => {
+          console.log('has config', session);
+        },
+        (hasReceiver) => {
+          console.log('has receiver', { hasReceiver });
+        }
+      );
+
+      chrome.cast.initialize(
+        apiConfig,
+        () => console.log('cast init success'),
+        (err) => console.log('cast init error', err)
+      );
+
+      cast$.setKey('initialized', true);
+    };
+  }, [cast$]);
 
   return (
     <Tabs.Content value="streams">
@@ -266,12 +305,50 @@ const Stream: FC<{ streamId: string }> = ({ streamId }) => {
     };
   }, [streamUrlRef, streamUrl, setShowCopied, timeoutRef]);
 
+  const handleSendToChromeCast = useCallback(async () => {
+    try {
+      // todo handle error/timeout
+      await new Promise((resolve) => {
+        const unsub = cast$.subscribe(() => {
+          if (cast$.get().initialized) {
+            resolve(null);
+            unsub();
+          }
+        });
+      });
+    } catch (ex) {
+      console.error('timed out loading google cast script');
+    }
+
+    console.log(chrome.cast);
+
+    try {
+      await new Promise((resolve, reject) => {
+        chrome.cast.requestSession((session) => {
+          session.addMessageListener(
+            'urn:x-cast:org.firstlegoleague.castDeck',
+            function (namespace, data) {
+              console.log('received message', data);
+            }
+          );
+          console.log(session);
+          resolve(null);
+        }, reject);
+      });
+    } catch (ex) {
+      console.warn(ex);
+    }
+
+    return '';
+  }, []);
+
   return (
     <Box>
-      <input disabled type="text" value={streamUrl} ref={streamUrlRef} />
+      {/* <input disabled type="text" value={streamUrl} ref={streamUrlRef} /> */}
       <Flex align="center" gap="2">
-        <Button onClick={handlePressCopyUrl}>Copy URL</Button>
-        {showCopied && <Text>copied!</Text>}
+        {/* <Button onClick={handlePressCopyUrl}>Copy URL</Button> */}
+        <Button onClick={handleSendToChromeCast}>Send To Chromecast</Button>
+        {/* {showCopied && <Text>copied!</Text>} */}
       </Flex>
     </Box>
   );

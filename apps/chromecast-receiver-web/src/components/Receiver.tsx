@@ -1,44 +1,37 @@
 import { transformer } from '@api/transformer';
 import { assert } from '@explorers-club/utils';
 import type { StreamRouter } from '@stream/router';
-import {
-  createTRPCProxyClient,
-  createWSClient,
-  loggerLink,
-  wsLink,
-} from '@trpc/client';
-import * as mediasoup from 'mediasoup-client';
+import { createTRPCProxyClient, createWSClient, wsLink } from '@trpc/client';
 import type { Consumer } from 'mediasoup-client/lib/Consumer';
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { Peer } from 'peerjs';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import type { FC } from 'react';
 
 interface VideoElementWithConsumer extends HTMLVideoElement {
   consumer: Consumer;
 }
 
 export default function Receiver() {
-  const videoRef = useRef<VideoElementWithConsumer>(null);
-  const [active, setActive] = useState(false);
-  // create persistent WebSocket connection
-  // const [wsClient] = useState(
-  // );
+  cast.framework.CastReceiverContext.getInstance().start();
+
+  // const [active, setActive] = useState(false);
+  const [streamId] = useState('foo');
+  const [localPeerId] = useState(crypto.randomUUID());
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [peer] = useState(new Peer(localPeerId));
 
   useEffect(() => {
     (async () => {
       const wsClient = createWSClient({
-        url: `ws://localhost:3334`,
+        url: `ws://localhost:3334?streamId=${streamId}`,
       });
+
+      await new Promise((resolve) => {
+        peer.once('open', resolve);
+      });
+
       const client = createTRPCProxyClient<StreamRouter>({
         links: [
-          /**
-           * The function passed to enabled is an example in case you want to the link to
-           * log to your console in development and only log errors in production
-           */
-          loggerLink({
-            enabled: (opts) =>
-              (process.env.NODE_ENV === 'development' &&
-                typeof window !== 'undefined') ||
-              (opts.direction === 'down' && opts.result instanceof Error),
-          }),
           wsLink({
             client: wsClient,
           }),
@@ -46,85 +39,78 @@ export default function Receiver() {
         transformer,
       });
 
-      // Listen for changes asychronously
-      client.state.subscribe(
-        { id: 'foo' },
-        {
-          onData(value) {
-            console.log('state value', value);
-          },
-        }
-      );
-
-      // Signal intent to watch stream
-      const { routerRtpCapabilities } = await client.joinStream.mutate({
-        id: 'foo',
-      });
-
-      // Load device info
-      const device = new mediasoup.Device();
-      if (!device.loaded) {
-        await device.load({ routerRtpCapabilities });
-      }
-
-      // Create the transport to receive the stream transport
-      const { transportOptions } = await client.createTransport.mutate({
-        streamId: 'foo',
-      });
-      const transport = device.createRecvTransport(transportOptions);
-
-      transport.on('connect', async ({ dtlsParameters }, callback) => {
-        await client.connectTransport.mutate({
-          streamId: 'foo',
-          dtlsParameters,
+      peer.once('call', (call) => {
+        call.answer();
+        call.once('stream', (remoteStream) => {
+          setRemoteStream(remoteStream);
         });
-
-        callback();
       });
 
-      // Consuem the audio and video tracks
-      const trackConsumerParameters = await client.receiveTracks.mutate({
-        id: 'foo',
-        rtpCapabilities: device.rtpCapabilities,
+      client.run.subscribe(undefined, {
+        onData(value) {
+          // todo what does server send back to us here?
+          console.log(value);
+        },
       });
 
-      const videoConsumer = await transport.consume(
-        trackConsumerParameters.videoTrack
-      );
+      // await client.run.mutate({ peerId: localPeerId, streamId });
 
-      // Now we're ready, ask it to send us media
-      await client.resumeConsumer.mutate({
-        streamId: 'foo',
-        consumerId: videoConsumer.id,
-      });
-      await videoConsumer.resume();
+      // Wait for the streamPeerId
+      // client.peer.subscribe(
+      //   { peerId: localPeerId },
+      //   {
+      //     onData({ id }) {
+      //       peer.on('connection', (conn) => {
+      //         conn.on('data', (data) => {
+      //           // Will print 'hi!'
+      //           console.log(data);
+      //         });
+      //         conn.on('open', () => {
+      //           conn.send('hello!');
+      //         });
+      //       });
+      //       peer.on('call', (call) => {
+      //         // call
+      //       });
+      //       peer.connect(id);
+      //     },
+      //   }
+      // );
 
       // const el = document.createElement<'video'>(
       //   'video'
       // ) as VideoElementWithConsumer;
-      const videoEl = videoRef.current;
-      assert(videoEl, 'expected ref to videoEl');
+      // const videoEl = videoRef.current;
+      // assert(videoEl, 'expected ref to videoEl');
 
-      videoEl.srcObject = new MediaStream([videoConsumer.track.clone()]);
-      videoEl.consumer = videoConsumer;
-      console.log({ videoEl });
+      // videoEl.srcObject = new MediaStream([videoConsumer.track.clone()]);
+      // videoEl.consumer = videoConsumer;
+      // console.log({ videoEl });
     })();
-  }, [videoRef]);
+  }, [setRemoteStream]);
 
-  const play = useCallback(() => {
-    setActive(true);
-    videoRef.current?.play().then(() => {
-      console.log('PLAY!');
-    });
-  }, [setActive, videoRef]);
+  return (
+    <div style={{ background: 'red' }}>
+      {/* {!active && <button onClick={play}>Play</button>} */}
+      {!remoteStream && <img src="/ogs_final.svg" alt="open game collective" />}
+      {remoteStream && <RemoteStream remoteStream={remoteStream} />}
+    </div>
+  );
+}
+
+const RemoteStream: FC<{ remoteStream: MediaStream }> = ({ remoteStream }) => {
+  const videoRef = useRef<VideoElementWithConsumer>(null);
+
+  useEffect(() => {
+    assert(videoRef.current, 'expected videoRef');
+    videoRef.current.srcObject = remoteStream;
+    videoRef.current.play(); // todo does autoplay work?
+  }, []);
 
   return (
     <>
-      {!active && <button onClick={play}>Play</button>}
-      {!active && <img src="/ogs_final.svg" alt="open game collective" />}
       <video
         style={{
-          visibility: !active ? 'hidden' : 'visible',
           position: 'absolute',
           inset: 0,
         }}
@@ -133,4 +119,27 @@ export default function Receiver() {
       />
     </>
   );
-}
+};
+
+// todo get the streamId from chromecast somehow
+// const context = cast.framework.CastReceiverContext.getInstance();
+
+// context.addCustomMessageListener(
+//     "urn:x-cast:org.firstlegoleague.castDeck",
+//     event => {
+//         var str = JSON.stringify(event);
+//         shim.update(event.data);
+
+//         // send something back
+//         context.sendCustomMessage(
+//             "urn:x-cast:org.firstlegoleague.castDeck",
+//             event.senderId,
+//             {
+//                 requestId: event.data.requestId,
+//                 data: shim.data,
+//                 event,
+//                 vp: shim.getViewport()
+//             }
+//         );
+//     }
+// );

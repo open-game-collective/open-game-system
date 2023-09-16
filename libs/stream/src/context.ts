@@ -4,8 +4,8 @@ import { type inferAsyncReturnType } from '@trpc/server';
 import { types } from 'mediasoup';
 
 export type CreateContextOptions = {
-  worker: types.Worker<types.AppData>;
-  connectionId: string;
+  peerId: string;
+  streamId: string;
 };
 
 export const createContextInner = async (ctx: CreateContextOptions) => {

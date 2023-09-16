@@ -14,7 +14,8 @@ const alg = 'HS256';
 export interface MiddlewareProps {
   initialRouteProps: RouteProps;
   connectionId: SnowflakeId;
-  trpcUrl: string;
+  apiServerUrl: string;
+  streamServerUrl?: string;
 }
 
 const authHandler: MiddlewareResponseHandler = defineMiddleware(

@@ -16,7 +16,7 @@ const { accessToken, connectionId } = Astro.locals;
 <Layout title={title}>
   <App
     client:only
-    trpcUrl={`${
+    apiServerUrl={`${
       import.meta.env.PUBLIC_API_WS_SERVER_URL
     }/?accessToken=${accessToken}`}
     connectionId={connectionId}

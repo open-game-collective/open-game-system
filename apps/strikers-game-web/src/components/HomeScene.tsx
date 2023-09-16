@@ -47,14 +47,17 @@ const gridStore = atom(
 export const HomeScene: FC<MiddlewareProps> = ({
   initialRouteProps,
   connectionId,
-  trpcUrl,
+  apiServerUrl,
 }) => {
   const [routeStore] = useState(atom(initialRouteProps));
   const grid = useStore(gridStore);
 
   return (
     <ServiceWorkerProvider>
-      <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
+      <ApplicationProvider
+        apiServerUrl={apiServerUrl}
+        connectionId={connectionId}
+      >
         <ApplicationContext.Provider value={{ routeStore }}>
           <PWAProvider>
             <PushNotificationProvider
