@@ -1,7 +1,9 @@
 import { TRPCContext } from '@stream/context';
+import crypto from 'crypto';
 import { initStream, launch } from '@stream/lib/puppeteer';
 import { initTRPC } from '@trpc/server';
 import { observable } from '@trpc/server/observable';
+import * as JWT from 'jsonwebtoken';
 import { ReplaySubject } from 'rxjs';
 import transformer from 'superjson';
 import { z } from 'zod';
@@ -57,29 +59,38 @@ export const streamRouter = t.router({
   //   return { success: true };
   // }),
   run: t.procedure.subscription(({ input, ctx }) => {
+    console.log('RUN!');
     return observable((emit) => {
+      console.log('returned obs');
       // create a new peer id
       const srcPeerId = crypto.randomUUID();
+      console.log({ srcPeerId });
 
       // todo dedupe these...
       // launch puppeteer stream if it hasn't already been launched
       (async () => {
+        console.log('launching borwser');
         const browser = await launch({
           channel: 'chrome',
           defaultViewport: {
             width: 1920,
             height: 1080,
           },
-          // args: ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox'],
+          args: ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox'],
         });
+        console.log('opening page');
         const page = await browser.newPage();
         // set user agent (override the default headless User Agent)
         await page.setUserAgent('OGS HLS-Server v0.0.1');
 
         // todo how do we know which website to go ?
         // use the streamId and token here
-        // const { streamId } = ctx;
-        await page.goto('htttps://opengame.org');
+        const { streamToken } = ctx;
+        const url = getStreamUrl(streamToken);
+        console.log('got url', url);
+        assert(url, 'expected streamUrl in streamToken' + streamToken);
+        console.log(' going to', url);
+        await page.goto(url);
 
         await initStream(
           {
@@ -102,3 +113,22 @@ export const streamRouter = t.router({
 });
 
 export type StreamRouter = typeof streamRouter;
+
+const getStreamUrl = (token: string) => {
+  const parsed = JWT.verify(token, 'my_private_key');
+  if (
+    typeof parsed === 'object' &&
+    parsed &&
+    'url' in parsed &&
+    typeof parsed['url'] === 'string'
+  ) {
+    return parsed['url'];
+  }
+  return null;
+};
+
+function assert<T>(expression: T, errorMessage: string): asserts expression {
+  if (!expression) {
+    throw new Error(errorMessage);
+  }
+}

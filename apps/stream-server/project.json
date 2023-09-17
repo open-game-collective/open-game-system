@@ -8,6 +8,7 @@
       "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
+      "inputs": ["extensionManifest"],
       "options": {
         "target": "node",
         "compiler": "tsc",

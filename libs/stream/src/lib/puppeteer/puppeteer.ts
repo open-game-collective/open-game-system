@@ -13,7 +13,8 @@ import {
 } from 'puppeteer-core';
 import { Transform } from 'stream';
 
-const extensionPath = path.join(__dirname, '..', 'extension');
+const extensionPath = path.join(__dirname, 'assets', 'extension');
+console.log({ extensionPath });
 const extensionId = 'jjndjgheafjngoipoacpjgeicjeomjli';
 let currentIndex = 0;
 type StreamLaunchOptions = LaunchOptions &
@@ -50,6 +51,7 @@ export async function launch(
     }
     if (!found) opts?.args?.push(arg + value);
   }
+  console.log({ extensionPath });
 
   addToArgs('--load-extension=', extensionPath);
   addToArgs('--disable-extensions-except=', extensionPath);
@@ -220,15 +222,11 @@ export async function initStream(
   await page.bringToFront();
   await assertExtensionLoaded(extension);
 
-  const streamServerUrl = '';
-
   await extension.evaluate(
-    (settings) =>
+    (peers) =>
       // @ts-ignore
-      INITIALIZE({
-        streamServerUrl,
-      }),
-    { ...opts, index }
+      INITIALIZE(peers),
+    peers
   );
 
   return stream;
@@ -238,10 +236,8 @@ async function assertExtensionLoaded(ext: Page) {
   const wait = (ms: number) => new Promise((res) => setTimeout(res, ms));
   for (let currentTick = 0; currentTick < 3; currentTick++) {
     // @ts-ignore
-    if (await ext.evaluate(() => typeof START_RECORDING === 'function')) return;
+    if (await ext.evaluate(() => typeof INITIALIZE === 'function')) return;
     await wait(Math.pow(30, currentTick));
   }
-  throw new Error(
-    'Could not find START_RECORDING function in the browser context'
-  );
+  throw new Error('Could not find INITIALIZE function in the browser context');
 }

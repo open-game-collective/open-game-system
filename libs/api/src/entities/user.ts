@@ -76,14 +76,13 @@ export const createUserMachine = ({
             }
 
             const streamId = generateSnowflakeId();
-
             const url = `${PUBLIC_STRIKERS_GAME_WEB_URL}/${roomEntity.slug}`;
+
             const token = jwt.sign(
               {
                 url,
-                sessionId: connectionEntity.sessionId,
-                // schema: 'session',
-                // scope: ['stream.view'],
+                streamId,
+                hostSessionId: connectionEntity.sessionId,
               },
               'my_private_key',
               {

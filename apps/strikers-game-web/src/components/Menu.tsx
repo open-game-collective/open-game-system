@@ -7,7 +7,6 @@ import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { IconButton } from '@atoms/IconButton';
 import { ScrollAreaRoot } from '@atoms/ScrollArea';
-import { Text } from '@atoms/Text';
 import { LayoutContext } from '@context/LayoutContext';
 import { WorldContext } from '@context/WorldProvider';
 import { trpc } from '@explorers-club/api-client';
@@ -28,7 +27,7 @@ import {
   ScrollAreaViewport,
 } from '@radix-ui/react-scroll-area';
 import * as Tabs from '@radix-ui/react-tabs';
-import { atom, map } from 'nanostores';
+import { map } from 'nanostores';
 import {
   FC,
   ForwardedRef,
@@ -38,7 +37,6 @@ import {
   useContext,
   useEffect,
   useLayoutEffect,
-  useRef,
   useState,
 } from 'react';
 
@@ -61,7 +59,7 @@ export const Menu = () => {
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
       <Dialog.Portal container={container}>
-        <MenuDrawerOverlay />
+        {/* <MenuDrawerOverlay /> */}
         <MenuDrawerContent />
       </Dialog.Portal>
       <ModalContainer ref={setContainer} />
@@ -273,39 +271,14 @@ const StreamsTabContent = () => {
   );
 };
 
-const PUBLIC_HLS_SERVER_URL = 'http://127.0.0.1:3333';
-
 const Stream: FC<{ streamId: string }> = ({ streamId }) => {
   const streamToken = useEntityIdProp<StreamEntity, 'token'>(streamId, 'token');
-  // const hostId = useEntityIdProp<StreamEntity>(streamId, 'hostId');
-  const streamUrl = `${PUBLIC_HLS_SERVER_URL}/${streamToken}.m3u8`;
-
-  const [showCopied, setShowCopied] = useState(false);
-  const streamUrlRef = useRef<HTMLInputElement | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handlePressCopyUrl = useCallback(() => {
-    const el = streamUrlRef.current;
-    assert(el, 'expected ref to streamUrl element');
-    // Select the text field
-    el.select();
-    el.setSelectionRange(0, 99999); // For mobile devices
-
-    navigator.clipboard.writeText(streamUrl);
-    setShowCopied(true);
-
-    timeoutRef.current = setTimeout(() => {
-      setShowCopied(false);
-    }, 5000);
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [streamUrlRef, streamUrl, setShowCopied, timeoutRef]);
 
   const handleSendToChromeCast = useCallback(async () => {
+    assert(
+      streamToken,
+      'expected streamToken when pressing send to chromecast'
+    );
     try {
       // todo handle error/timeout
       await new Promise((resolve) => {
@@ -320,18 +293,29 @@ const Stream: FC<{ streamId: string }> = ({ streamId }) => {
       console.error('timed out loading google cast script');
     }
 
-    console.log(chrome.cast);
-
     try {
       await new Promise((resolve, reject) => {
         chrome.cast.requestSession((session) => {
           session.addMessageListener(
-            'urn:x-cast:org.firstlegoleague.castDeck',
-            function (namespace, data) {
+            'urn:x-cast:org.opengame.stream',
+            function (data) {
               console.log('received message', data);
             }
           );
-          console.log(session);
+
+          session.sendMessage(
+            'urn:x-cast:org.opengame.stream',
+            JSON.stringify({ streamToken }),
+            () => {
+              console.log('succ');
+              // todo
+            },
+            (err) => {
+              console.error(err);
+              // todo
+            }
+          );
+
           resolve(null);
         }, reject);
       });
@@ -340,14 +324,18 @@ const Stream: FC<{ streamId: string }> = ({ streamId }) => {
     }
 
     return '';
-  }, []);
+  }, [streamToken]);
 
   return (
     <Box>
       {/* <input disabled type="text" value={streamUrl} ref={streamUrlRef} /> */}
       <Flex align="center" gap="2">
         {/* <Button onClick={handlePressCopyUrl}>Copy URL</Button> */}
-        <Button onClick={handleSendToChromeCast}>Send To Chromecast</Button>
+        {streamToken ? (
+          <Button onClick={handleSendToChromeCast}>Send To Chromecast</Button>
+        ) : (
+          <>Loading</>
+        )}
         {/* {showCopied && <Text>copied!</Text>} */}
       </Flex>
     </Box>

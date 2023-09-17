@@ -81,12 +81,11 @@ const initAccessToken = async ({
     // parse it, get the sessionId and deviceId and make
     // a new accessToken / connection
   } else {
-    console.log({ refreshToken });
     // if the refresh token is expired, create a new one
     const parsed = JWT.verify(refreshToken, 'my_private_key', {
       audience: 'STRIKERS_GAME_WEB',
     });
-    console.log({ parsed });
+
     assert(
       typeof parsed === 'object',
       'expected JWT parsed payload to be object'

@@ -1,30 +1,69 @@
-import { transformer } from '@api/transformer';
 import { assert } from '@explorers-club/utils';
 import type { StreamRouter } from '@stream/router';
 import { createTRPCProxyClient, createWSClient, wsLink } from '@trpc/client';
-import type { Consumer } from 'mediasoup-client/lib/Consumer';
+import { atom } from 'nanostores';
 import { Peer } from 'peerjs';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { FC } from 'react';
+import SuperJSON from 'superjson';
 
-interface VideoElementWithConsumer extends HTMLVideoElement {
-  consumer: Consumer;
-}
+const { PUBLIC_STREAM_WS_SERVER_URL } = import.meta.env;
+console.log({ PUBLIC_STREAM_WS_SERVER_URL });
+assert(PUBLIC_STREAM_WS_SERVER_URL, 'expected PUBLIC_STREAM_WS_SERVER_URL');
 
 export default function Receiver() {
-  cast.framework.CastReceiverContext.getInstance().start();
-
-  // const [active, setActive] = useState(false);
-  const [streamId] = useState('foo');
+  // const [streamToken, setStreamToken] = useState<string | undefined>(undefined);
+  const [streamToken$] = useState(atom<null | string>(null));
+  const [token, setToken] = useState<null | string>(null);
   const [localPeerId] = useState(crypto.randomUUID());
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [peer] = useState(new Peer(localPeerId));
 
   useEffect(() => {
-    (async () => {
+    const context = cast.framework.CastReceiverContext.getInstance();
+    context.addCustomMessageListener(
+      'urn:x-cast:org.opengame.stream',
+      (event) => {
+        assert(
+          'senderId' in event && typeof event.senderId === 'string',
+          'expected senderId in event'
+        );
+
+        assert(
+          'data' in event && typeof event.data === 'object',
+          'expected data on event'
+        );
+        assert(
+          'streamToken' in event.data &&
+            typeof event.data.streamToken === 'string',
+          'expected streamToken in payload'
+        );
+        streamToken$.set(event.data.streamToken);
+
+        context.sendCustomMessage(
+          'urn:x-cast:org.opengame.stream',
+          event.senderId,
+          JSON.stringify({ result: 'OK' })
+        );
+      }
+    );
+
+    const options = new cast.framework.CastReceiverOptions();
+    options.disableIdleTimeout = true; //no timeout
+    context.start(options);
+  }, [setToken]);
+
+  useEffect(() => {
+    return streamToken$.subscribe(async (streamToken) => {
+      if (!streamToken) {
+        // todo shut off stream if one exists?
+        return;
+      }
+
       const wsClient = createWSClient({
-        url: `ws://localhost:3334?streamId=${streamId}`,
+        url: `${PUBLIC_STREAM_WS_SERVER_URL}?streamToken=${streamToken}&peerId=${localPeerId}`,
       });
+      setToken(`${PUBLIC_STREAM_WS_SERVER_URL}?streamToken=${streamToken}`);
 
       await new Promise((resolve) => {
         peer.once('open', resolve);
@@ -36,7 +75,7 @@ export default function Receiver() {
             client: wsClient,
           }),
         ],
-        transformer,
+        transformer: SuperJSON,
       });
 
       peer.once('call', (call) => {
@@ -48,58 +87,25 @@ export default function Receiver() {
 
       client.run.subscribe(undefined, {
         onData(value) {
-          // todo what does server send back to us here?
-          console.log(value);
+          // todo - do we need to handle updates?
         },
       });
-
-      // await client.run.mutate({ peerId: localPeerId, streamId });
-
-      // Wait for the streamPeerId
-      // client.peer.subscribe(
-      //   { peerId: localPeerId },
-      //   {
-      //     onData({ id }) {
-      //       peer.on('connection', (conn) => {
-      //         conn.on('data', (data) => {
-      //           // Will print 'hi!'
-      //           console.log(data);
-      //         });
-      //         conn.on('open', () => {
-      //           conn.send('hello!');
-      //         });
-      //       });
-      //       peer.on('call', (call) => {
-      //         // call
-      //       });
-      //       peer.connect(id);
-      //     },
-      //   }
-      // );
-
-      // const el = document.createElement<'video'>(
-      //   'video'
-      // ) as VideoElementWithConsumer;
-      // const videoEl = videoRef.current;
-      // assert(videoEl, 'expected ref to videoEl');
-
-      // videoEl.srcObject = new MediaStream([videoConsumer.track.clone()]);
-      // videoEl.consumer = videoConsumer;
-      // console.log({ videoEl });
-    })();
-  }, [setRemoteStream]);
+    });
+  }, [setRemoteStream, setToken]);
 
   return (
     <div style={{ background: 'red' }}>
+      <h1 style={{ color: 'orange' }}>HI</h1>
+      {token && <h1 style={{ color: 'orange' }}>{token}</h1>}
       {/* {!active && <button onClick={play}>Play</button>} */}
       {!remoteStream && <img src="/ogs_final.svg" alt="open game collective" />}
-      {remoteStream && <RemoteStream remoteStream={remoteStream} />}
+      {remoteStream && <RTCStream remoteStream={remoteStream} />}
     </div>
   );
 }
 
-const RemoteStream: FC<{ remoteStream: MediaStream }> = ({ remoteStream }) => {
-  const videoRef = useRef<VideoElementWithConsumer>(null);
+const RTCStream: FC<{ remoteStream: MediaStream }> = ({ remoteStream }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     assert(videoRef.current, 'expected videoRef');
@@ -120,26 +126,3 @@ const RemoteStream: FC<{ remoteStream: MediaStream }> = ({ remoteStream }) => {
     </>
   );
 };
-
-// todo get the streamId from chromecast somehow
-// const context = cast.framework.CastReceiverContext.getInstance();
-
-// context.addCustomMessageListener(
-//     "urn:x-cast:org.firstlegoleague.castDeck",
-//     event => {
-//         var str = JSON.stringify(event);
-//         shim.update(event.data);
-
-//         // send something back
-//         context.sendCustomMessage(
-//             "urn:x-cast:org.firstlegoleague.castDeck",
-//             event.senderId,
-//             {
-//                 requestId: event.data.requestId,
-//                 data: shim.data,
-//                 event,
-//                 vp: shim.getViewport()
-//             }
-//         );
-//     }
-// );
