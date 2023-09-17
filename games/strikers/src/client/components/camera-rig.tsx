@@ -1,12 +1,8 @@
 // pro-camera.tsx
 import { CameraControls } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
-import { useContext, useRef } from 'react';
-import { CameraRigContext } from './camera-rig.context';
+import { useRef } from 'react';
 
 export function CameraRig() {
-  const rigStore = useContext(CameraRigContext);
-  const { set, camera } = useThree();
   const cameraControlsRef = useRef<CameraControls | null>(null);
 
   // const diagonal = Math.sqrt(

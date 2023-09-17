@@ -1,15 +1,15 @@
 import { StrikersFieldSide } from '@schema/types';
 import { FC } from 'react';
 interface Props {
-  cardId: string;
+  // cardId: string;
   team: StrikersFieldSide;
 }
 
-export const PlayerMeeple: FC<Props> = ({ cardId, team }) => {
-  const color = team === 'away' ? 0xff0000 : 0x0000ff;
+export const PlayerMeeple: FC<Props> = ({ team }) => {
+  const color = team === 'A' ? 0xff0000 : 0x0000ff;
   return (
-    <mesh>
-      <boxBufferGeometry attach="geometry" args={[2, 2, 2]} />
+    <mesh position={[team === 'A' ? 0.5 : -0.5, 0, 0]}>
+      <boxBufferGeometry attach="geometry" args={[0.5, 0.5, 0.5]} />
       <meshStandardMaterial attach="material" color={color} />
     </mesh>
   );

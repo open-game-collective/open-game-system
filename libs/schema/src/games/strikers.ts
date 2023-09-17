@@ -551,19 +551,19 @@ export const StrikersEffectContextSchema = z.object({
   foo: z.string(),
 });
 
-export const StrikersTileCoordinateSchema = z.custom<string>((val: any) => {
+export const AlphaNumCoordinatesSchema = z.custom<string>((val: any) => {
   // Use a regex to test the validity of the string format
   // This regex matches a single letter (A-Z) followed by a number (1-20)
   return /^[A-Z](?:[1-9]|1[0-9]|2[0-9]|3[0-6])$/.test(val as string);
 }, 'Invalid StrikersTileCoordinate format. It should be A-Z for columns and 1-20 for rows. Example: A1, C10, Z20.');
-export type StrikersTileCoordinate = z.infer<
-  typeof StrikersTileCoordinateSchema
+export type AlphaNumCoordinates = z.infer<
+  typeof AlphaNumCoordinatesSchema
 >;
 
 export const StrikersTurnContextSchema = z.object({
   actionMessageIds: z.array(z.string()),
   selectedCardId: CardIdSchema.optional(),
-  selectedTarget: StrikersTileCoordinateSchema.optional(),
+  selectedTarget: AlphaNumCoordinatesSchema.optional(),
 });
 
 const StrikersPlayerEntityPropSchema = z.object({

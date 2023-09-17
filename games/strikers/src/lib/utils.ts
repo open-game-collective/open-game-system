@@ -1,11 +1,9 @@
 import { assert } from '@explorers-club/utils';
-import { StrikersTileCoordinate } from '@schema/games/strikers';
+import { AlphaNumCoordinates } from '@schema/games/strikers';
 import { Grid, Hex, HexCoordinates, Point } from 'honeycomb-grid';
 import { Vector3 } from 'three';
 
-export function convertStrikersTileCoordinateToRowCol(
-  coordinate: StrikersTileCoordinate
-) {
+export function alphaNumToOffsetCoordiantes(coordinate: AlphaNumCoordinates) {
   // Extract the letter and number parts
   const letter = coordinate[0];
   const number = parseInt(coordinate.substring(1));

@@ -11,7 +11,7 @@ import { spiral } from 'honeycomb-grid';
 import { map } from 'nanostores';
 import { FC, useContext, useLayoutEffect } from 'react';
 import { Vector3 } from 'three';
-import { lookBirdsEye } from '../camera.utils';
+import { lookAtTraverser, lookBirdsEye } from '../camera.utils';
 import { CameraRigContext } from '../components/camera-rig.context';
 import { Field, FieldControls } from '../components/field';
 import { FieldCell } from '../components/field-cell';
@@ -21,6 +21,8 @@ import { StrikersContext } from '../context/strikers.context';
 import { TurnContext } from '../context/turn.context';
 import { ClientEventContext } from '../context/client-event.context';
 import { CardMeeple } from '../components/card-meeple';
+import { Ball } from '../components/ball';
+import { alphaNumToOffsetCoordiantes } from '@strikers/lib/utils';
 
 export const TurnScene = () => {
   const { send, event$ } = useContext(ClientEventContext);
@@ -53,6 +55,9 @@ export const TurnScene = () => {
         <FieldControls />
         <Goal side="A" />
         <Goal side="B" />
+        <FieldCell tilePosition={alphaNumToOffsetCoordiantes('M18')}>
+          <Ball />
+        </FieldCell>
         {homeSideCardIds.map((cardId) => (
           <FieldCell key={cardId} tilePosition={tilePositionsByCardId[cardId]}>
             <CardMeeple team="home" cardId={cardId} />
@@ -110,7 +115,7 @@ const TurnCamera = () => {
 const FollowActionCamera = () => {
   const { gameEntity } = useContext(StrikersContext);
   const { channel } = gameEntity;
-  const { service } = useContext(CameraRigContext);
+  const { cameraControls } = useContext(CameraRigContext);
   const grid = useContext(GridContext);
 
   useLayoutEffect(() => {
@@ -118,15 +123,13 @@ const FollowActionCamera = () => {
       if (event.type === 'SELECT_CARD') {
         const tilePosition =
           gameEntity.gameState.tilePositionsByCardId[event.cardId];
-        service.send({
-          type: 'POSITION',
-          target: grid.traverse(
-            spiral({
-              start: tilePosition,
-              radius: 4,
-            })
-          ),
-        });
+        const target = grid.traverse(
+          spiral({
+            start: tilePosition,
+            radius: 4,
+          })
+        );
+        lookAtTraverser(target, grid, cameraControls, true);
       }
     });
   }, [channel]);
