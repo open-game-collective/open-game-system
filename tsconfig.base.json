@@ -25,6 +25,9 @@
       "@explorers-club/api-client": ["libs/api/src/client"],
       "@explorers-club/audio": ["libs/audio/src/index.ts"],
       "@explorers-club/chat": ["libs/chat/src/index.ts"],
+      "@explorers-club/chromecast-receiver": [
+        "libs/chromecast-receiver/src/index.ts"
+      ],
       "@explorers-club/codebreakers/meta/*": ["games/codebreakers/src/meta/*"],
       "@explorers-club/codebreakers/scene": [
         "games/codebreakers/src/scene/index.ts"
@@ -90,6 +93,8 @@
       "@screens/*": ["libs/components/src/screens/*"],
       "@state/*": ["libs/components/src/state/*"],
       "@storybook-decorators/*": ["libs/components/src/decorators/*"],
+      "@stream/*": ["libs/stream/src/*"],
+      "@stream-client": ["libs/stream/src/client"],
       "@strikers/*": ["games/strikers/src/*"],
       "@templates/*": ["libs/components/src/templates/*"]
     }

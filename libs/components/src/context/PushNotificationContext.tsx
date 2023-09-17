@@ -64,7 +64,6 @@ export const PushNotificationProvider: FC<{
               | UserEntity
               | undefined;
             assert(userEntity, 'expected userEntity');
-            console.log({ pushSubscription });
 
             userEntity.send({
               type: 'REGISTER_PUSH_SUBSCRIPTION',

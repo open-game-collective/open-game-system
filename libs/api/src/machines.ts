@@ -24,6 +24,7 @@ import { createStrikersTurnMachine } from '@strikers/server/entities/strikers-tu
 import { createStrikersEffectMachine } from '@strikers/server/entities/strikers-effect';
 import { createTriggerMachine } from './entities/trigger';
 import { createUserMachine } from './entities/user';
+import { createStreamMachine } from './entities/stream';
 
 type EntityMachineCreators = {
   [TSchemaType in keyof EntityMachineMap]: <
@@ -42,6 +43,7 @@ export const entityMachineMap: EntityMachineCreators = {
   room: createRoomMachine,
   user: createUserMachine,
   // workflow: createWorkflowMachine,
+  stream: createStreamMachine,
   message_channel: createMessageChannelMachine,
   codebreakers_game: createCodebreakersGameMachine,
   codebreakers_player: createCodebreakersPlayerMachine,

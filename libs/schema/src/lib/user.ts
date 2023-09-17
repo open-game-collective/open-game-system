@@ -38,6 +38,7 @@ const UserEntityPropsSchema = z.object({
   profileId: SnowflakeIdSchema.optional(),
   name: PlayerNameSchema.optional(),
   serialNumber: z.number(),
+  streamIds: z.array(SnowflakeIdSchema),
   chatService: z
     .object({
       context: ChatContextSchema,
@@ -61,6 +62,11 @@ const CreateProfileCommandSchema = z.object({
   profileId: SnowflakeIdSchema,
 });
 
+const CreateStreamCommandSchema = z.object({
+  type: z.literal('CREATE_STREAM'),
+  roomId: SnowflakeIdSchema,
+});
+
 export const EnterChannelCommandSchema = z.object({
   type: z.literal('ENTER_CHANNEL'),
   channelId: SnowflakeIdSchema,
@@ -69,6 +75,7 @@ export const EnterChannelCommandSchema = z.object({
 export const UserCommandSchema = z.union([
   UpdateNameCommandSchema,
   CreateProfileCommandSchema,
+  CreateStreamCommandSchema,
   EnterChannelCommandSchema,
   RegisterPushSubscriptionCommandSchema,
   ConnectCommandSchema,

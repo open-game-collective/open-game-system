@@ -1,9 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "strict": true,
     "outDir": "../../dist/out-tsc",
     "module": "commonjs",
-    "types": ["node"]
+    // "types": ["node", "express", "hls-server"],
+    "typeRoots": ["./types", "./node_modules/@types"]
   },
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"],
   "include": ["src/**/*.ts"]

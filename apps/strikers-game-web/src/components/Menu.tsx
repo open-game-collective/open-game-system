@@ -1,35 +1,46 @@
+/// <reference types="chrome"/>
+import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
-import { isMobileDevice } from '@explorers-club/utils';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { IconButton } from '@atoms/IconButton';
-import { Image } from '@atoms/Image';
 import { ScrollAreaRoot } from '@atoms/ScrollArea';
-import { Text } from '@atoms/Text';
+import { LayoutContext } from '@context/LayoutContext';
+import { WorldContext } from '@context/WorldProvider';
+import { trpc } from '@explorers-club/api-client';
+import type { StreamEntity, UserEntity } from '@explorers-club/schema';
 import { styled } from '@explorers-club/styles';
+import { assert, isMobileDevice } from '@explorers-club/utils';
+import { useCurrentChannelId } from '@hooks/useCurrentChannelId';
+import { useEntityIdProp } from '@hooks/useEntityIdProp';
+import { useEntitySelectorDeepEqual } from '@hooks/useEntitySelector';
+import { useMyUserEntity } from '@hooks/useMyUserEntity';
+import { useScript } from '@hooks/useScript';
+import { useStore } from '@nanostores/react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Cross2Icon, OpenInNewWindowIcon } from '@radix-ui/react-icons';
+import { Cross2Icon } from '@radix-ui/react-icons';
 import {
   ScrollAreaScrollbar,
   ScrollAreaThumb,
   ScrollAreaViewport,
 } from '@radix-ui/react-scroll-area';
 import * as Tabs from '@radix-ui/react-tabs';
+import { map } from 'nanostores';
 import {
+  FC,
   ForwardedRef,
+  createContext,
   forwardRef,
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useState,
 } from 'react';
-import { useStore } from '@nanostores/react';
-import { LayoutContext } from '@context/LayoutContext';
-import { Box } from '@atoms/Box';
-import { trpc } from '@explorers-club/api-client';
-// import { selectNavIsOpen } from './app.selectors';
+
+const RECEIVER_APPLICATION_ID = '807AD5E9';
 
 export const Menu = () => {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
@@ -48,7 +59,7 @@ export const Menu = () => {
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
       <Dialog.Portal container={container}>
-        <MenuDrawerOverlay />
+        {/* <MenuDrawerOverlay /> */}
         <MenuDrawerContent />
       </Dialog.Portal>
       <ModalContainer ref={setContainer} />
@@ -69,7 +80,7 @@ const ModalContainer = forwardRef((_, ref: ForwardedRef<HTMLDivElement>) => {
         top: 0,
         bottom: 0,
         right: 0,
-        zIndex: isOpen ? 100 : -9999,
+        zIndex: isOpen ? 1000 : -9999,
       }}
     />
   );
@@ -94,54 +105,73 @@ const TabButton = styled(Button, {
 //   box-shadow: inset 0 -1px 0 0 currentColor, 0 1px 0 0 currentColor;
 // }
 
+const defaultMenu$ = map({
+  userEntity: {} as UserEntity,
+});
+
+const MenuContext = createContext({} as typeof defaultMenu$);
+
 const MenuDrawerContent = () => {
+  const userEntity = useMyUserEntity();
+  if (!userEntity) {
+    return <>Loading</>;
+  }
+
+  const [menuContext$] = useState(
+    map({
+      userEntity,
+    })
+  );
+
   return (
-    <StyledDialogContent>
-      <Tabs.Root defaultValue="games" style={{ height: '100%' }}>
-        <Flex direction="column" gap="3" style={{ height: '100%' }}>
-          <Flex justify={'between'} css={{ p: '$3' }}>
-            <Tabs.List>
-              <Tabs.Trigger value="games" asChild>
-                <TabButton ghost size="3">
-                  My Games
-                </TabButton>
-              </Tabs.Trigger>
-              <Tabs.Trigger value="lobby" asChild>
-                <TabButton ghost size="3">
-                  Lobby
-                </TabButton>
-              </Tabs.Trigger>
-              <Tabs.Trigger value="shop" asChild>
-                <TabButton ghost size="3">
-                  Shop
-                </TabButton>
-              </Tabs.Trigger>
-              <Tabs.Trigger value="account" asChild>
-                <TabButton ghost size="3">
-                  Account
-                </TabButton>
-              </Tabs.Trigger>
-            </Tabs.List>
-            <Dialog.Close asChild>
-              <IconButton size="3">
-                <Cross2Icon />
-              </IconButton>
-            </Dialog.Close>
+    <MenuContext.Provider value={menuContext$}>
+      <StyledDialogContent>
+        <Tabs.Root defaultValue="games" style={{ height: '100%' }}>
+          <Flex direction="column" gap="3" style={{ height: '100%' }}>
+            <Flex justify={'between'} css={{ p: '$3' }}>
+              <Tabs.List>
+                <Tabs.Trigger value="games" asChild>
+                  <TabButton ghost size="3">
+                    My Games
+                  </TabButton>
+                </Tabs.Trigger>
+                <Tabs.Trigger value="lobby" asChild>
+                  <TabButton ghost size="3">
+                    Lobby
+                  </TabButton>
+                </Tabs.Trigger>
+                <Tabs.Trigger value="streams" asChild>
+                  <TabButton ghost size="3">
+                    Streams
+                  </TabButton>
+                </Tabs.Trigger>
+                <Tabs.Trigger value="account" asChild>
+                  <TabButton ghost size="3">
+                    Account
+                  </TabButton>
+                </Tabs.Trigger>
+              </Tabs.List>
+              <Dialog.Close asChild>
+                <IconButton size="3">
+                  <Cross2Icon />
+                </IconButton>
+              </Dialog.Close>
+            </Flex>
+            <ScrollAreaRoot css={{ background: 'red' }}>
+              <ScrollAreaViewport>
+                <GamesTabContent />
+                <LobbyTabContent />
+                <StreamsTabContent />
+                <AccountTabContent />
+              </ScrollAreaViewport>
+              <ScrollAreaScrollbar orientation="vertical">
+                <ScrollAreaThumb />
+              </ScrollAreaScrollbar>
+            </ScrollAreaRoot>
           </Flex>
-          <ScrollAreaRoot css={{ background: 'red' }}>
-            <ScrollAreaViewport>
-              <GamesTabContent />
-              <LobbyTabContent />
-              <ShopTabContent />
-              <AccountTabContent />
-            </ScrollAreaViewport>
-            <ScrollAreaScrollbar orientation="vertical">
-              <ScrollAreaThumb />
-            </ScrollAreaScrollbar>
-          </ScrollAreaRoot>
-        </Flex>
-      </Tabs.Root>
-    </StyledDialogContent>
+        </Tabs.Root>
+      </StyledDialogContent>
+    </MenuContext.Provider>
   );
 };
 
@@ -163,30 +193,152 @@ const LobbyTabContent = () => {
   );
 };
 
-const ShopTabContent = () => {
+const cast$ = map({
+  castApiAvailable: undefined as undefined | boolean,
+  initialized: false,
+});
+
+const StreamsTabContent = () => {
+  useScript(
+    '//www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1'
+  );
+  // get the userEntity here
+  const { entityStoreRegistry, entitiesById } = useContext(WorldContext);
+  const channelId = useCurrentChannelId();
+
+  const menu$ = useContext(MenuContext);
+  const { userEntity } = useStore(menu$, { keys: ['userEntity'] });
+
+  const streamIds = useEntitySelectorDeepEqual(
+    userEntity,
+    (entity) => entity.streamIds
+  );
+
+  const handlePressCreateStream = useCallback(() => {
+    const sessionEntity = entityStoreRegistry.mySessionEntity.get();
+    assert(sessionEntity, 'expected sessionEntity');
+    assert(channelId, 'expected channelId');
+
+    const userEntity = entitiesById.get(sessionEntity.userId) as
+      | UserEntity
+      | undefined;
+    assert(userEntity, 'expected userEntity');
+
+    userEntity.send({
+      type: 'CREATE_STREAM',
+      roomId: channelId,
+    });
+  }, [entityStoreRegistry, entitiesById, channelId]);
+
+  useLayoutEffect(() => {
+    // @ts-ignore
+    window['__onGCastApiAvailable'] = function (loaded: boolean) {
+      cast$.setKey('castApiAvailable', loaded);
+
+      const sessionRequest = new chrome.cast.SessionRequest(
+        RECEIVER_APPLICATION_ID
+      );
+
+      const apiConfig = new chrome.cast.ApiConfig(
+        sessionRequest,
+        (session) => {
+          console.log('has config', session);
+        },
+        (hasReceiver) => {
+          console.log('has receiver', { hasReceiver });
+        }
+      );
+
+      chrome.cast.initialize(
+        apiConfig,
+        () => console.log('cast init success'),
+        (err) => console.log('cast init error', err)
+      );
+
+      cast$.setKey('initialized', true);
+    };
+  }, [cast$]);
+
   return (
-    <Tabs.Content value="shop">
+    <Tabs.Content value="streams">
       <Flex direction="column" gap="3">
-        <Card
-          css={{
-            background: `linear-gradient($primary4, $primary7)`,
-            border: '2px solid $primary6',
-          }}
-        >
-          <Image
-            css={{ aspectRatio: 1, width: '100%' }}
-            src="https://cdn.discordapp.com/attachments/1039255735390978120/1082663770159071272/pigment-dyed-cap-black-stone-front-640601d4ccad3.png"
-          />
-        </Card>
-        <a href="https://merch.explorers.club" target="_blank">
-          <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-            <Text>
-              Open Merch Store <OpenInNewWindowIcon />
-            </Text>
-          </Card>
-        </a>
+        {streamIds.map((streamId) => (
+          <Stream key={streamId} streamId={streamId} />
+        ))}
+        <Button onClick={handlePressCreateStream}>Create Stream</Button>
       </Flex>
     </Tabs.Content>
+  );
+};
+
+const Stream: FC<{ streamId: string }> = ({ streamId }) => {
+  const streamToken = useEntityIdProp<StreamEntity, 'token'>(streamId, 'token');
+
+  const handleSendToChromeCast = useCallback(async () => {
+    assert(
+      streamToken,
+      'expected streamToken when pressing send to chromecast'
+    );
+    try {
+      // todo handle error/timeout
+      await new Promise((resolve) => {
+        const unsub = cast$.subscribe(() => {
+          if (cast$.get().initialized) {
+            resolve(null);
+            unsub();
+          }
+        });
+      });
+    } catch (ex) {
+      console.error('timed out loading google cast script');
+    }
+
+    try {
+      await new Promise((resolve, reject) => {
+        chrome.cast.requestSession((session) => {
+          session.addMessageListener(
+            'urn:x-cast:org.opengame.stream',
+            function (data) {
+              console.log('received message', data);
+            }
+          );
+
+          session.sendMessage(
+            'urn:x-cast:org.opengame.stream',
+            JSON.stringify({ streamToken }),
+            () => {
+              console.log('succ');
+              // todo
+            },
+            (err) => {
+              console.error(err);
+              // todo
+            }
+          );
+
+          resolve(null);
+        }, reject);
+      });
+    } catch (ex) {
+      console.warn(ex);
+    }
+
+    return '';
+  }, [streamToken]);
+
+  return (
+    <Box>
+      {/* <input disabled type="text" value={streamUrl} ref={streamUrlRef} /> */}
+      <Flex align="center" gap="2">
+        {/* <Button onClick={handlePressCopyUrl}>Copy URL</Button> */}
+        {streamToken ? (
+          <Button onClick={handleSendToChromeCast}>Send To Chromecast</Button>
+        ) : (
+          <>Loading</>
+        )}
+        {/* {showCopied && <Text>copied!</Text>} */}
+      </Flex>
+    </Box>
   );
 };
 
@@ -315,7 +467,6 @@ const DesktopQrCode = () => {
 const GamesTabContent = () => {
   //   const send = useAppSend();
   const handlePressStart = useCallback(() => {
-    console.log('START!');
     // send({ type: 'START_ROOM' });
   }, []);
 
@@ -352,5 +503,5 @@ const GamesTabContent = () => {
 const MenuDrawerOverlay = styled(Dialog.Overlay, {
   position: 'fixed',
   inset: 0,
-  backgroundColor: 'rgba(0,0,0,.7)',
+  backgroundColor: 'white',
 });

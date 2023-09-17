@@ -1,7 +1,7 @@
-import { Entity, EntityEvent, RouteProps } from '@explorers-club/schema';
+import { Entity, RouteProps } from '@explorers-club/schema';
 import { World } from 'miniplex';
-import { atom, type Atom } from 'nanostores';
-import { Observable, Subject, from } from 'rxjs';
+import { ReadableAtom, type Atom, MapStore, MapStoreKeys } from 'nanostores';
+import { Observable, Subject } from 'rxjs';
 import { AnyEventObject, EventObject } from 'xstate';
 export * from './forms';
 export * from './hooks';
@@ -119,7 +119,6 @@ export const retryPromiseWhen = async (
   let attempts = 0;
   while (attempts < maxAttempts) {
     const result = await promise;
-    console.log(result);
 
     if (!retryCondition(result)) {
       return;
@@ -310,3 +309,77 @@ waitForStoreValue<LoadingStateValue>($loadingState, 2000)
   .then(value => console.log('Store value:', value))
   .catch(err => console.error(err.message));
 */
+
+// Utility function to wait for the atom to change to a specific value
+export function waitForTargetValue<T>(
+  atom: ReadableAtom<T>,
+  targetValue: T,
+  timeoutInSeconds: number = 10 // Default to 10 seconds
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    if (atom.get() === targetValue) {
+      return resolve(targetValue);
+    }
+
+    let timeoutId: NodeJS.Timeout;
+
+    const listener = (value: T) => {
+      if (value === targetValue) {
+        clearTimeout(timeoutId);
+        resolve(value);
+        unsub();
+      }
+    };
+
+    // Set the listener to the atom
+    const unsub = atom.subscribe(listener);
+
+    // Set a timeout for the desired duration
+    timeoutId = setTimeout(() => {
+      unsub();
+      reject(
+        new Error(
+          `Expected value "${targetValue}" was not reached in ${timeoutInSeconds} seconds.`
+        )
+      );
+    }, timeoutInSeconds * 1000);
+  });
+}
+
+// export function waitForMapValue<
+//   M extends MapStore,
+//   K extends MapStoreKeys<M>,
+//   T extends any
+// >(
+//   mapAtom: M,
+//   key: K,
+//   targetValue: T,
+//   timeoutInSeconds: number = 10 // Default to 10 seconds
+// ): Promise<T> {
+//   return new Promise((resolve, reject) => {
+//     console.log('wait for')
+//     if (mapAtom.get()[key] === targetValue) {
+//       return resolve(targetValue);
+//     }
+
+//     let timeoutId: NodeJS.Timeout;
+
+//     const unsub = mapAtom.subscribe(() => {
+//       if (mapAtom.get()[key] === targetValue) {
+//         clearTimeout(timeoutId);
+//         resolve(targetValue);
+//         unsub();
+//       }
+//     });
+
+//     // Set a timeout for the desired duration
+//     timeoutId = setTimeout(() => {
+//       unsub();
+//       reject(
+//         new Error(
+//           `Expected value "${targetValue}" was not reached in ${timeoutInSeconds} seconds.`
+//         )
+//       );
+//     }, timeoutInSeconds * 1000);
+//   });
+// }

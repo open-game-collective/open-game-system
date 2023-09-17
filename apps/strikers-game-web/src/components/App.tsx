@@ -1,6 +1,7 @@
 import { Flex } from '@atoms/Flex';
 import { ApplicationContext } from '@context/ApplicationContext';
 import { ApplicationProvider } from '@context/ApplicationProvider';
+// import { RTCStreamProvider } from '@context/RTCStreamContext';
 import { LayoutContext } from '@context/LayoutContext';
 import { LayoutProvider } from '@context/LayoutProvider';
 import { PWAProvider } from '@context/PWAContext';
@@ -32,16 +33,23 @@ const AppContainer = styled('div', {
 export const App: FC<MiddlewareProps> = ({
   initialRouteProps,
   connectionId,
-  trpcUrl,
+  apiServerUrl,
+  // streamServerUrl,
 }) => {
   const [routeStore] = useState(atom(initialRouteProps));
 
   return (
     <PWAProvider>
-      <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
+      <ApplicationProvider
+        apiServerUrl={apiServerUrl}
+        connectionId={connectionId}
+      >
         <ApplicationContext.Provider value={{ routeStore }}>
           <AppContainer>
             <LayoutProvider>
+              {/* {streamServerUrl && (
+                <RTCStreamProvider streamServerUrl={streamServerUrl} />
+              )} */}
               <ScenePanel />
               <Menu />
               <ChannelListDialog />

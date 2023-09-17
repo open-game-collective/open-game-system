@@ -164,6 +164,12 @@ import {
   ChatStateValueSchema,
 } from './services/chat';
 import { EntityChangeEventSchema } from './entity/base';
+import {
+  StreamContextSchema,
+  StreamCommandSchema,
+  StreamEntitySchema,
+  StreamStateValueSchema,
+} from './lib/stream';
 
 export type ChatContext = z.infer<typeof ChatContextSchema>;
 export type ChatCommand = z.infer<typeof ChatCommandSchema>;
@@ -203,6 +209,18 @@ export type UserMachine = StateMachine<
 >;
 export type UserInterpreter = InterpreterFrom<UserMachine>;
 export type UserStateValue = z.infer<typeof UserStateValueSchema>;
+
+export type StreamEntity = z.infer<typeof StreamEntitySchema>;
+export type StreamCommand = z.infer<typeof StreamCommandSchema>;
+export type StreamStateSchema = StateSchemaFromStateValue<StreamStateValue>;
+export type StreamContext = z.infer<typeof StreamContextSchema>;
+export type StreamMachine = StateMachine<
+  StreamContext,
+  StreamStateSchema,
+  WithSenderId<StreamCommand>
+>;
+export type StreamInterpreter = InterpreterFrom<StreamMachine>;
+export type StreamStateValue = z.infer<typeof StreamStateValueSchema>;
 
 export type SessionEntity = z.infer<typeof SessionEntitySchema>;
 export type SessionCommand = z.infer<typeof SessionCommandSchema>;
@@ -326,6 +344,7 @@ export type EntityTypeMap = {
   session: SessionEntity;
   room: RoomEntity;
   user: UserEntity;
+  stream: StreamEntity;
   message_channel: MessageChannelEntity;
   codebreakers_game: CodebreakersGameEntity;
   codebreakers_player: CodebreakersPlayerEntity;
@@ -346,6 +365,10 @@ export type EntityMachine =
   | {
       type: 'user';
       machine: UserMachine;
+    }
+  | {
+      type: 'stream';
+      machine: StreamMachine;
     }
   | {
       type: 'room';

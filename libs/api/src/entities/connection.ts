@@ -76,6 +76,7 @@ export const createConnectionMachine = ({
       profileId: undefined,
       name: undefined,
       serialNumber: getSerialNumber(),
+      streamIds: [],
     });
     world.add(userEntity);
 

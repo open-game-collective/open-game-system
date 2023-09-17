@@ -48,13 +48,13 @@ const RoomWrapper: FC<{ slug: string }> = (props) => {
     return <></>;
   }
 
-  const trpcUrl = `${PUBLIC_API_WS_SERVER_URL}/?accessToken=${creds.accessToken}`;
+  const apiServerUrl = `${PUBLIC_API_WS_SERVER_URL}/?accessToken=${creds.accessToken}`;
 
   return (
     <App
       initialRouteProps={routeProps}
       connectionId={creds.connectionId}
-      trpcUrl={trpcUrl}
+      apiServerUrl={apiServerUrl}
     />
   );
 };
@@ -201,8 +201,9 @@ const initAccessToken = async (routeProps: RouteProps, url: string) => {
     .setProtectedHeader({ alg })
     .setSubject(connectionId)
     .setExpirationTime('1d')
-    .setJti('ACCESS_TOKEN')
-    .setIssuer('STORYBOOK');
+    .setIssuedAt()
+    .setAudience('API_SERVER')
+    .setIssuer('STRIKERS_GAME_STORYBOOK');
   const secret = new TextEncoder().encode('my_private_key');
 
   const accessToken = await jwt.sign(secret);

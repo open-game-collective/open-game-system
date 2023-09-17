@@ -1,4 +1,5 @@
 import { SunsetSky } from '@3d/sky';
+import { OrbitControls } from '@react-three/drei';
 import { ApplicationContext } from '@context/ApplicationContext';
 import { ApplicationProvider } from '@context/ApplicationProvider';
 import { PWAContext, PWAProvider } from '@context/PWAContext';
@@ -31,6 +32,7 @@ import { FC, useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { Vector3 } from 'three';
 import type { MiddlewareProps } from '../middleware';
 import { PlatformContext } from '@context/PlatformContext';
+import { FieldHex } from '@strikers/lib/field-hex';
 
 // studio.initialize();
 // studio.extend(extension);
@@ -39,20 +41,23 @@ const applicationServerKey = import.meta.env.PUBLIC_VAPID_PUBLIC_KEY;
 const sheet = getProject('Demo Project').sheet('Demo Sheet');
 
 const gridStore = atom(
-  new Grid(defineHex(), rectangle({ width: 36, height: 26 }))
+  new Grid(FieldHex, rectangle({ width: 36, height: 26 }))
 );
 
 export const HomeScene: FC<MiddlewareProps> = ({
   initialRouteProps,
   connectionId,
-  trpcUrl,
+  apiServerUrl,
 }) => {
   const [routeStore] = useState(atom(initialRouteProps));
   const grid = useStore(gridStore);
 
   return (
     <ServiceWorkerProvider>
-      <ApplicationProvider trpcUrl={trpcUrl} connectionId={connectionId}>
+      <ApplicationProvider
+        apiServerUrl={apiServerUrl}
+        connectionId={connectionId}
+      >
         <ApplicationContext.Provider value={{ routeStore }}>
           <PWAProvider>
             <PushNotificationProvider
@@ -94,14 +99,15 @@ export const HomeScene: FC<MiddlewareProps> = ({
                 }}
                 camera={{ position: new Vector3(0, 1000, 1000) }}
               >
+                <OrbitControls />
                 <GridContext.Provider value={grid}>
                   <SheetProvider sheet={sheet}>
                     <CameraRigProvider>
                       <AnimationSequence />
                       <SunsetSky />
                       <Field>
-                        <Goal side="home" />
-                        <Goal side="away" />
+                        <Goal side="A" />
+                        <Goal side="B" />
                       </Field>
                     </CameraRigProvider>
                   </SheetProvider>

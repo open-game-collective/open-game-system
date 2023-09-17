@@ -1,9 +1,10 @@
+import { createEntity } from '@api/ecs';
 import { createChatMachine } from '@api/services/chat.service';
-import * as webpush from 'web-push';
 import {
   ConnectionEntity,
   Entity,
   NotificationPayload,
+  StreamEntity,
   UserCommand,
   UserContext,
   WithSenderId,
@@ -12,25 +13,30 @@ import {
   assert,
   assertEntitySchema,
   assertEventType,
-  noop,
 } from '@explorers-club/utils';
-import { World } from 'miniplex';
-import { assign, createMachine, spawn } from 'xstate';
-import { assign as assignImmer } from '@xstate/immer';
-import { entitiesById } from '..';
+import { faker } from '@faker-js/faker';
 import {
   DevicePushSubscription,
   DevicePushSubscriptionSchema,
-  RegisterPushSubscriptionCommandSchema,
 } from '@schema/lib/user';
+import * as jwt from 'jsonwebtoken';
+import { World } from 'miniplex';
+import * as webpush from 'web-push';
+import { assign, createMachine, spawn } from 'xstate';
 import { z } from 'zod';
+import { entitiesById, generateSnowflakeId } from '..';
 
 const configurationSchema = z.object({
+  PUBLIC_STRIKERS_GAME_WEB_URL: z.string(),
   PUBLIC_VAPID_PUBLIC_KEY: z.string(),
   VAPID_PRIVATE_KEY: z.string(),
 });
 
-const configuration = configurationSchema.parse(process.env);
+const {
+  PUBLIC_STRIKERS_GAME_WEB_URL,
+  PUBLIC_VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY,
+} = configurationSchema.parse(process.env);
 
 export const createUserMachine = ({
   world,
@@ -55,6 +61,47 @@ export const createUserMachine = ({
         events: {} as WithSenderId<UserCommand>, // warning sendinerId not present for initialize
       },
       on: {
+        CREATE_STREAM: {
+          actions: (_, { roomId, senderId }) => {
+            const connectionEntity = entitiesById.get(senderId);
+            assertEntitySchema(connectionEntity, 'connection');
+
+            const roomEntity = entitiesById.get(roomId);
+            assertEntitySchema(roomEntity, 'room');
+
+            if (!entity.name) {
+              // just choose a name
+              // todo assert that user has one here instead
+              entity.name = faker.person.firstName();
+            }
+
+            const streamId = generateSnowflakeId();
+            const url = `${PUBLIC_STRIKERS_GAME_WEB_URL}/${roomEntity.slug}`;
+
+            const token = jwt.sign(
+              {
+                url,
+                streamId,
+                hostSessionId: connectionEntity.sessionId,
+              },
+              'my_private_key',
+              {
+                subject: streamId,
+                expiresIn: '30d',
+              }
+            );
+
+            const streamEntity = createEntity<StreamEntity>({
+              id: streamId,
+              schema: 'stream',
+              hostId: entity.id,
+              roomId,
+              token,
+            });
+            world.add(streamEntity);
+            entity.streamIds = [...entity.streamIds, streamId];
+          },
+        },
         DISCONNECT: {
           actions: (context, event) => {
             console.log('dc user', event);
@@ -193,8 +240,8 @@ export const createUserMachine = ({
           const options = {
             vapidDetails: {
               subject: 'mailto:push@strikers.game',
-              publicKey: configuration.PUBLIC_VAPID_PUBLIC_KEY,
-              privateKey: configuration.VAPID_PRIVATE_KEY,
+              publicKey: PUBLIC_VAPID_PUBLIC_KEY,
+              privateKey: VAPID_PRIVATE_KEY,
             },
           };
 

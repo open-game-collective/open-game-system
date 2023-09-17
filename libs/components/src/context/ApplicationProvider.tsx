@@ -10,10 +10,10 @@ import { FC, ReactNode, createContext, useState } from 'react';
 enablePatches();
 
 export const ApplicationProvider: FC<{
-  trpcUrl: string;
+  apiServerUrl: string;
   connectionId: string;
   children: ReactNode;
-}> = ({ trpcUrl, connectionId, children }) => {
+}> = ({ apiServerUrl, connectionId, children }) => {
   const [world] = useState(new World<Entity>());
 
   // todo change route story when entites change
@@ -31,7 +31,7 @@ export const ApplicationProvider: FC<{
 
   //   const wsClient$ = new Subject<{ type: 'OPEN'; wsClient: ReturnType<typeof createWSClient> }>();
   const wsClient = createWSClient({
-    url: trpcUrl,
+    url: apiServerUrl,
   });
 
   const [trpcClient] = useState(() =>

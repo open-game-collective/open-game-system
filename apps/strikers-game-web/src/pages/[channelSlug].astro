@@ -1,22 +1,22 @@
 ---
-import { assert } from '@explorers-club/utils';
-import { HomeScene } from '../components/HomeScene';
+import { assertRouteName } from '@explorers-club/utils';
+import { App } from '../components/App';
 import Layout from '../layouts/Layout.astro';
 import { getRouteProps } from '../routing';
-import { App } from '../components/App';
-import { assertRouteName } from '@explorers-club/utils';
-import { ApplicationProvider } from '@context/ApplicationProvider';
 
 const routeProps = getRouteProps(Astro.url);
 assertRouteName(routeProps, 'Room');
 const title = `#${routeProps.roomSlug}`;
 const { accessToken, connectionId } = Astro.locals;
+
+// could we check here if there is an active stream,
+// and if there is....???
 ---
 
 <Layout title={title}>
   <App
     client:only
-    trpcUrl={`${
+    apiServerUrl={`${
       import.meta.env.PUBLIC_API_WS_SERVER_URL
     }/?accessToken=${accessToken}`}
     connectionId={connectionId}
