@@ -1,8 +1,8 @@
 export const Ball = () => {
   return (
-    <mesh>
-      <sphereBufferGeometry attach="geometry" args={[1, 32, 16]} />
-      <meshStandardMaterial attach="material" color={0xcc0000} />
+    <mesh position={[0, 1, 0]}>
+      <sphereBufferGeometry attach="geometry" args={[0.5, 32, 16]} />
+      <meshBasicMaterial attach="material" color={0xffffff} />
     </mesh>
   );
 };

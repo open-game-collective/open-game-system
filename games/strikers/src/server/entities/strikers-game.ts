@@ -370,13 +370,15 @@ function findCenterCardId(
 
   return cardIds.reduce((closestCardId, currentCardId) => {
     const closestCoord = tilePositionsByCardId[closestCardId];
-    const { row, col } = new Hex(closestCoord);
+    const { row: closestRow, col: closestCol } = new Hex(closestCoord);
     const closestDistance = Math.sqrt(
-      Math.pow(col - MID_X, 2) + Math.pow(row - MID_Y, 2)
+      Math.pow(closestCol - MID_X, 2) + Math.pow(closestRow - MID_Y, 2)
     );
 
+    const currentCoord = tilePositionsByCardId[currentCardId];
+    const { row: currentRow, col: currentCol } = new Hex(currentCoord);
     const currentDistance = Math.sqrt(
-      Math.pow(col - MID_X, 2) + Math.pow(row - MID_Y, 2)
+      Math.pow(currentCol - MID_X, 2) + Math.pow(currentRow - MID_Y, 2)
     );
 
     return currentDistance < closestDistance ? currentCardId : closestCardId;

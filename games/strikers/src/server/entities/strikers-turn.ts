@@ -5,15 +5,6 @@ import {
   generateSnowflakeId,
 } from '@api/index';
 import {
-  CubeCoordinates,
-  Direction,
-  OffsetCoordinates,
-  isOffset,
-  isTuple,
-  line,
-  tupleToCube,
-} from 'honeycomb-grid';
-import {
   Entity,
   StrikersEffectEntity,
   WithSenderId,
@@ -45,13 +36,17 @@ import { offsetToStrikersTile } from '@strikers/utils';
 import { assign } from '@xstate/immer';
 import { compare } from 'fast-json-patch';
 import {
+  CubeCoordinates,
+  Direction,
   Grid,
   Hex,
   HexCoordinates,
-  Orientation,
-  distance,
+  isOffset,
+  isTuple,
+  line,
   rectangle,
   spiral,
+  tupleToCube,
 } from 'honeycomb-grid';
 import { produce } from 'immer';
 import { World } from 'miniplex';
@@ -212,7 +207,10 @@ export const createStrikersTurnMachine = ({
                                       },
                                       {
                                         target: 'Ready',
-                                        actions: 'assignSelectedTarget',
+                                        actions: [
+                                          'assignSelectedTarget',
+                                          'sendMoveTargetSelectedEvent',
+                                        ],
                                         cond: 'didSelectMoveTarget',
                                       },
                                     ],
@@ -287,27 +285,43 @@ export const createStrikersTurnMachine = ({
                         Ready: {
                           on: {
                             CONFIRM: {
-                              target: 'Complete',
+                              actions: () => {
+                                console.log('CONFIRM!');
+                              },
+                              target: 'Submitting',
                             },
                           },
                         },
-                        Complete: {
-                          initial: 'Submitting',
-                          states: {
-                            Submitting: {
-                              invoke: {
-                                src: 'createPassEffect',
-                                onDone: 'Complete',
-                                onError: 'Error',
-                              },
-                            },
-                            Error: {},
-                            Complete: {
-                              type: 'final',
-                            },
+                        Submitting: {
+                          invoke: {
+                            src: 'createPassEffect',
+                            onDone: 'Complete',
+                            onError: 'Error',
                           },
+                        },
+                        Error: {},
+                        Complete: {
                           type: 'final',
                         },
+                        // Complete: {
+                        //   initial: 'Submitting',
+                        //   states: {
+                        //     Submitting: {
+                        //       invoke: {
+                        //         src: async () => {
+                        //           console.log('HELLO!!!!');
+                        //         },
+                        //         onDone: 'Complete',
+                        //         onError: 'Error',
+                        //       },
+                        //     },
+                        //     Error: {},
+                        //     Complete: {
+                        //       type: 'final',
+                        //     },
+                        //   },
+                        //   type: 'final',
+                        // },
                       },
                     },
                     Shooting: {
@@ -371,6 +385,28 @@ export const createStrikersTurnMachine = ({
     },
     {
       actions: {
+        sendMoveTargetSelectedEvent: ({ selectedTarget }) => {
+          // todo... only send to player whos turn it currently is?
+          assert(
+            selectedTarget,
+            'expected selectedTarget when sending move event'
+          );
+          // todo... only send to player whos turn it currently is?
+          // assert(selectedCardId, 'expected selectedCardId when sending event');
+
+          // const playerId =
+          //   entity.side === 'A'
+          //     ? gameEntity.config.homeTeamPlayerIds[0]
+          //     : gameEntity.config.awayTeamPlayerIds[0];
+          // const playerEntity = entitiesById.get(playerId);
+          // assertEntitySchema(playerEntity, 'strikers_player');
+
+          const event = {
+            type: 'SELECT_MOVE_TARGET' as const,
+            target: selectedTarget,
+          };
+          gameChannelSubject.next(event);
+        },
         sendCardSelectedEvent: ({ selectedCardId }) => {
           // todo... only send to player whos turn it currently is?
           assert(selectedCardId, 'expected selectedCardId when sending event');
@@ -441,8 +477,18 @@ export const createStrikersTurnMachine = ({
           const fromPosition =
             gameEntity.gameState.tilePositionsByCardId[selectedCardId];
 
+          // If the moving player possessions the ball, move the ball when the player moves
+          let ballPosition = gameEntity.gameState.ballPosition;
+          // does this equality always work?
+          if (
+            ballPosition === fromPosition &&
+            gameEntity.gameState.possession === entity.side
+          ) {
+            ballPosition = toPosition;
+          }
+
           const nextGameState = produce(gameEntity.gameState, (draft) => {
-            // draft.ballPosition = toPosition;
+            draft.ballPosition = ballPosition;
             draft.tilePositionsByCardId = {
               ...draft.tilePositionsByCardId,
               [selectedCardId]: toPosition,
@@ -888,11 +934,6 @@ const getCardIdAtPositionOnTeam = (
 ) => {
   const cardIds = side === 'A' ? state.sideACardIds : state.sideBCardIds;
   return cardIds.find((cardId) => {
-    console.log(
-      position,
-      state.tilePositionsByCardId[cardId],
-      equals(position, state.tilePositionsByCardId[cardId])
-    );
     return equals(state.tilePositionsByCardId[cardId], position);
   });
 };

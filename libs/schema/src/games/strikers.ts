@@ -43,6 +43,15 @@ const StrikersShootActionLiteral = z.literal('SHOOT');
 const StrikersMoveActionLiteral = z.literal('MOVE');
 const StrikersPassActionLiteral = z.literal('PASS');
 
+export const StrikersTileCoordinateSchema = z.custom<string>((val: any) => {
+  // Use a regex to test the validity of the string format
+  // This regex matches a single letter (A-Z) followed by a number (1-20)
+  return /^[A-Z](?:[1-9]|1[0-9]|2[0-9]|3[0-6])$/.test(val as string);
+}, 'Invalid StrikersTileCoordinate format. It should be A-Z for columns and 1-20 for rows. Example: A1, C10, Z20.');
+export type StrikersTileCoordinate = z.infer<
+  typeof StrikersTileCoordinateSchema
+>;
+
 export const StrikersActionSchema = z.union([
   StrikersShootActionLiteral,
   StrikersMoveActionLiteral,
@@ -136,6 +145,13 @@ const StrikersSelectActionEventSchema = EventBaseSchema(
   })
 );
 
+const StrikersSelectMoveTargetEventSchema = EventBaseSchema(
+  z.literal('SELECT_MOVE_TARGET'),
+  z.object({
+    target: StrikersTileCoordinateSchema,
+  })
+);
+
 const StrikersSelectCardEventSchema = EventBaseSchema(
   z.literal('SELECT_CARD'),
   z.object({
@@ -157,6 +173,7 @@ export const StrikersGameEventSchema = z.discriminatedUnion('type', [
   StrikersGameMessageEventSchema,
   StrikersSelectActionEventSchema,
   StrikersSelectCardEventSchema,
+  StrikersSelectMoveTargetEventSchema,
 ]);
 
 export const StrikersGameStateSchema = z.object({
@@ -550,15 +567,6 @@ export const StrikersEffectEntitySchema = EntityBaseSchema(
 export const StrikersEffectContextSchema = z.object({
   foo: z.string(),
 });
-
-export const StrikersTileCoordinateSchema = z.custom<string>((val: any) => {
-  // Use a regex to test the validity of the string format
-  // This regex matches a single letter (A-Z) followed by a number (1-20)
-  return /^[A-Z](?:[1-9]|1[0-9]|2[0-9]|3[0-6])$/.test(val as string);
-}, 'Invalid StrikersTileCoordinate format. It should be A-Z for columns and 1-20 for rows. Example: A1, C10, Z20.');
-export type StrikersTileCoordinate = z.infer<
-  typeof StrikersTileCoordinateSchema
->;
 
 export const StrikersTurnContextSchema = z.object({
   actionMessageIds: z.array(z.string()),

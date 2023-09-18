@@ -21,6 +21,7 @@ import { StrikersContext } from '../context/strikers.context';
 import { TurnContext } from '../context/turn.context';
 import { ClientEventContext } from '../context/client-event.context';
 import { CardMeeple } from '../components/card-meeple';
+import { Ball } from '../components/ball';
 
 export const TurnScene = () => {
   const { send, event$ } = useContext(ClientEventContext);
@@ -32,6 +33,11 @@ export const TurnScene = () => {
   });
 
   const { gameEntity } = useContext(StrikersContext);
+  const ballPosition = useEntitySelectorDeepEqual(
+    gameEntity,
+    (entity) => entity.gameState.ballPosition
+  );
+
   const tilePositionsByCardId = useEntitySelectorDeepEqual(
     gameEntity,
     (entity) => entity.gameState.tilePositionsByCardId
@@ -53,6 +59,11 @@ export const TurnScene = () => {
         <FieldControls />
         <Goal side="A" />
         <Goal side="B" />
+        {ballPosition && (
+          <FieldCell tilePosition={ballPosition}>
+            <Ball />
+          </FieldCell>
+        )}
         {homeSideCardIds.map((cardId) => (
           <FieldCell key={cardId} tilePosition={tilePositionsByCardId[cardId]}>
             <CardMeeple team="home" cardId={cardId} />
