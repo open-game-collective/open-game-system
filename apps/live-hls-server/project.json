@@ -1,0 +1,85 @@
+{
+  "name": "live-hls-server",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/live-hls-server/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "platform": "node",
+        "outputPath": "dist/apps/live-hls-server",
+        "format": ["cjs"],
+        "bundle": false,
+        "main": "apps/live-hls-server/src/main.ts",
+        "tsConfig": "apps/live-hls-server/tsconfig.app.json",
+        "assets": ["apps/live-hls-server/src/assets"],
+        "generatePackageJson": true,
+        "esbuildOptions": {
+          "sourcemap": true,
+          "outExtension": {
+            ".js": ".js"
+          }
+        }
+      },
+      "configurations": {
+        "development": {},
+        "production": {
+          "esbuildOptions": {
+            "sourcemap": false,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "live-hls-server:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "live-hls-server:build:development"
+        },
+        "production": {
+          "buildTarget": "live-hls-server:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/live-hls-server/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/live-hls-server/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
+      }
+    },
+    "start": {
+      "executor": "@nx/js:node",
+      "options": {
+        "watch": false,
+        "buildTarget": "live-hls-server:build",
+        "host": "0.0.0.0"
+      }
+    }
+  },
+  "tags": []
+}
