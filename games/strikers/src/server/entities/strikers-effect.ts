@@ -1,17 +1,14 @@
+import { entitiesById } from '@api/index';
 import {
   Entity,
-  StrikersEffectCommand,
-  StrikersEffectContext,
-  StrikersEffectMachine,
-  StrikersPlayerCommand,
-  StrikersPlayerContext,
-  StrikersPlayerMachine,
-  WithSenderId,
+  StrikersEffectData,
+  StrikersEffectEntity,
+  StrikersGameState,
 } from '@explorers-club/schema';
 import { assertEntitySchema } from '@explorers-club/utils';
-import * as effects from '../effects';
+import { compare } from 'fast-json-patch';
 import { World } from 'miniplex';
-import { createMachine } from 'xstate';
+import * as effects from '../effects';
 
 export const createStrikersEffectMachine = ({
   world,
@@ -21,26 +18,36 @@ export const createStrikersEffectMachine = ({
   entity: Entity;
 }) => {
   assertEntitySchema(entity, 'strikers_effect');
+  const createEffectMachine = effectMachineMap[entity.data.type];
 
-  return createMachine({
-    id: 'StrikersEffectMachine',
-    initial: 'InProgress',
-    schema: {
-      context: {} as StrikersEffectContext,
-      events: {} as WithSenderId<StrikersEffectCommand>,
-    },
-    states: {
-      InProgress: {
-        invoke: {
-          src: async () => {
-            //
-          }
-        }
-      },
-      WaitingForInput: {},
-      Resolved: {},
-    },
-  }) satisfies StrikersEffectMachine;
+  const turnEntity = entitiesById.get(entity.turnId);
+  assertEntitySchema(turnEntity, 'strikers_turn');
+  const turnId = turnEntity.id;
+
+  const gameEntity = entitiesById.get(turnEntity.gameEntityId);
+  assertEntitySchema(gameEntity, 'strikers_game');
+
+  const spawnChild = async (
+    data: StrikersEffectData,
+    nextGameState: StrikersGameState
+  ) => {
+    const patches = compare(gameEntity.gameState, nextGameState);
+
+    const { createEntity } = await import('@api/ecs');
+    const child = createEntity<StrikersEffectEntity>({
+      schema: 'strikers_effect',
+      patches,
+      parentId: entity.id,
+      turnId: turnEntity.id,
+      gameId: gameEntity.id,
+      category: 'ACTION',
+      data,
+    });
+
+    return child;
+  };
+
+  return createEffectMachine(entity.data, turnId, spawnChild);
 };
 
 const effectMachineMap = {

@@ -458,6 +458,8 @@ const StrikersTurnEntityPropsSchema = z.object({
 const StrikersEffectEntityPropsSchema = z.object({
   schema: StrikersEffectSchemaTypeLiteral,
   patches: z.array(z.custom<Operation>()),
+  turnId: SnowflakeIdSchema,
+  gameId: SnowflakeIdSchema,
   category: z.union([
     ActionEffectLiteral,
     TriggeredEffectLiteral,
@@ -565,7 +567,6 @@ export const StrikersEffectEntitySchema = EntityBaseSchema(
 export const StrikersEffectContextSchema = z.object({
   foo: z.string(),
 });
-
 
 export const StrikersTurnContextSchema = z.object({
   actionMessageIds: z.array(z.string()),

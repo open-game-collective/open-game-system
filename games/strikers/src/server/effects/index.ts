@@ -1,62 +1,106 @@
 // This folder holds the state machine implementations
 // for each of the individual "effects" that can happen
 
+import { entitiesById } from '@api/index';
 import {
+  SnowflakeId,
   StrikersEffectData,
   StrikersEffectEntity,
+  StrikersGameState,
 } from '@explorers-club/schema';
-import { AnyStateMachine } from 'xstate';
+import { assert, assertEntitySchema } from '@explorers-club/utils';
+import { AnyStateMachine, createMachine } from 'xstate';
 
 export const createMoveActionMachine = (
-  effect: StrikersEffectData,
+  data: StrikersEffectData,
+  turnId: SnowflakeId,
   spawnChild: (
-    effect: StrikersEffectData,
-    spawnChild: (effect: StrikersEffectData) => StrikersEffectEntity
-  ) => void
+    data: StrikersEffectData,
+    gameState: StrikersGameState
+  ) => Promise<StrikersEffectEntity>
 ) => {
-  return {} as AnyStateMachine;
+  assert(data.type === 'MOVE', 'expected data type to be move');
+  const turnEntity = entitiesById.get(turnId);
+  assertEntitySchema(turnEntity, 'strikers_turn');
+
+  const gameEntity = entitiesById.get(turnEntity.gameEntityId);
+  assertEntitySchema(gameEntity, 'strikers_game');
+
+  const initial = 'Resolved';
+
+  console.log(gameEntity.gameState);
+
+  // If there are now two players
+
+  return createMachine({
+    initial,
+    states: {
+      InProgress: {},
+      Resolved: {},
+    },
+  }) satisfies AnyStateMachine;
 };
 
 export const createPassActionMachine = (
-  effect: StrikersEffectData,
+  data: StrikersEffectData,
+  turnId: SnowflakeId,
   spawnChild: (
-    effect: StrikersEffectData,
-    spawnChild: (effect: StrikersEffectData) => StrikersEffectEntity
-  ) => void
+    data: StrikersEffectData,
+    gameState: StrikersGameState
+  ) => Promise<StrikersEffectEntity>
 ) => {
   return {} as AnyStateMachine;
 };
 
 export const createShootActionMachine = (
-  effect: StrikersEffectData,
-  spawnChild: (effect: StrikersEffectData) => StrikersEffectEntity
+  data: StrikersEffectData,
+  turnId: SnowflakeId,
+  spawnChild: (
+    data: StrikersEffectData,
+    gameState: StrikersGameState
+  ) => Promise<StrikersEffectEntity>
 ) => {
   return {} as AnyStateMachine;
 };
 
 export const createTackleAttemptMachine = (
-  effect: StrikersEffectData,
-  spawnChild: (effect: StrikersEffectData) => StrikersEffectEntity
+  data: StrikersEffectData,
+  turnId: SnowflakeId,
+  spawnChild: (
+    data: StrikersEffectData,
+    gameState: StrikersGameState
+  ) => Promise<StrikersEffectEntity>
 ) => {
   return {} as AnyStateMachine;
 };
 
 export const createInterceptionAttemptMachine = (
-  effect: StrikersEffectData
+  data: StrikersEffectData,
+  turnId: SnowflakeId,
+  spawnChild: (
+    data: StrikersEffectData,
+    gameState: StrikersGameState
+  ) => Promise<StrikersEffectEntity>
 ) => {
   return {} as AnyStateMachine;
 };
 
 export const createSaveAttemptMachine = (
-  effect: StrikersEffectData,
-  spawnChild: (effect: StrikersEffectData) => StrikersEffectEntity
+  data: StrikersEffectData,
+  spawnChild: (
+    data: StrikersEffectData,
+    gameState: StrikersGameState
+  ) => Promise<StrikersEffectEntity>
 ) => {
   return {} as AnyStateMachine;
 };
 
 export const createPossessionBattleMachine = (
-  effect: StrikersEffectData,
-  spawnChild: (effect: StrikersEffectData) => StrikersEffectEntity
+  data: StrikersEffectData,
+  spawnChild: (
+    data: StrikersEffectData,
+    gameState: StrikersGameState
+  ) => Promise<StrikersEffectEntity>
 ) => {
   return {} as AnyStateMachine;
 };

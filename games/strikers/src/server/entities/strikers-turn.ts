@@ -230,7 +230,9 @@ export const createStrikersTurnMachine = ({
                                     onError: 'Error',
                                   },
                                 },
-                                Error: {},
+                                Error: {
+                                  entry: console.error,
+                                },
                                 Complete: {
                                   type: 'final',
                                 },
@@ -471,19 +473,17 @@ export const createStrikersTurnMachine = ({
         createMoveEffect: async ({ selectedCardId, selectedTarget }) => {
           assert(selectedCardId, 'expected selectedCardId');
           assert(selectedTarget, 'expected selectedTarget');
-          const toPosition =
-            alphaNumToOffsetCoordiantes(selectedTarget);
+          const toPosition = alphaNumToOffsetCoordiantes(selectedTarget);
 
           const fromPosition =
             gameEntity.gameState.tilePositionsByCardId[selectedCardId];
 
           // If the moving player possessions the ball, move the ball when the player moves
           let ballPosition = gameEntity.gameState.ballPosition;
-          // does this equality always work?
-          if (
+          const movingPlayerHasBall =
             ballPosition === fromPosition &&
-            gameEntity.gameState.possession === entity.side
-          ) {
+            gameEntity.gameState.possession === entity.side;
+          if (movingPlayerHasBall) {
             ballPosition = toPosition;
           }
 
@@ -500,7 +500,8 @@ export const createStrikersTurnMachine = ({
           const effectEntity = createEntity<StrikersEffectEntity>({
             schema: 'strikers_effect',
             patches,
-            parentId: entity.id,
+            gameId: gameEntity.id,
+            turnId: entity.id,
             category: 'ACTION',
             data: {
               type: 'MOVE',
@@ -533,7 +534,8 @@ export const createStrikersTurnMachine = ({
           const effectEntity = createEntity<StrikersEffectEntity>({
             schema: 'strikers_effect',
             patches,
-            parentId: entity.id,
+            turnId: entity.id,
+            gameId: gameEntity.id,
             category: 'ACTION',
             data: {
               type: 'SHOOT',
@@ -549,8 +551,7 @@ export const createStrikersTurnMachine = ({
         },
         createPassEffect: async ({ selectedTarget }) => {
           assert(selectedTarget, 'expected selectedTarget');
-          const toPosition =
-            alphaNumToOffsetCoordiantes(selectedTarget);
+          const toPosition = alphaNumToOffsetCoordiantes(selectedTarget);
 
           const fromCardId = getCardIdWithPossession(gameEntity.gameState);
           assert(fromCardId, 'expected fromCardId when creating pass effect');
@@ -580,7 +581,8 @@ export const createStrikersTurnMachine = ({
           const effectEntity = createEntity<StrikersEffectEntity>({
             schema: 'strikers_effect',
             patches,
-            parentId: entity.id,
+            turnId: entity.id,
+            gameId: gameEntity.id,
             category: 'ACTION',
             data: {
               type: 'PASS',
