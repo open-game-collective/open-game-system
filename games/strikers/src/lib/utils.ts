@@ -3,6 +3,23 @@ import { AlphaNumCoordinates } from '@schema/games/strikers';
 import { Grid, Hex, HexCoordinates, Point } from 'honeycomb-grid';
 import { Vector3 } from 'three';
 
+export function hexCoordinatesToAlphaNum(coordinate: HexCoordinates): string {
+  if ('col' in coordinate && 'row' in coordinate) {
+      const col = coordinate.col;
+      const row = coordinate.row;
+
+      // Convert row to letter
+      const letter = String.fromCharCode('A'.charCodeAt(0) + row);
+
+      // Adjust col to be 1-based
+      const number = col + 1;
+
+      return `${letter}${number}`;
+  } else {
+      throw new Error("Only OffsetCoordinates is currently supported.");
+  }
+}
+
 export function alphaNumToOffsetCoordiantes(coordinate: AlphaNumCoordinates) {
   // Extract the letter and number parts
   const letter = coordinate[0];

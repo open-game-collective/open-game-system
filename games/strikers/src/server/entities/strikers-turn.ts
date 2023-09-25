@@ -234,6 +234,7 @@ export const createStrikersTurnMachine = ({
                                   entry: console.error,
                                 },
                                 Complete: {
+                                  entry: 'finalizeActionMessage',
                                   type: 'final',
                                 },
                               },
@@ -454,20 +455,46 @@ export const createStrikersTurnMachine = ({
           gameChannelSubject.next(messageEvent);
         }),
 
+        // Resets the current action message to be the first message
         clearSelections: assign((context) => {
-          const messageId =
-            context.actionMessageIds[context.actionMessageIds.length - 1];
-          const message = messagesById.get(messageId);
-          delete context.selectedCardId;
+          // Only clear the message if the effect hasn't been created yet
+          // This action gets called anytime we exist
+          const actionEffectCount = getActionEffectCount({ entity });
+          const actionMessageCount = context.actionMessageIds.length;
 
+          if (actionEffectCount < actionMessageCount) {
+            const messageId =
+              context.actionMessageIds[context.actionMessageIds.length - 1];
+            const message = messagesById.get(messageId);
+            delete context.selectedCardId;
+
+            const messageEvent = {
+              id: messageId,
+              type: 'MESSAGE',
+              contents: [message.contents[0]],
+            };
+            console.log(messageEvent.contents[0]);
+            gameChannelSubject.next(messageEvent);
+          }
+        }),
+        finalizeActionMessage: ({ actionMessageIds }) => {
+          const messageId = actionMessageIds[actionMessageIds.length - 1];
           const messageEvent = {
             id: messageId,
             type: 'MESSAGE',
-            contents: [message.contents[0]],
+            contents: [
+              {
+                type: 'PlainMessage',
+                message: `Player 7 moved A.Qui #78 to #13`,
+              },
+              // {
+              //   type: 'PlainMessage',
+              //   message: `[]`,
+              // },
+            ],
           };
-
           gameChannelSubject.next(messageEvent);
-        }),
+        },
       },
       services: {
         createMoveEffect: async ({ selectedCardId, selectedTarget }) => {
@@ -614,7 +641,7 @@ export const createStrikersTurnMachine = ({
             gameEntity,
             side,
           });
-          const actionCount = getStartedActionCount({ entity });
+          const actionCount = getActionEffectCount({ entity });
 
           const remainingActionCount =
             entity.totalActionCount - actionCount + 1;
@@ -768,7 +795,7 @@ export const createStrikersTurnMachine = ({
           return action === 'SHOOT';
         },
         hasActionsRemaining: () => {
-          const actionCount = getStartedActionCount({ entity });
+          const actionCount = getActionEffectCount({ entity });
           return actionCount < entity.totalActionCount;
         },
       },
@@ -776,7 +803,7 @@ export const createStrikersTurnMachine = ({
   );
 };
 
-const getStartedActionCount = (props: { entity: StrikersTurnEntity }) => {
+const getActionEffectCount = (props: { entity: StrikersTurnEntity }) => {
   const entities = props.entity.effectsIds
     .map((id) => entitiesById.get(id))
     .filter((entity) => {
