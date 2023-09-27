@@ -3,7 +3,7 @@ import { AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Canvas, Color } from '@react-three/fiber';
 import { Grid, defineHex, rectangle, spiral } from 'honeycomb-grid';
 
-import { StoryObj } from '@storybook/react';
+import { Decorator, StoryObj } from '@storybook/react';
 import { button, buttonGroup, folder, useControls } from 'leva';
 import { atom } from 'nanostores';
 import { memo, useContext, useEffect } from 'react';
@@ -34,8 +34,6 @@ export default {
   component: CameraRigProvider,
 };
 type Story = StoryObj<typeof CameraRigProvider>;
-type DecoratorFn<T> = Unarray<StoryObj<T>['decorators']>;
-type Dectorator = DecoratorFn<typeof CameraRigProvider>;
 
 const gridStore = atom(
   new Grid(FieldHex, rectangle({ width: 36, height: 26 }))
@@ -48,7 +46,7 @@ const gridStore = atom(
 
 const sheetStore = atom(getProject('Demo Project').sheet('Demo Sheet'));
 
-const decorator: Dectorator = (StoryComponent) => {
+const decorator: Decorator<typeof CameraRigProvider> = (StoryComponent) => {
   return (
     <Canvas
       shadows

@@ -5,7 +5,9 @@ import { useStore } from '@nanostores/react';
 import { HamburgerMenuIcon, PersonIcon } from '@radix-ui/react-icons';
 import { FC, ReactNode, useCallback, useContext } from 'react';
 
-export const TopNav: FC<{ children?: ReactNode }> = ({ children }) => {
+export const TopBarNavigation: FC<{ children?: ReactNode }> = ({
+  children,
+}) => {
   const { isMenuOpenStore } = useContext(LayoutContext);
   const handlePressMenu = useCallback(() => {
     if (isMenuOpenStore.get()) {

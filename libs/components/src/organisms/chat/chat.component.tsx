@@ -143,6 +143,10 @@ const CombinedMessageChannel = () => {
   const { userEntity } = useContext(CombinedMessageChannelContext);
   const { createEntityStore } = useContext(WorldContext);
   const { messageChannel$ } = useContext(CombinedMessageChannelContext);
+
+  /**
+   * Creates entity stores for each message channel a user is in
+   */
   const [messageChannelStoreMap] = useState<
     Map<string, Atom<MessageChannelEntity>>
   >(() => {
@@ -202,6 +206,7 @@ const CombinedMessageChannel = () => {
       entity.messageIds.map((messageId) => [entity.id, messageId] as const)
     );
   });
+  console.log({ messageTuples });
 
   const scrollViewRef = useRef<HTMLDivElement | null>(null);
 

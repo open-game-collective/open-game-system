@@ -216,6 +216,9 @@ export const createStrikersGameMachine = ({
           const index = entity.turnsIds.length % 2;
           let side: StrikersFieldSide = index === 0 ? 'B' : 'A';
 
+          // todo flip sides for second half
+          const teamSide = side === 'A' ? 'home' : 'away';
+
           const playerId = entity.config.playerIds[index];
           assert(playerId, 'expected playerId but not foudn');
 
@@ -223,7 +226,8 @@ export const createStrikersGameMachine = ({
             schema: 'strikers_turn',
             startedAt: new Date(),
             gameEntityId: entity.id,
-            side,
+            fieldSide: side,
+            teamSide,
             playerId,
             totalActionCount: entity.config.gameplaySettings.actionsPerTurn,
             stagedGameState: deepClone(entity.gameState), // todo might need to deep cline?

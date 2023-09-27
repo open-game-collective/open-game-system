@@ -234,7 +234,7 @@ const LeaveCommandSchema = z.object({
 
 export const StrikersGameCommandSchema = z.union([
   StartCommandSchema,
-  LeaveCommandSchema,
+  // LeaveCommandSchema,
   ConfirmCommandSchema,
   MultipleChoiceSelectCommandSchema,
 ]);
@@ -448,7 +448,8 @@ const StrikersTurnEntityPropsSchema = z.object({
   stagedGameState: StrikersGameStateSchema,
   startedAt: z.date(),
   gameEntityId: SnowflakeIdSchema,
-  side: StrikersFieldSideSchema,
+  fieldSide: StrikersFieldSideSchema,
+  teamSide: StrikersTeamSideSchema,
   playerId: SnowflakeIdSchema,
   totalActionCount: z.number(),
   modifiers: z.array(ModifierSchema),
@@ -535,12 +536,42 @@ const StrikersRollCommandSchema = z.object({
   type: z.literal('ROLL'),
 });
 
+const UndoCommandSchema = z.object({
+  type: z.literal('UNDO'),
+});
+
+const RedoCommandSchema = z.object({
+  type: z.literal('REDO'),
+});
+
+const SubmitCommandSchema = z.object({
+  type: z.literal('SUBMIT'),
+});
+
+const MovePlayerCommandSchema = z.object({
+  type: z.literal('MOVE_PLAYER'),
+  cardId: CardIdSchema,
+  position: TilePositionSchema,
+});
+
+const PlaceStaminaCommandSchema = z.object({
+  type: z.literal('PLACE_STAMINA'),
+  cardId: CardIdSchema,
+});
+
 export const StrikersTurnCommandSchema = z.discriminatedUnion('type', [
   // StrikersMoveActionCommandSchema,
   // StrikersPassActionCommandSchema,
   // StrikersShootActionCommandSchema,
-  ConfirmCommandSchema,
-  MultipleChoiceSelectCommandSchema,
+  // ConfirmCommandSchema,
+  // MultipleChoiceSelectCommandSchema,
+  RedoCommandSchema,
+  UndoCommandSchema,
+  MovePlayerCommandSchema,
+  PlaceStaminaCommandSchema,
+  SubmitCommandSchema,
+  z.object({ type: z.literal('CONFIRM22') }),
+  // z.object({ type: 'CONFIRM' }),
   // StrikersRollCommandSchema,
 ]);
 
@@ -569,9 +600,11 @@ export const StrikersEffectContextSchema = z.object({
 });
 
 export const StrikersTurnContextSchema = z.object({
-  actionMessageIds: z.array(z.string()),
-  selectedCardId: CardIdSchema.optional(),
-  selectedTarget: AlphaNumCoordinatesSchema.optional(),
+  // actionMessageIds: z.array(z.string()),
+  // selectedCardId: CardIdSchema.optional(),
+  // selectedTarget: AlphaNumCoordinatesSchema.optional(),
+  workingGameState: StrikersGameStateSchema,
+  effectIds: z.array(SnowflakeIdSchema),
 });
 
 const StrikersPlayerEntityPropSchema = z.object({

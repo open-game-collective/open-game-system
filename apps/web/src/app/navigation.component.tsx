@@ -74,13 +74,13 @@ const TabButton = styled(Button, {
 const NavigationDrawerContent = () => {
   return (
     <StyledDialogContent>
-      <Tabs.Root defaultValue="games" style={{ height: '100%' }}>
+      <Tabs.Root defaultValue="channels" style={{ height: '100%' }}>
         <Flex direction="column" gap="3" style={{ height: '100%' }}>
           <Flex justify={'between'} css={{ p: '$3' }}>
             <Tabs.List>
-              <Tabs.Trigger value="games" asChild>
+              <Tabs.Trigger value="channels" asChild>
                 <TabButton ghost size="3">
-                  My Games
+                  My Channels
                 </TabButton>
               </Tabs.Trigger>
               <Tabs.Trigger value="lobby" asChild>
@@ -102,7 +102,7 @@ const NavigationDrawerContent = () => {
           </Flex>
           <ScrollAreaRoot css={{ background: 'red' }}>
             <ScrollAreaViewport>
-              <GamesTabContent />
+              <ChannelsTabContent />
               <LobbyTabContent />
               <ShopTabContent />
             </ScrollAreaViewport>
@@ -121,14 +121,14 @@ const LobbyTabContent = () => {
   // const userEntities = useEntities(archetypes.user);
   // console.log(userEntities);
   const playersOnlineCount = 5;
-  const liveGamesCount = 2;
+  const liveChannelsCount = 2;
   return (
     <Tabs.Content value="lobby">
       <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
         <Caption>Players Online</Caption>
         <Heading>{playersOnlineCount}</Heading>
-        <Caption>Live Games</Caption>
-        <Heading>{liveGamesCount}</Heading>
+        <Caption>Live Channels</Caption>
+        <Heading>{liveChannelsCount}</Heading>
       </Card>
     </Tabs.Content>
   );
@@ -162,7 +162,7 @@ const ShopTabContent = () => {
 };
 
 // Shows a list of games pulled from the world
-const GamesTabContent = () => {
+const ChannelsTabContent = () => {
   const send = useAppSend();
   const handlePressStart = useCallback(() => {
     send({ type: 'START_ROOM' });
@@ -175,7 +175,7 @@ const GamesTabContent = () => {
   // const entities = useEntities('room');
 
   return (
-    <Tabs.Content value="games">
+    <Tabs.Content value="channels">
       <Flex direction="column" gap="3">
         <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
           Hello

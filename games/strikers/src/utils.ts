@@ -1,3 +1,8 @@
+import {
+  StrikersGameEntity,
+  StrikersPlayerEntity,
+  StrikersTurnEntity,
+} from '@explorers-club/schema';
 import { OffsetCoordinates } from 'honeycomb-grid';
 
 type AxialCoordinate = {
@@ -35,3 +40,15 @@ export function offsetToStrikersTile(offset: OffsetCoordinates): string {
 
   return `${rowLetter}${colNumber}`;
 }
+
+export const isPlayersTurn = (
+  playerEntity: StrikersPlayerEntity,
+  gameEntity: StrikersGameEntity,
+  turnEntity: StrikersTurnEntity
+) => {
+  if (turnEntity.teamSide === 'home') {
+    return gameEntity.config.homeTeamPlayerIds.includes(playerEntity.id);
+  } else {
+    return gameEntity.config.awayTeamPlayerIds.includes(playerEntity.id);
+  }
+};

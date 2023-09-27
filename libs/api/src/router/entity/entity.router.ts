@@ -46,6 +46,8 @@ export const entityRouter = router({
         ...(input.command as any),
       };
 
+      // ignore complexity issue with joining commands across entities
+      // @ts-ignore
       entity.send(command);
 
       // if (entity.schema === 'connection') {

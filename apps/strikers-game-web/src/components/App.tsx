@@ -54,7 +54,7 @@ export const App: FC<MiddlewareProps> = ({
               <Menu />
               <ChannelListDialog />
               <MainPanel />
-              <Modal />
+              {/* <Modal /> */}
             </LayoutProvider>
           </AppContainer>
         </ApplicationContext.Provider>

@@ -83,724 +83,56 @@ export const createStrikersTurnMachine = ({
     messagesById.set(event.id, event);
   });
 
-  return createMachine(
-    {
-      id: 'StrikersTurnMachine',
-      type: 'parallel',
-      schema: {
-        context: {} as StrikersTurnContext,
-        events: {} as WithSenderId<StrikersTurnCommand>,
-      },
-      context: {
-        actionMessageIds: [],
-      },
-      states: {
-        Status: {
-          initial: 'Actions',
-          states: {
-            Actions: {
-              initial: 'SendingSelectActionMessage',
-              onDone: 'Complete',
-              states: {
-                SendingSelectActionMessage: {
-                  invoke: {
-                    src: 'sendSelectActionMessage',
-                    onDone: {
-                      target: 'InputtingAction',
-                      actions: assign((context, event) => {
-                        context.actionMessageIds.push(event.data);
-                      }),
-                    },
-                  },
-                },
-                InputtingAction: {
-                  initial: 'Unselected',
-                  onDone: [
-                    {
-                      target: 'SendingSelectActionMessage',
-                      cond: 'hasActionsRemaining',
-                    },
-                    {
-                      target: 'Complete',
-                    },
-                  ],
-                  states: {
-                    Unselected: {
-                      on: {
-                        MULTIPLE_CHOICE_SELECT: [
-                          {
-                            target: 'Moving',
-                            cond: 'didSelectMoveAction',
-                          },
-                          {
-                            target: 'Shooting',
-                            cond: 'didSelectShootAction',
-                          },
-                          {
-                            target: 'Passing',
-                            cond: 'didSelectPassAction',
-                          },
-                        ],
-                      },
-                    },
-                    Moving: {
-                      initial: 'SendingPlayerSelectMessage',
-                      exit: 'clearSelections',
-                      on: {
-                        MULTIPLE_CHOICE_SELECT: [
-                          {
-                            target: 'Shooting',
-                            cond: 'didSelectShootAction',
-                          },
-                          {
-                            target: 'Passing',
-                            cond: 'didSelectPassAction',
-                          },
-                        ],
-                      },
-                      states: {
-                        SendingPlayerSelectMessage: {
-                          invoke: {
-                            src: 'sendPlayerSelectMessage',
-                            onDone: 'InputtingPlayer',
-                          },
-                        },
-                        InputtingPlayer: {
-                          initial: 'Unselected',
-                          onDone: 'Complete',
-                          states: {
-                            Unselected: {
-                              on: {
-                                MULTIPLE_CHOICE_SELECT: {
-                                  target: 'PlayerSelected',
-                                  actions: [
-                                    'assignSelectedCardId',
-                                    'sendCardSelectedEvent',
-                                  ],
-                                  cond: 'didSelectPlayerTarget',
-                                },
-                              },
-                            },
-                            PlayerSelected: {
-                              initial: 'SendingTargetSelectMessage',
-                              states: {
-                                SendingTargetSelectMessage: {
-                                  invoke: {
-                                    src: 'sendTargetSelectMessage',
-                                    onDone: 'InputtingTarget',
-                                    meta: {
-                                      action: 'MOVE',
-                                    } satisfies SendTargetSelectMessageMeta,
-                                  },
-                                },
-                                InputtingTarget: {
-                                  on: {
-                                    MULTIPLE_CHOICE_SELECT: [
-                                      {
-                                        target: 'SendingTargetSelectMessage',
-                                        actions: [
-                                          'clearLastMessage',
-                                          'assignSelectedCardId',
-                                          'sendCardSelectedEvent',
-                                        ],
-                                        cond: 'didSelectPlayerTarget',
-                                      },
-                                      {
-                                        target: 'Ready',
-                                        actions: [
-                                          'assignSelectedTarget',
-                                          'sendMoveTargetSelectedEvent',
-                                        ],
-                                        cond: 'didSelectMoveTarget',
-                                      },
-                                    ],
-                                  },
-                                },
-                                Ready: {
-                                  on: {
-                                    CONFIRM: {
-                                      target: 'Submitting',
-                                    },
-                                  },
-                                },
-                                Submitting: {
-                                  invoke: {
-                                    src: 'createMoveEffect',
-                                    onDone: 'Complete',
-                                    onError: 'Error',
-                                  },
-                                },
-                                Error: {
-                                  entry: console.error,
-                                },
-                                Complete: {
-                                  entry: 'finalizeActionMessage',
-                                  type: 'final',
-                                },
-                              },
-                              onDone: 'Complete',
-                            },
-                            Complete: {
-                              type: 'final',
-                            },
-                          },
-                        },
-                        Complete: {
-                          type: 'final',
-                        },
-                      },
-                      onDone: 'Complete',
-                    },
-                    Passing: {
-                      exit: 'clearSelections',
-                      on: {
-                        MULTIPLE_CHOICE_SELECT: [
-                          {
-                            target: 'Moving',
-                            cond: 'didSelectMoveAction',
-                          },
-                          {
-                            target: 'Shooting',
-                            cond: 'didSelectShootAction',
-                          },
-                        ],
-                      },
-                      initial: 'SendingTargetSelectMessage',
-                      states: {
-                        SendingTargetSelectMessage: {
-                          invoke: {
-                            src: 'sendTargetSelectMessage',
-                            onDone: 'InputtingTarget',
-                            meta: {
-                              action: 'PASS',
-                            } satisfies SendTargetSelectMessageMeta,
-                          },
-                        },
-                        InputtingTarget: {
-                          on: {
-                            MULTIPLE_CHOICE_SELECT: {
-                              target: 'Ready',
-                              actions: 'assignSelectedTarget',
-                              cond: (_, event) => event.blockIndex == 1,
-                            },
-                          },
-                        },
-                        Ready: {
-                          on: {
-                            CONFIRM: {
-                              actions: () => {
-                                console.log('CONFIRM!');
-                              },
-                              target: 'Submitting',
-                            },
-                          },
-                        },
-                        Submitting: {
-                          invoke: {
-                            src: 'createPassEffect',
-                            onDone: 'Complete',
-                            onError: 'Error',
-                          },
-                        },
-                        Error: {},
-                        Complete: {
-                          type: 'final',
-                        },
-                        // Complete: {
-                        //   initial: 'Submitting',
-                        //   states: {
-                        //     Submitting: {
-                        //       invoke: {
-                        //         src: async () => {
-                        //           console.log('HELLO!!!!');
-                        //         },
-                        //         onDone: 'Complete',
-                        //         onError: 'Error',
-                        //       },
-                        //     },
-                        //     Error: {},
-                        //     Complete: {
-                        //       type: 'final',
-                        //     },
-                        //   },
-                        //   type: 'final',
-                        // },
-                      },
-                    },
-                    Shooting: {
-                      exit: 'clearSelections',
-                      on: {
-                        MULTIPLE_CHOICE_SELECT: [
-                          {
-                            target: 'Moving',
-                            cond: 'didSelectMoveAction',
-                          },
-                          {
-                            target: 'Passing',
-                            cond: 'didSelectPassAction',
-                          },
-                        ],
-                      },
-                      initial: 'Ready',
-                      states: {
-                        Ready: {
-                          on: {
-                            CONFIRM: {
-                              target: 'Complete',
-                            },
-                          },
-                        },
-                        Complete: {
-                          initial: 'Submitting',
-                          states: {
-                            Submitting: {
-                              invoke: {
-                                src: 'createShotEffect',
-                                onDone: 'Complete',
-                                onError: 'Error',
-                              },
-                            },
-                            Error: {},
-                            Complete: {
-                              type: 'final',
-                            },
-                          },
-                          type: 'final',
-                        },
-                      },
-                    },
-                    Complete: {
-                      type: 'final',
-                    },
-                  },
-                },
-                Complete: {
-                  type: 'final',
-                },
+  return createMachine({
+    id: 'StrikersTurnMachine',
+    type: 'parallel',
+    initial: 'Move',
+    schema: {
+      context: {} as StrikersTurnContext,
+      events: {} as WithSenderId<StrikersTurnCommand>,
+    },
+    context: {
+      // actionMessageIds: [],
+      effectIds: [],
+      workingGameState: Object.assign({}, gameEntity.gameState),
+    },
+    states: {
+      Move: {
+        initial: 'Placing',
+        states: {
+          Placing: {
+            on: {
+              UNDO: {
+                actions: 'undo',
               },
-            },
-            Complete: {
-              type: 'final',
+              REDO: {
+                actions: 'redo',
+              },
+              MOVE_PLAYER: {
+                actions: 'updateCardPosition',
+              },
+              PLACE_STAMINA: {
+                actions: 'updateStamina',
+              },
+              SUBMIT: {
+                target: 'Complete',
+              },
             },
           },
+          Complete: {
+            type: 'final',
+          },
         },
+        onDone: 'Actions',
+      },
+      Actions: {
+        onDone: 'Run',
+      },
+      Run: {
+        type: 'final',
       },
     },
-    {
-      actions: {
-        sendMoveTargetSelectedEvent: ({ selectedTarget }) => {
-          // todo... only send to player whos turn it currently is?
-          assert(
-            selectedTarget,
-            'expected selectedTarget when sending move event'
-          );
-          // todo... only send to player whos turn it currently is?
-          // assert(selectedCardId, 'expected selectedCardId when sending event');
-
-          // const playerId =
-          //   entity.side === 'A'
-          //     ? gameEntity.config.homeTeamPlayerIds[0]
-          //     : gameEntity.config.awayTeamPlayerIds[0];
-          // const playerEntity = entitiesById.get(playerId);
-          // assertEntitySchema(playerEntity, 'strikers_player');
-
-          const event = {
-            type: 'SELECT_MOVE_TARGET' as const,
-            target: selectedTarget,
-          };
-          gameChannelSubject.next(event);
-        },
-        sendCardSelectedEvent: ({ selectedCardId }) => {
-          // todo... only send to player whos turn it currently is?
-          assert(selectedCardId, 'expected selectedCardId when sending event');
-
-          const playerId =
-            entity.side === 'A'
-              ? gameEntity.config.homeTeamPlayerIds[0]
-              : gameEntity.config.awayTeamPlayerIds[0];
-          const playerEntity = entitiesById.get(playerId);
-          assertEntitySchema(playerEntity, 'strikers_player');
-
-          const event = {
-            type: 'SELECT_CARD' as const,
-            cardId: selectedCardId,
-            recipientId: playerEntity.userId,
-          };
-
-          gameChannelSubject.next(event);
-        },
-
-        assignSelectedCardId: assign((context, event) => {
-          assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-          context.selectedCardId = event.value;
-        }),
-
-        assignSelectedTarget: assign((context, event) => {
-          assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-          const target = AlphaNumCoordinatesSchema.parse(event.value);
-          context.selectedTarget = target;
-        }),
-
-        clearLastMessage: assign((context) => {
-          const messageId =
-            context.actionMessageIds[context.actionMessageIds.length - 1];
-          const message = messagesById.get(messageId);
-          delete context.selectedCardId;
-          const messageEvent = {
-            id: messageId,
-            type: 'MESSAGE',
-            contents: message.contents.slice(0, -1),
-          };
-
-          gameChannelSubject.next(messageEvent);
-        }),
-
-        // Resets the current action message to be the first message
-        clearSelections: assign((context) => {
-          // Only clear the message if the effect hasn't been created yet
-          // This action gets called anytime we exist
-          const actionEffectCount = getActionEffectCount({ entity });
-          const actionMessageCount = context.actionMessageIds.length;
-
-          if (actionEffectCount < actionMessageCount) {
-            const messageId =
-              context.actionMessageIds[context.actionMessageIds.length - 1];
-            const message = messagesById.get(messageId);
-            delete context.selectedCardId;
-
-            const messageEvent = {
-              id: messageId,
-              type: 'MESSAGE',
-              contents: [message.contents[0]],
-            };
-            console.log(messageEvent.contents[0]);
-            gameChannelSubject.next(messageEvent);
-          }
-        }),
-        finalizeActionMessage: ({ actionMessageIds }) => {
-          const messageId = actionMessageIds[actionMessageIds.length - 1];
-          const messageEvent = {
-            id: messageId,
-            type: 'MESSAGE',
-            contents: [
-              {
-                type: 'PlainMessage',
-                message: `Player 7 moved A.Qui #78 to #13`,
-              },
-              // {
-              //   type: 'PlainMessage',
-              //   message: `[]`,
-              // },
-            ],
-          };
-          gameChannelSubject.next(messageEvent);
-        },
-      },
-      services: {
-        createMoveEffect: async ({ selectedCardId, selectedTarget }) => {
-          assert(selectedCardId, 'expected selectedCardId');
-          assert(selectedTarget, 'expected selectedTarget');
-          const toPosition = alphaNumToOffsetCoordiantes(selectedTarget);
-
-          const fromPosition =
-            gameEntity.gameState.tilePositionsByCardId[selectedCardId];
-
-          // If the moving player possessions the ball, move the ball when the player moves
-          let ballPosition = gameEntity.gameState.ballPosition;
-          const movingPlayerHasBall =
-            ballPosition === fromPosition &&
-            gameEntity.gameState.possession === entity.side;
-          if (movingPlayerHasBall) {
-            ballPosition = toPosition;
-          }
-
-          const nextGameState = produce(gameEntity.gameState, (draft) => {
-            draft.ballPosition = ballPosition;
-            draft.tilePositionsByCardId = {
-              ...draft.tilePositionsByCardId,
-              [selectedCardId]: toPosition,
-            };
-          });
-          const patches = compare(gameEntity.gameState, nextGameState);
-
-          const { createEntity } = await import('@api/ecs');
-          const effectEntity = createEntity<StrikersEffectEntity>({
-            schema: 'strikers_effect',
-            patches,
-            gameId: gameEntity.id,
-            turnId: entity.id,
-            category: 'ACTION',
-            data: {
-              type: 'MOVE',
-              cardId: selectedCardId,
-              fromPosition,
-              toPosition,
-            },
-          });
-          world.add(effectEntity);
-          entity.effectsIds.push(effectEntity.id);
-          gameEntity.gameState = nextGameState;
-
-          return entity;
-        },
-
-        createShotEffect: async () => {
-          const { gameState } = gameEntity;
-
-          const nextGameState = produce(gameState, (draft) => {
-            // draft.ballPosition = toPosition;
-            // todo how to handle changing ball position
-          });
-          const patches = compare(gameEntity.gameState, nextGameState);
-          const fromCardId = getCardIdWithPossession(gameState);
-          assert(fromCardId, 'expected fromCardid');
-
-          const fromPosition = gameState.tilePositionsByCardId[fromCardId];
-
-          const { createEntity } = await import('@api/ecs');
-          const effectEntity = createEntity<StrikersEffectEntity>({
-            schema: 'strikers_effect',
-            patches,
-            turnId: entity.id,
-            gameId: gameEntity.id,
-            category: 'ACTION',
-            data: {
-              type: 'SHOOT',
-              fromCardId,
-              fromPosition,
-            },
-          });
-          world.add(effectEntity);
-          entity.effectsIds.push(effectEntity.id);
-          gameEntity.gameState = nextGameState;
-
-          return entity;
-        },
-        createPassEffect: async ({ selectedTarget }) => {
-          assert(selectedTarget, 'expected selectedTarget');
-          const toPosition = alphaNumToOffsetCoordiantes(selectedTarget);
-
-          const fromCardId = getCardIdWithPossession(gameEntity.gameState);
-          assert(fromCardId, 'expected fromCardId when creating pass effect');
-
-          const fromPosition = gameEntity.gameState.ballPosition;
-          assert(
-            fromPosition,
-            'expected fromPosition when creating pass effect'
-          );
-          assert(
-            gameEntity.gameState.possession,
-            'expected team to have possession when creating pass effect'
-          );
-
-          const toCardId = getCardIdAtPositionOnTeam(
-            gameEntity.gameState,
-            toPosition,
-            gameEntity.gameState.possession
-          );
-
-          const nextGameState = produce(gameEntity.gameState, (draft) => {
-            draft.ballPosition = toPosition;
-          });
-          const patches = compare(gameEntity.gameState, nextGameState);
-
-          const { createEntity } = await import('@api/ecs');
-          const effectEntity = createEntity<StrikersEffectEntity>({
-            schema: 'strikers_effect',
-            patches,
-            turnId: entity.id,
-            gameId: gameEntity.id,
-            category: 'ACTION',
-            data: {
-              type: 'PASS',
-              fromCardId,
-              fromPosition,
-              toPosition,
-              toCardId,
-            },
-          });
-          world.add(effectEntity);
-          entity.effectsIds.push(effectEntity.id);
-          gameEntity.gameState = nextGameState;
-
-          return entity;
-        },
-
-        sendSelectActionMessage: async () => {
-          const { side } = entity;
-          const playerId =
-            entity.side === 'A'
-              ? gameEntity.config.homeTeamPlayerIds[0]
-              : gameEntity.config.awayTeamPlayerIds[0];
-          const playerEntity = entitiesById.get(playerId);
-          assertEntitySchema(playerEntity, 'strikers_player');
-
-          const id = generateSnowflakeId();
-
-          const availableActions = getAvailableActions({
-            gameEntity,
-            side,
-          });
-          const actionCount = getActionEffectCount({ entity });
-
-          const remainingActionCount =
-            entity.totalActionCount - actionCount + 1;
-
-          const messageEvent = {
-            id,
-            type: 'MESSAGE',
-            recipientId: playerEntity.userId,
-            responderId: entity.id,
-            contents: [
-              {
-                type: 'MultipleChoice',
-                text: `Select an action (${remainingActionCount} remaining)`,
-                options: availableActions.map((action) => {
-                  return {
-                    name: actionNames[action],
-                    value: action,
-                  };
-                }),
-              },
-            ],
-          };
-          gameChannelSubject.next(messageEvent);
-
-          return id;
-        },
-        sendPlayerSelectMessage: async (context, event, invokeMeta) => {
-          const messageId =
-            context.actionMessageIds[context.actionMessageIds.length - 1];
-
-          const message = messagesById.get(messageId);
-          const cardIds =
-            entity.side === 'A'
-              ? gameEntity.gameState.sideACardIds
-              : gameEntity.gameState.sideBCardIds;
-
-          const contents = [
-            ...message.contents,
-            {
-              type: 'MultipleChoice',
-              text: 'Select player to move',
-              options: cardIds.map((cardId) => {
-                const card = gameEntity.config.cardsById[cardId];
-                return {
-                  name: `${card.abbreviation} #${card.jerseyNum}`,
-                  value: cardId,
-                };
-              }),
-            },
-          ];
-
-          const messageEvent = {
-            id: messageId,
-            type: 'MESSAGE',
-            contents,
-          };
-
-          gameChannelSubject.next(messageEvent);
-        },
-        sendTargetSelectMessage: async (context, event, { meta }) => {
-          const { action } = SendTargetSelectMessageMetaSchema.parse(meta);
-          const messageId =
-            context.actionMessageIds[context.actionMessageIds.length - 1];
-
-          const message = messagesById.get(messageId);
-
-          let text: string;
-          let targets: HexCoordinates[];
-
-          if (action === 'PASS') {
-            text = 'Select pass destination';
-            targets = getPassTargets({
-              gameEntity,
-            });
-          } else {
-            const { selectedCardId } = context;
-
-            assert(
-              selectedCardId,
-              'expected cardId when sending move target message'
-            );
-            const card = gameEntity.config.cardsById[selectedCardId];
-
-            text = `Select destination for ${card.abbreviation}`;
-            targets = getMoveTargets({
-              cardId: selectedCardId,
-              gameEntity,
-            });
-          }
-
-          const block = {
-            type: 'MultipleChoice',
-            showConfirm: true,
-            text,
-            options: targets.map((target) => {
-              const tile = offsetToStrikersTile(new Hex(target));
-              return {
-                name: tile,
-                value: tile,
-              };
-            }),
-          } as const;
-
-          const contents = [...message.contents, block];
-
-          const messageEvent = {
-            id: messageId,
-            type: 'MESSAGE',
-            contents,
-          };
-
-          gameChannelSubject.next(messageEvent);
-        },
-      },
-      guards: {
-        didSelectPlayerTarget: (_, event) => {
-          return event.blockIndex === 1;
-        },
-        didSelectMoveTarget: (_, event) => {
-          assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-          return event.blockIndex === 2;
-        },
-        didSelectPassAction: (_, event, meta) => {
-          assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-
-          if (event.blockIndex !== 0) {
-            return false;
-          }
-
-          const action = getSelectedAction(event);
-          return action === 'PASS';
-        },
-        didSelectMoveAction: (_, event, meta) => {
-          assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-
-          if (event.blockIndex !== 0) {
-            return false;
-          }
-
-          const action = getSelectedAction(event);
-          return action === 'MOVE';
-        },
-        didSelectShootAction: (_, event, meta) => {
-          assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
-
-          if (event.blockIndex !== 0) {
-            return false;
-          }
-
-          const action = getSelectedAction(event);
-          return action === 'SHOOT';
-        },
-        hasActionsRemaining: () => {
-          const actionCount = getActionEffectCount({ entity });
-          return actionCount < entity.totalActionCount;
-        },
-      },
-    }
-  );
+  });
 };
 
 const getActionEffectCount = (props: { entity: StrikersTurnEntity }) => {
@@ -1107,3 +439,707 @@ function equals(a: HexCoordinates, b: HexCoordinates) {
   const cubeB = (isTuple(b) ? tupleToCube(b) : b) as CubeCoordinates;
   return cubeA.q === cubeB.q && cubeA.r === cubeB.r;
 }
+
+// Status: {
+//   initial: 'Actions',
+//   states: {
+//     Actions: {
+//       initial: 'SendingSelectActionMessage',
+//       onDone: 'Complete',
+//       states: {
+//         SendingSelectActionMessage: {
+//           invoke: {
+//             src: 'sendSelectActionMessage',
+//             onDone: {
+//               target: 'InputtingAction',
+//               actions: assign((context, event) => {
+//                 context.actionMessageIds.push(event.data);
+//               }),
+//             },
+//           },
+//         },
+//         InputtingAction: {
+//           initial: 'Unselected',
+//           onDone: [
+//             {
+//               target: 'SendingSelectActionMessage',
+//               cond: 'hasActionsRemaining',
+//             },
+//             {
+//               target: 'Complete',
+//             },
+//           ],
+//           states: {
+//             Unselected: {
+//               on: {
+//                 MULTIPLE_CHOICE_SELECT: [
+//                   {
+//                     target: 'Moving',
+//                     cond: 'didSelectMoveAction',
+//                   },
+//                   {
+//                     target: 'Shooting',
+//                     cond: 'didSelectShootAction',
+//                   },
+//                   {
+//                     target: 'Passing',
+//                     cond: 'didSelectPassAction',
+//                   },
+//                 ],
+//               },
+//             },
+//             Moving: {
+//               initial: 'SendingPlayerSelectMessage',
+//               exit: 'clearSelections',
+//               on: {
+//                 MULTIPLE_CHOICE_SELECT: [
+//                   {
+//                     target: 'Shooting',
+//                     cond: 'didSelectShootAction',
+//                   },
+//                   {
+//                     target: 'Passing',
+//                     cond: 'didSelectPassAction',
+//                   },
+//                 ],
+//               },
+//               states: {
+//                 SendingPlayerSelectMessage: {
+//                   invoke: {
+//                     src: 'sendPlayerSelectMessage',
+//                     onDone: 'InputtingPlayer',
+//                   },
+//                 },
+//                 InputtingPlayer: {
+//                   initial: 'Unselected',
+//                   onDone: 'Complete',
+//                   states: {
+//                     Unselected: {
+//                       on: {
+//                         MULTIPLE_CHOICE_SELECT: {
+//                           target: 'PlayerSelected',
+//                           actions: [
+//                             'assignSelectedCardId',
+//                             'sendCardSelectedEvent',
+//                           ],
+//                           cond: 'didSelectPlayerTarget',
+//                         },
+//                       },
+//                     },
+//                     PlayerSelected: {
+//                       initial: 'SendingTargetSelectMessage',
+//                       states: {
+//                         SendingTargetSelectMessage: {
+//                           invoke: {
+//                             src: 'sendTargetSelectMessage',
+//                             onDone: 'InputtingTarget',
+//                             meta: {
+//                               action: 'MOVE',
+//                             } satisfies SendTargetSelectMessageMeta,
+//                           },
+//                         },
+//                         InputtingTarget: {
+//                           on: {
+//                             MULTIPLE_CHOICE_SELECT: [
+//                               {
+//                                 target: 'SendingTargetSelectMessage',
+//                                 actions: [
+//                                   'clearLastMessage',
+//                                   'assignSelectedCardId',
+//                                   'sendCardSelectedEvent',
+//                                 ],
+//                                 cond: 'didSelectPlayerTarget',
+//                               },
+//                               {
+//                                 target: 'Ready',
+//                                 actions: [
+//                                   'assignSelectedTarget',
+//                                   'sendMoveTargetSelectedEvent',
+//                                 ],
+//                                 cond: 'didSelectMoveTarget',
+//                               },
+//                             ],
+//                           },
+//                         },
+//                         Ready: {
+//                           on: {
+//                             CONFIRM: {
+//                               target: 'Submitting',
+//                             },
+//                           },
+//                         },
+//                         Submitting: {
+//                           invoke: {
+//                             src: 'createMoveEffect',
+//                             onDone: 'Complete',
+//                             onError: 'Error',
+//                           },
+//                         },
+//                         Error: {
+//                           entry: console.error,
+//                         },
+//                         Complete: {
+//                           entry: 'finalizeActionMessage',
+//                           type: 'final',
+//                         },
+//                       },
+//                       onDone: 'Complete',
+//                     },
+//                     Complete: {
+//                       type: 'final',
+//                     },
+//                   },
+//                 },
+//                 Complete: {
+//                   type: 'final',
+//                 },
+//               },
+//               onDone: 'Complete',
+//             },
+//             Passing: {
+//               exit: 'clearSelections',
+//               on: {
+//                 MULTIPLE_CHOICE_SELECT: [
+//                   {
+//                     target: 'Moving',
+//                     cond: 'didSelectMoveAction',
+//                   },
+//                   {
+//                     target: 'Shooting',
+//                     cond: 'didSelectShootAction',
+//                   },
+//                 ],
+//               },
+//               initial: 'SendingTargetSelectMessage',
+//               states: {
+//                 SendingTargetSelectMessage: {
+//                   invoke: {
+//                     src: 'sendTargetSelectMessage',
+//                     onDone: 'InputtingTarget',
+//                     meta: {
+//                       action: 'PASS',
+//                     } satisfies SendTargetSelectMessageMeta,
+//                   },
+//                 },
+//                 InputtingTarget: {
+//                   on: {
+//                     MULTIPLE_CHOICE_SELECT: {
+//                       target: 'Ready',
+//                       actions: 'assignSelectedTarget',
+//                       cond: (_, event) => event.blockIndex == 1,
+//                     },
+//                   },
+//                 },
+//                 Ready: {
+//                   on: {
+//                     CONFIRM: {
+//                       actions: () => {
+//                         console.log('CONFIRM!');
+//                       },
+//                       target: 'Submitting',
+//                     },
+//                   },
+//                 },
+//                 Submitting: {
+//                   invoke: {
+//                     src: 'createPassEffect',
+//                     onDone: 'Complete',
+//                     onError: 'Error',
+//                   },
+//                 },
+//                 Error: {},
+//                 Complete: {
+//                   type: 'final',
+//                 },
+//                 // Complete: {
+//                 //   initial: 'Submitting',
+//                 //   states: {
+//                 //     Submitting: {
+//                 //       invoke: {
+//                 //         src: async () => {
+//                 //           console.log('HELLO!!!!');
+//                 //         },
+//                 //         onDone: 'Complete',
+//                 //         onError: 'Error',
+//                 //       },
+//                 //     },
+//                 //     Error: {},
+//                 //     Complete: {
+//                 //       type: 'final',
+//                 //     },
+//                 //   },
+//                 //   type: 'final',
+//                 // },
+//               },
+//             },
+//             Shooting: {
+//               exit: 'clearSelections',
+//               on: {
+//                 MULTIPLE_CHOICE_SELECT: [
+//                   {
+//                     target: 'Moving',
+//                     cond: 'didSelectMoveAction',
+//                   },
+//                   {
+//                     target: 'Passing',
+//                     cond: 'didSelectPassAction',
+//                   },
+//                 ],
+//               },
+//               initial: 'Ready',
+//               states: {
+//                 Ready: {
+//                   on: {
+//                     CONFIRM: {
+//                       target: 'Complete',
+//                     },
+//                   },
+//                 },
+//                 Complete: {
+//                   initial: 'Submitting',
+//                   states: {
+//                     Submitting: {
+//                       invoke: {
+//                         src: 'createShotEffect',
+//                         onDone: 'Complete',
+//                         onError: 'Error',
+//                       },
+//                     },
+//                     Error: {},
+//                     Complete: {
+//                       type: 'final',
+//                     },
+//                   },
+//                   type: 'final',
+//                 },
+//               },
+//             },
+//             Complete: {
+//               type: 'final',
+//             },
+//           },
+//         },
+//         Complete: {
+//           type: 'final',
+//         },
+//       },
+//     },
+//     Complete: {
+//       type: 'final',
+//     },
+//   },
+// },
+// {
+//   actions: {
+//     sendMoveTargetSelectedEvent: ({ selectedTarget }) => {
+//       // todo... only send to player whos turn it currently is?
+//       assert(
+//         selectedTarget,
+//         'expected selectedTarget when sending move event'
+//       );
+//       // todo... only send to player whos turn it currently is?
+//       // assert(selectedCardId, 'expected selectedCardId when sending event');
+
+//       // const playerId =
+//       //   entity.side === 'A'
+//       //     ? gameEntity.config.homeTeamPlayerIds[0]
+//       //     : gameEntity.config.awayTeamPlayerIds[0];
+//       // const playerEntity = entitiesById.get(playerId);
+//       // assertEntitySchema(playerEntity, 'strikers_player');
+
+//       const event = {
+//         type: 'SELECT_MOVE_TARGET' as const,
+//         target: selectedTarget,
+//       };
+//       gameChannelSubject.next(event);
+//     },
+//     sendCardSelectedEvent: ({ selectedCardId }) => {
+//       // todo... only send to player whos turn it currently is?
+//       assert(selectedCardId, 'expected selectedCardId when sending event');
+
+//       const playerId =
+//         entity.side === 'A'
+//           ? gameEntity.config.homeTeamPlayerIds[0]
+//           : gameEntity.config.awayTeamPlayerIds[0];
+//       const playerEntity = entitiesById.get(playerId);
+//       assertEntitySchema(playerEntity, 'strikers_player');
+
+//       const event = {
+//         type: 'SELECT_CARD' as const,
+//         cardId: selectedCardId,
+//         recipientId: playerEntity.userId,
+//       };
+
+//       gameChannelSubject.next(event);
+//     },
+
+//     assignSelectedCardId: assign((context, event) => {
+//       assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
+//       context.selectedCardId = event.value;
+//     }),
+
+//     assignSelectedTarget: assign((context, event) => {
+//       assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
+//       const target = AlphaNumCoordinatesSchema.parse(event.value);
+//       context.selectedTarget = target;
+//     }),
+
+//     clearLastMessage: assign((context) => {
+//       const messageId =
+//         context.actionMessageIds[context.actionMessageIds.length - 1];
+//       const message = messagesById.get(messageId);
+//       delete context.selectedCardId;
+//       const messageEvent = {
+//         id: messageId,
+//         type: 'MESSAGE',
+//         contents: message.contents.slice(0, -1),
+//       };
+
+//       gameChannelSubject.next(messageEvent);
+//     }),
+
+//     // Resets the current action message to be the first message
+//     clearSelections: assign((context) => {
+//       // Only clear the message if the effect hasn't been created yet
+//       // This action gets called anytime we exist
+//       const actionEffectCount = getActionEffectCount({ entity });
+//       const actionMessageCount = context.actionMessageIds.length;
+
+//       if (actionEffectCount < actionMessageCount) {
+//         const messageId =
+//           context.actionMessageIds[context.actionMessageIds.length - 1];
+//         const message = messagesById.get(messageId);
+//         delete context.selectedCardId;
+
+//         const messageEvent = {
+//           id: messageId,
+//           type: 'MESSAGE',
+//           contents: [message.contents[0]],
+//         };
+//         console.log(messageEvent.contents[0]);
+//         gameChannelSubject.next(messageEvent);
+//       }
+//     }),
+//     finalizeActionMessage: ({ actionMessageIds }) => {
+//       const messageId = actionMessageIds[actionMessageIds.length - 1];
+//       const messageEvent = {
+//         id: messageId,
+//         type: 'MESSAGE',
+//         contents: [
+//           {
+//             type: 'PlainMessage',
+//             message: `Player 7 moved A.Qui #78 to #13`,
+//           },
+//           // {
+//           //   type: 'PlainMessage',
+//           //   message: `[]`,
+//           // },
+//         ],
+//       };
+//       gameChannelSubject.next(messageEvent);
+//     },
+//   },
+//   services: {
+//     createMoveEffect: async ({ selectedCardId, selectedTarget }) => {
+//       assert(selectedCardId, 'expected selectedCardId');
+//       assert(selectedTarget, 'expected selectedTarget');
+//       const toPosition = alphaNumToOffsetCoordiantes(selectedTarget);
+
+//       const fromPosition =
+//         gameEntity.gameState.tilePositionsByCardId[selectedCardId];
+
+//       // If the moving player possessions the ball, move the ball when the player moves
+//       let ballPosition = gameEntity.gameState.ballPosition;
+//       const movingPlayerHasBall =
+//         ballPosition === fromPosition &&
+//         gameEntity.gameState.possession === entity.side;
+//       if (movingPlayerHasBall) {
+//         ballPosition = toPosition;
+//       }
+
+//       const nextGameState = produce(gameEntity.gameState, (draft) => {
+//         draft.ballPosition = ballPosition;
+//         draft.tilePositionsByCardId = {
+//           ...draft.tilePositionsByCardId,
+//           [selectedCardId]: toPosition,
+//         };
+//       });
+//       const patches = compare(gameEntity.gameState, nextGameState);
+
+//       const { createEntity } = await import('@api/ecs');
+//       const effectEntity = createEntity<StrikersEffectEntity>({
+//         schema: 'strikers_effect',
+//         patches,
+//         gameId: gameEntity.id,
+//         turnId: entity.id,
+//         category: 'ACTION',
+//         data: {
+//           type: 'MOVE',
+//           cardId: selectedCardId,
+//           fromPosition,
+//           toPosition,
+//         },
+//       });
+//       world.add(effectEntity);
+//       entity.effectsIds.push(effectEntity.id);
+//       gameEntity.gameState = nextGameState;
+
+//       return entity;
+//     },
+
+//     createShotEffect: async () => {
+//       const { gameState } = gameEntity;
+
+//       const nextGameState = produce(gameState, (draft) => {
+//         // draft.ballPosition = toPosition;
+//         // todo how to handle changing ball position
+//       });
+//       const patches = compare(gameEntity.gameState, nextGameState);
+//       const fromCardId = getCardIdWithPossession(gameState);
+//       assert(fromCardId, 'expected fromCardid');
+
+//       const fromPosition = gameState.tilePositionsByCardId[fromCardId];
+
+//       const { createEntity } = await import('@api/ecs');
+//       const effectEntity = createEntity<StrikersEffectEntity>({
+//         schema: 'strikers_effect',
+//         patches,
+//         turnId: entity.id,
+//         gameId: gameEntity.id,
+//         category: 'ACTION',
+//         data: {
+//           type: 'SHOOT',
+//           fromCardId,
+//           fromPosition,
+//         },
+//       });
+//       world.add(effectEntity);
+//       entity.effectsIds.push(effectEntity.id);
+//       gameEntity.gameState = nextGameState;
+
+//       return entity;
+//     },
+//     createPassEffect: async ({ selectedTarget }) => {
+//       assert(selectedTarget, 'expected selectedTarget');
+//       const toPosition = alphaNumToOffsetCoordiantes(selectedTarget);
+
+//       const fromCardId = getCardIdWithPossession(gameEntity.gameState);
+//       assert(fromCardId, 'expected fromCardId when creating pass effect');
+
+//       const fromPosition = gameEntity.gameState.ballPosition;
+//       assert(
+//         fromPosition,
+//         'expected fromPosition when creating pass effect'
+//       );
+//       assert(
+//         gameEntity.gameState.possession,
+//         'expected team to have possession when creating pass effect'
+//       );
+
+//       const toCardId = getCardIdAtPositionOnTeam(
+//         gameEntity.gameState,
+//         toPosition,
+//         gameEntity.gameState.possession
+//       );
+
+//       const nextGameState = produce(gameEntity.gameState, (draft) => {
+//         draft.ballPosition = toPosition;
+//       });
+//       const patches = compare(gameEntity.gameState, nextGameState);
+
+//       const { createEntity } = await import('@api/ecs');
+//       const effectEntity = createEntity<StrikersEffectEntity>({
+//         schema: 'strikers_effect',
+//         patches,
+//         turnId: entity.id,
+//         gameId: gameEntity.id,
+//         category: 'ACTION',
+//         data: {
+//           type: 'PASS',
+//           fromCardId,
+//           fromPosition,
+//           toPosition,
+//           toCardId,
+//         },
+//       });
+//       world.add(effectEntity);
+//       entity.effectsIds.push(effectEntity.id);
+//       gameEntity.gameState = nextGameState;
+
+//       return entity;
+//     },
+
+//     sendSelectActionMessage: async () => {
+//       const { side } = entity;
+//       const playerId =
+//         entity.side === 'A'
+//           ? gameEntity.config.homeTeamPlayerIds[0]
+//           : gameEntity.config.awayTeamPlayerIds[0];
+//       const playerEntity = entitiesById.get(playerId);
+//       assertEntitySchema(playerEntity, 'strikers_player');
+
+//       const id = generateSnowflakeId();
+
+//       const availableActions = getAvailableActions({
+//         gameEntity,
+//         side,
+//       });
+//       const actionCount = getActionEffectCount({ entity });
+
+//       const remainingActionCount =
+//         entity.totalActionCount - actionCount + 1;
+
+//       const messageEvent = {
+//         id,
+//         type: 'MESSAGE',
+//         recipientId: playerEntity.userId,
+//         responderId: entity.id,
+//         contents: [
+//           {
+//             type: 'MultipleChoice',
+//             text: `Select an action (${remainingActionCount} remaining)`,
+//             options: availableActions.map((action) => {
+//               return {
+//                 name: actionNames[action],
+//                 value: action,
+//               };
+//             }),
+//           },
+//         ],
+//       };
+//       gameChannelSubject.next(messageEvent);
+
+//       return id;
+//     },
+//     sendPlayerSelectMessage: async (context, event, invokeMeta) => {
+//       const messageId =
+//         context.actionMessageIds[context.actionMessageIds.length - 1];
+
+//       const message = messagesById.get(messageId);
+//       const cardIds =
+//         entity.side === 'A'
+//           ? gameEntity.gameState.sideACardIds
+//           : gameEntity.gameState.sideBCardIds;
+
+//       const contents = [
+//         ...message.contents,
+//         {
+//           type: 'MultipleChoice',
+//           text: 'Select player to move',
+//           options: cardIds.map((cardId) => {
+//             const card = gameEntity.config.cardsById[cardId];
+//             return {
+//               name: `${card.abbreviation} #${card.jerseyNum}`,
+//               value: cardId,
+//             };
+//           }),
+//         },
+//       ];
+
+//       const messageEvent = {
+//         id: messageId,
+//         type: 'MESSAGE',
+//         contents,
+//       };
+
+//       gameChannelSubject.next(messageEvent);
+//     },
+//     sendTargetSelectMessage: async (context, event, { meta }) => {
+//       const { action } = SendTargetSelectMessageMetaSchema.parse(meta);
+//       const messageId =
+//         context.actionMessageIds[context.actionMessageIds.length - 1];
+
+//       const message = messagesById.get(messageId);
+
+//       let text: string;
+//       let targets: HexCoordinates[];
+
+//       if (action === 'PASS') {
+//         text = 'Select pass destination';
+//         targets = getPassTargets({
+//           gameEntity,
+//         });
+//       } else {
+//         const { selectedCardId } = context;
+
+//         assert(
+//           selectedCardId,
+//           'expected cardId when sending move target message'
+//         );
+//         const card = gameEntity.config.cardsById[selectedCardId];
+
+//         text = `Select destination for ${card.abbreviation}`;
+//         targets = getMoveTargets({
+//           cardId: selectedCardId,
+//           gameEntity,
+//         });
+//       }
+
+//       const block = {
+//         type: 'MultipleChoice',
+//         showConfirm: true,
+//         text,
+//         options: targets.map((target) => {
+//           const tile = offsetToStrikersTile(new Hex(target));
+//           return {
+//             name: tile,
+//             value: tile,
+//           };
+//         }),
+//       } as const;
+
+//       const contents = [...message.contents, block];
+
+//       const messageEvent = {
+//         id: messageId,
+//         type: 'MESSAGE',
+//         contents,
+//       };
+
+//       gameChannelSubject.next(messageEvent);
+//     },
+//   },
+//   guards: {
+//     didSelectPlayerTarget: (_, event) => {
+//       return event.blockIndex === 1;
+//     },
+//     didSelectMoveTarget: (_, event) => {
+//       assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
+//       return event.blockIndex === 2;
+//     },
+//     didSelectPassAction: (_, event, meta) => {
+//       assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
+
+//       if (event.blockIndex !== 0) {
+//         return false;
+//       }
+
+//       const action = getSelectedAction(event);
+//       return action === 'PASS';
+//     },
+//     didSelectMoveAction: (_, event, meta) => {
+//       assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
+
+//       if (event.blockIndex !== 0) {
+//         return false;
+//       }
+
+//       const action = getSelectedAction(event);
+//       return action === 'MOVE';
+//     },
+//     didSelectShootAction: (_, event, meta) => {
+//       assertEventType(event, 'MULTIPLE_CHOICE_SELECT');
+
+//       if (event.blockIndex !== 0) {
+//         return false;
+//       }
+
+//       const action = getSelectedAction(event);
+//       return action === 'SHOOT';
+//     },
+//     hasActionsRemaining: () => {
+//       const actionCount = getActionEffectCount({ entity });
+//       return actionCount < entity.totalActionCount;
+//     },
+//   },
+// }

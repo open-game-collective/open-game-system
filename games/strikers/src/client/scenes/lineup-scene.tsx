@@ -14,10 +14,20 @@ import { FieldCell } from '../components/field-cell';
 import { Goal } from '../components/goal';
 import { GridContext } from '../context/grid.context';
 import { StrikersContext } from '../context/strikers.context';
+import { ClientEventContext } from '../context/client-event.context';
 
 export const LineupScene = () => {
   const { playerEntity } = useContext(StrikersContext);
   const grid = useContext(GridContext);
+  const { send, event$ } = useContext(ClientEventContext);
+
+  useLayoutEffect(() => {
+    return event$.listen((event) => {
+      if (event.type === 'PRESS_TILE') {
+        // Show player in bototm nav...
+      }
+    });
+  });
 
   return (
     <>

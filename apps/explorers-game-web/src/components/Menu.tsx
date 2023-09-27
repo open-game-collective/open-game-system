@@ -97,13 +97,13 @@ const TabButton = styled(Button, {
 const MenuDrawerContent = () => {
   return (
     <StyledDialogContent>
-      <Tabs.Root defaultValue="games" style={{ height: '100%' }}>
+      <Tabs.Root defaultValue="channels" style={{ height: '100%' }}>
         <Flex direction="column" gap="3" style={{ height: '100%' }}>
           <Flex justify={'between'} css={{ p: '$3' }}>
             <Tabs.List>
-              <Tabs.Trigger value="games" asChild>
+              <Tabs.Trigger value="channels" asChild>
                 <TabButton ghost size="3">
-                  My Games
+                  My Channels
                 </TabButton>
               </Tabs.Trigger>
               <Tabs.Trigger value="lobby" asChild>
@@ -326,7 +326,7 @@ const GamesTabContent = () => {
   // const entities = useEntities('room');
 
   return (
-    <Tabs.Content value="games">
+    <Tabs.Content value="channels">
       <Flex direction="column" gap="3">
         <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
           Hello

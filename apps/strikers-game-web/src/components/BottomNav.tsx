@@ -1,17 +1,12 @@
 import { Flex } from '@atoms/Flex';
 import { IconButton } from '@atoms/IconButton';
-import { LayoutContext } from '@context/LayoutContext';
-import {
-  BackpackIcon,
-  HamburgerMenuIcon,
-  PersonIcon,
-  ThickArrowLeftIcon,
-} from '@radix-ui/react-icons';
-import { useCallback, useContext } from 'react';
-import { useStore } from '@nanostores/react';
+import { Cross2Icon, ThickArrowLeftIcon } from '@radix-ui/react-icons';
+import type { FC, ReactNode } from 'react';
 
-export const BottomNav = () => {
-  const isBottomNavOpen = false;
+export const BottomNav: FC<{ children?: ReactNode }> = ({ children }) => {
+  const isBottomNavOpen = true;
+  const showBackButton = false;
+  const showCloseButton = false;
   // const { isMenuOpenStore } = useContext(LayoutContext);
   // const handlePressMenu = useCallback(() => {
   //   if (isMenuOpenStore.get()) {
@@ -25,23 +20,31 @@ export const BottomNav = () => {
 
   return isBottomNavOpen ? (
     <Flex
-      justify="between"
+      justify="start"
       align="center"
+      gap="2"
       css={{
-        background:
-          'linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5))',
         position: 'absolute',
-        border: '4px dashed yellow',
-        bottom: '0',
-        left: '0',
-        right: '0',
+        background: 'white',
+        borderRadius: '$2',
+        bottom: '$2',
+        left: '$2',
+        right: '$2',
         p: '$2',
         zIndex: 200,
       }}
     >
-      <IconButton variant="stroke" size="3">
-        <ThickArrowLeftIcon />
-      </IconButton>
+      {showBackButton && (
+        <IconButton size="3">
+          <ThickArrowLeftIcon />
+        </IconButton>
+      )}
+      {children}
+      {showCloseButton && (
+        <IconButton size="3">
+          <Cross2Icon />
+        </IconButton>
+      )}
     </Flex>
   ) : (
     <></>
